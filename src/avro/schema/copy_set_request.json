@@ -1,0 +1,12 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "copy_set_request",
+    "fields" : [
+        { "name" : "new_set_id", "type" : "string" },
+        { "name" : "original_set_id", "type" : "string" },
+        { "name" : "selector", "type" : "string" },
+        { "name" : "type_id", "type" : "string" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

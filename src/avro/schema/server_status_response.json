@@ -1,0 +1,8 @@
+{
+   "namespace" : "avro.java.gaia",
+   "type" : "record",
+   "name" : "server_status_response",
+   "fields" : [
+        { "name" : "status_map", "type" : { "type" : "map", "values" : "string" }}
+    ]
+}

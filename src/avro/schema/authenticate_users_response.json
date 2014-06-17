@@ -1,0 +1,9 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "authenticate_users_response",
+    "fields" : [
+        { "name" : "user_auth_strings", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }}
+    ]
+}

@@ -1,0 +1,13 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "register_trigger_range_request",
+    "fields" : [
+        { "name" : "request_id", "type" : "string" },
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "attr", "type" : "string" },
+        { "name" : "lowest", "type" : "double" },
+        { "name" : "highest", "type" : "double" },
+        { "name" : "id_attr", "type" : "string" }
+    ]
+}

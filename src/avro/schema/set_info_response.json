@@ -1,0 +1,14 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "set_info_response",
+    "fields" : [
+        { "name" : "type_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "type_schemas", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "labels", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "semantic_types", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "sorted", "type" : { "type" : "array", "items" : "boolean" }},
+        { "name" : "ttls", "type" : { "type" : "array", "items" : "int" }}
+    ]
+}

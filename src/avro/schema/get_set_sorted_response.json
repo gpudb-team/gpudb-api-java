@@ -1,0 +1,13 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "get_set_sorted_response",
+    "fields" : [
+        { "name" : "attribute", "type" : "string" },
+        { "name" : "data_map", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "double" }}},
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "start", "type" : "int" },
+        { "name" : "end", "type" : "int" },
+        { "name" : "list", "type" : { "type" : "array", "items" : "bytes" }}
+    ]
+}

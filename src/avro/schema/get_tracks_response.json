@@ -1,0 +1,9 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "get_tracks_response",
+    "fields" : [
+        { "name" : "track_set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "track_ids", "type" : { "type" : "array", "items" : "string" }}
+    ]
+}

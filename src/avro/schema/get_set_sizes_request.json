@@ -1,0 +1,8 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "get_set_sizes_request",
+    "fields" : [
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }}
+    ]
+}

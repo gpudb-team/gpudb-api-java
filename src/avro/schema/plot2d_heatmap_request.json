@@ -1,0 +1,24 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "plot2d_heatmap_request",
+    "fields" : [
+        { "name" : "min_x", "type" : "double" },
+        { "name" : "max_x", "type" : "double" },
+        { "name" : "min_y", "type" : "double" },
+        { "name" : "max_y", "type" : "double" },
+        { "name" : "x_attr_name", "type" : "string" },
+        { "name" : "y_attr_name", "type" : "string" },
+        { "name" : "value_attr_name", "type" : "string"},
+        { "name" : "width", "type" : "double" },
+        { "name" : "height", "type" : "double" },
+        { "name" : "projection", "type" : "string" },
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "colormap", "type" : "string" },
+        { "name" : "blur_radius", "type" : "int" },
+        { "name" : "bg_color", "type" : "long" },
+        { "name" : "gradient_start_color", "type" : "long" },
+        { "name" : "gradient_end_color", "type" : "long" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

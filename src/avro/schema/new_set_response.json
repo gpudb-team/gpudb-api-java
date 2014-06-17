@@ -1,0 +1,9 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "new_set_response",
+    "fields" : [
+        { "name" : "type_id", "type" : "string" },
+        { "name" : "sorted", "type" : "boolean" }
+    ]
+}

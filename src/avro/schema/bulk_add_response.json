@@ -1,0 +1,16 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "bulk_add_response",
+    "fields" : [
+        { "name" : "OBJECT_IDs", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "list", "type" : { "type" : "array", "items" : "bytes" }},
+        { "name" : "list_str", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "list_encoding", "type" : "string" },
+        { "name" : "matching_triggers", "type" : { "type" : "array", "items" : { "type" : "array", "items" : "string" }}},
+        { "name" : "matching_qualifiers", "type" : { "type" : "array", "items" : { "type" : "array", "items" : "double" }}},
+        { "name" : "nonmatching_triggers", "type" : { "type" : "array", "items" : { "type" : "array", "items" : "string" }}},
+        { "name" : "nonmatching_qualifiers", "type" : { "type" : "array", "items" : { "type" : "array", "items" : "double" }}}
+    ]
+}

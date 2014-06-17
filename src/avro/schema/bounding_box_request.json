@@ -1,0 +1,16 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "bounding_box_request",
+    "fields" : [
+        { "name" : "min_x", "type" : "double" },
+        { "name" : "max_x", "type" : "double" },
+        { "name" : "min_y", "type" : "double" },
+        { "name" : "max_y", "type" : "double" },
+        { "name" : "x_attr_name", "type" : "string" },
+        { "name" : "y_attr_name", "type" : "string" },
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "result_set_id", "type" : "string" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

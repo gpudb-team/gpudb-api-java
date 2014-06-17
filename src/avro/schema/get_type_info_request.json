@@ -1,0 +1,10 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "get_type_info_request",
+    "fields" : [
+        { "name" : "type_id", "type" : "string" },
+        { "name" : "label", "type" : "string" },
+        { "name" : "semantic_type", "type" : "string" }
+    ]
+}

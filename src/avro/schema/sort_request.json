@@ -1,0 +1,9 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "sort_request",
+    "fields" : [
+        { "name" : "attribute", "type" : "string" },
+        { "name" : "set_id", "type" : "string" }
+    ]
+}

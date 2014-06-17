@@ -1,0 +1,9 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "register_type_transform_response",
+    "fields" : [
+        { "name" : "type_id", "type" : "string" },
+        { "name" : "new_type_id", "type" : "string" }
+    ]
+}

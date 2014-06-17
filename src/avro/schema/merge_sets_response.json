@@ -1,0 +1,10 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "merge_sets_response",
+    "fields" : [
+        { "name" : "merged_set_id", "type" : "string" },
+        { "name" : "common_type_id", "type" : "string" },
+        { "name" : "merged_type_id", "type" : "string" }
+    ]
+}

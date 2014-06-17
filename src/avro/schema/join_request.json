@@ -1,0 +1,14 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "join_request",
+    "fields" : [
+        { "name" : "left_set", "type" : "string" },
+        { "name" : "left_attr", "type" : "string" },
+        { "name" : "right_set", "type" : "string" },
+        { "name" : "right_attr", "type" : "string" },
+        { "name" : "result_type", "type" : "string" },
+        { "name" : "result_set", "type" : "string" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

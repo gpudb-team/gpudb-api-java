@@ -1,0 +1,12 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "get_objects_response",
+    "fields" : [
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "type_id", "type" : "string" },
+        { "name" : "type_schema", "type" : "string" },
+        { "name" : "list", "type" : { "type" : "array", "items" : "bytes" }},
+        { "name" : "list_str", "type" : { "type" : "array", "items" : "string" }}
+    ]
+}

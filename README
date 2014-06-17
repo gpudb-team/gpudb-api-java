@@ -1,0 +1,6 @@
+javadoc ../src/com/gisfederal/*.java  ### NOTE: don't do this; use eclipse's javadoc generator instead -- much better
+
+
+java -cp "target/gaia2-client-1.11-jar-with-dependencies.jar:lib/:." com.gisfederal.test.TestNonJunit
+java -cp "target/gaia2-client-1.11-jar-with-dependencies.jar:." com.gisfederal.test.TestNonJunit testSort
+java -cp "target/gaia2-client-1.11-jar-with-dependencies.jar:lib/:." com.gisfederal.test.TestNonJunit testSort

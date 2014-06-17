@@ -1,0 +1,14 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "filter_by_string_request",
+    "fields" : [
+        { "name" : "expression", "type" : "string" },
+        { "name" : "mode", "type" : "string" },
+        { "name" : "options", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "attributes", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "result_set_id", "type" : "string" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

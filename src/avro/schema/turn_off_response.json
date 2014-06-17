@@ -1,0 +1,8 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "turn_off_response",
+    "fields" : [
+        { "name" : "map", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "double" }}}
+    ]
+}

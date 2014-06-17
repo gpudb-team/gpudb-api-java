@@ -1,0 +1,13 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "filter_by_bounds_request",
+    "fields" : [
+        { "name" : "attribute", "type" : "string" },
+        { "name" : "lower_bound", "type" : "double" },
+        { "name" : "result_set_id", "type" : "string" },
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "upper_bound", "type" : "double" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

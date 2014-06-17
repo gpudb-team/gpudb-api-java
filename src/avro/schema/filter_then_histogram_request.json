@@ -1,0 +1,15 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "filter_then_histogram_request",
+    "fields" : [
+        { "name" : "histogram_attribute", "type" : "string" },
+        { "name" : "end", "type" : "double" },
+        { "name" : "interval", "type" : "long" },
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "start", "type" : "double" },
+        { "name" : "filter_attribute", "type" : "string" },
+        { "name" : "filter", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

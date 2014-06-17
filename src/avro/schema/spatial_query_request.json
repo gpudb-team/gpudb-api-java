@@ -1,0 +1,10 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "spatial_query_request",
+    "fields" : [
+        { "name" : "wkt_string_1", "type" : "string" },
+        { "name" : "wkt_string_2", "type" : "string" },
+        { "name" : "operation", "type" : "string" }
+    ]
+}

@@ -1,0 +1,9 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "stats_response",
+    "fields" : [
+        { "name" : "count_map", "type" : { "type" : "map", "values" : "int" }},
+        { "name" : "set_id", "type" : "string" }
+    ]
+}

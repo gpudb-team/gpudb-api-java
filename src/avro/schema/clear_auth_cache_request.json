@@ -1,0 +1,9 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "clear_auth_cache_request",
+    "fields" : [
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

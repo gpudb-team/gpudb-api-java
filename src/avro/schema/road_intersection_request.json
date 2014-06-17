@@ -1,0 +1,14 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "road_intersection_request",
+    "fields" : [
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "x_attribute", "type" : "string" },
+        { "name" : "y_attribute", "type" : "string" },
+        { "name" : "road_x_vector", "type" : { "type" : "array", "items" : "double" }},
+        { "name" : "road_y_vector", "type" : { "type" : "array", "items" : "double" }},
+        { "name" : "output_attribute", "type" : "string" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

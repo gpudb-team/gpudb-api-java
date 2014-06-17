@@ -1,0 +1,10 @@
+{
+   "namespace" : "avro.java.gaia",
+    "type" : "record",
+    "name" : "get_sorted_sets_request",
+    "fields" : [
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "attribute", "type" : "string" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}
