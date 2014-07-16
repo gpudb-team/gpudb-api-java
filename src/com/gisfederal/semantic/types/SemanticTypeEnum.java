@@ -28,8 +28,8 @@ public enum SemanticTypeEnum {
 			System.out.println(" Empty name is " + EMPTY.name());
 			System.out.println(" Empty string is " + EMPTY.toString());
 			
-			System.out.println(" GaiaObject name is " + GENERICOBJECT.name());
-			System.out.println(" GaiaObject string is " + GENERICOBJECT.toString());
+			System.out.println(" GpudbObject name is " + GENERICOBJECT.name());
+			System.out.println(" GpudbObject string is " + GENERICOBJECT.toString());
 			
 		}
 		

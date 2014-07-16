@@ -4,20 +4,20 @@
 package com.gisfederal.request;
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.stats_request;
-import avro.java.gaia.status_request;
+import avro.java.gpudb.stats_request;
+import avro.java.gpudb.status_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 
 /**
- * @author gaiadevs
+ * @author gpudbdevs
  *
  */
 public class StatusRequest extends Request {
 
-	public StatusRequest(Gaia gaia, String file, String set_id) {
-		this.gaia = gaia;
+	public StatusRequest(GPUdb gPUdb, String file, String set_id) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(StatusRequest.class);
 		

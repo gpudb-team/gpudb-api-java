@@ -1,5 +1,5 @@
 {
-   "namespace" : "avro.java.gaia",
+    "namespace" : "avro.java.gpudb",
     "type" : "record",
     "name" : "plot2d_heatmap_cb_request",
     "fields" : [

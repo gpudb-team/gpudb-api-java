@@ -14,12 +14,12 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.add_object_request;
-import avro.java.gaia.bounding_box_request;
+import avro.java.gpudb.add_object_request;
+import avro.java.gpudb.bounding_box_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
-import com.gisfederal.GaiaException;
+import com.gisfederal.GPUdb;
+import com.gisfederal.GPUdbException;
 import com.gisfederal.GenericObject;
 import com.gisfederal.NamedSet;
 import com.gisfederal.Type;
@@ -27,12 +27,12 @@ import com.gisfederal.Type;
 public class AddObjectRequest extends Request{
 
 	// Given the object to add and the set id of named set to add it too
-	public AddObjectRequest(Gaia gaia, String file, Object obj, NamedSet ns) throws GaiaException{
-		this.gaia = gaia;
+	public AddObjectRequest(GPUdb gPUdb, String file, Object obj, NamedSet ns) throws GPUdbException{
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(AddObjectRequest.class);
 		
-		ByteBuffer serialized = encodeObject(gaia, file, obj, ns, log);
+		ByteBuffer serialized = encodeObject(gPUdb, file, obj, ns, log);
 
 		// add to avro object
 		add_object_request request = new add_object_request(serialized, "", "BINARY", ns.get_setid().get_id());	
@@ -58,7 +58,7 @@ public class AddObjectRequest extends Request{
 		setAuditMessage(msg.toString());
 	}
 	
-	public static ByteBuffer encodeObject(Gaia gaia, String file, Object obj, NamedSet ns, Logger logger) {
+	public static ByteBuffer encodeObject(GPUdb gPUdb, String file, Object obj, NamedSet ns, Logger logger) {
 
 		// grab schema
 		Type type = ns.getType();
@@ -149,7 +149,7 @@ public class AddObjectRequest extends Request{
 
 		} catch(Exception e) {
 			logger.error(" Exception received " + e);
-			throw new GaiaException("Error writing avro encoding of object:"+e.toString());
+			throw new GPUdbException("Error writing avro encoding of object:"+e.toString());
 		}
 		// put the resulting byte array into the bytebuffer 
 		logger.debug("baos.toByteArray().length:"+baos.toByteArray().length);

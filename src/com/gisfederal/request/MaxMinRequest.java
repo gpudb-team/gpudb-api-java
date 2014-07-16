@@ -1,21 +1,21 @@
 package com.gisfederal.request;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.AvroUtils;
 import com.gisfederal.SetId;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.get_set_sorted_request;
-import avro.java.gaia.max_min_request;
+import avro.java.gpudb.get_set_sorted_request;
+import avro.java.gpudb.max_min_request;
 
 public class MaxMinRequest extends Request {
-	public MaxMinRequest(Gaia gaia, String file, SetId id, String attribute) {
-		this.gaia = gaia;
+	public MaxMinRequest(GPUdb gPUdb, String file, SetId id, String attribute) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(MaxMinRequest.class);
-		log.debug("gaia:"+gaia.toString()+" file:"+file+" id:"+id.get_id()+" attr:"+attribute);
+		log.debug("gpudb:"+gPUdb.toString()+" file:"+file+" id:"+id.get_id()+" attr:"+attribute);
 		
-		max_min_request request = new max_min_request(attribute, id.get_id(), this.gaia.getUserAuth());
+		max_min_request request = new max_min_request(attribute, id.get_id(), this.gPUdb.getUserAuth());
 
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));
 	

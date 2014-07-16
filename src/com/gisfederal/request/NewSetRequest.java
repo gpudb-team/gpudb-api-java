@@ -1,5 +1,5 @@
 package com.gisfederal.request;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.AvroUtils;
 import com.gisfederal.SetId;
 import com.gisfederal.NamedSet;
@@ -15,8 +15,8 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.get_set_sorted_request;
-import avro.java.gaia.new_set_request;
+import avro.java.gpudb.get_set_sorted_request;
+import avro.java.gpudb.new_set_request;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -24,8 +24,8 @@ import com.google.gson.JsonObject;
 
 public class NewSetRequest extends Request {
 
-	public NewSetRequest(Gaia gaia, String file, NamedSet ns, SetId parent) {
-		this.gaia = gaia;
+	public NewSetRequest(GPUdb gPUdb, String file, NamedSet ns, SetId parent) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(NewSetRequest.class);			
 		
@@ -39,8 +39,8 @@ public class NewSetRequest extends Request {
 		createAuditMsg(request);
 	}
 	
-	public NewSetRequest(Gaia gaia, String file, NamedSet ns) {
-		this.gaia = gaia;
+	public NewSetRequest(GPUdb gPUdb, String file, NamedSet ns) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(NewSetRequest.class);			
 		

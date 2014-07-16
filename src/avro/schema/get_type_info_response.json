@@ -1,11 +1,12 @@
 {
-   "namespace" : "avro.java.gaia",
+    "namespace" : "avro.java.gpudb",
     "type" : "record",
     "name" : "get_type_info_response",
     "fields" : [
         { "name" : "type_ids", "type" : { "type" : "array", "items" : "string" }},
         { "name" : "type_schemas", "type" : { "type" : "array", "items" : "string" }},
         { "name" : "labels", "type" : { "type" : "array", "items" : "string" }},
-        { "name" : "semantic_types", "type" : { "type" : "array", "items" : "string" }}
+        { "name" : "semantic_types", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "annotations", "type" : { "type" : "array", "items" : { "type" : "map", "values" : { "type" : "array", "items" : "string" }}}}
     ]
 }

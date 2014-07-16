@@ -6,21 +6,21 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.register_trigger_nai_request;
-import avro.java.gaia.register_type_transform_request;
-import avro.java.gaia.shape_intersection_request;
+import avro.java.gpudb.register_trigger_nai_request;
+import avro.java.gpudb.register_type_transform_request;
+import avro.java.gpudb.shape_intersection_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 
 public class RegisterTypeTransformRequest extends Request {
-	public RegisterTypeTransformRequest(Gaia gaia, String file, CharSequence type_id, CharSequence new_type_id, Map<CharSequence,CharSequence> transform_map) {
-		this.gaia = gaia;
+	public RegisterTypeTransformRequest(GPUdb gPUdb, String file, CharSequence type_id, CharSequence new_type_id, Map<CharSequence,CharSequence> transform_map) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(RegisterTypeTransformRequest.class);
 
-		this.log.debug("gaia:"+gaia.toString());	
+		this.log.debug("gpudb:"+gPUdb.toString());	
 		
 		register_type_transform_request request = new register_type_transform_request(type_id, new_type_id, transform_map);	
 

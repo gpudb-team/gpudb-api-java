@@ -13,15 +13,15 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.http.util.ByteArrayBuffer;
 import org.apache.log4j.Logger;
 
-import com.gisfederal.Gaia;
-import com.gisfederal.GaiaException;
+import com.gisfederal.GPUdb;
+import com.gisfederal.GPUdbException;
 
 public abstract class Request {
 	
 	private static final String logParam = "log"; 
 	
 	protected RequestData requestData;
-	protected Gaia gaia;
+	protected GPUdb gPUdb;
 	protected String file; // ex: /calculate
 	protected Logger log;
 	
@@ -37,11 +37,11 @@ public abstract class Request {
 	
 	protected void getAuditPart(StringBuffer msg) {
 		msg.append("[user=");
-		msg.append(this.gaia.getUser_name());
+		msg.append(this.gPUdb.getUser_name());
 		msg.append("]");
 		
 		msg.append("[auths=");
-		msg.append(this.gaia.getUserAuth());
+		msg.append(this.gPUdb.getUserAuth());
 		msg.append("]");
 		
 		msg.append("[endpoint=");
@@ -49,7 +49,7 @@ public abstract class Request {
 		msg.append("]");
 	}
 
-	public byte[] post_to_gaia() throws GaiaException {
+	public byte[] post_to_gpudb() throws GPUdbException {
 		String temp, ret = "";
 
 		ByteArrayBuffer baf = new ByteArrayBuffer(200);
@@ -57,18 +57,18 @@ public abstract class Request {
 		// byte[] ba = null;
 
 		log.debug("sending out [" + requestData + "]");
-		log.debug("BEFORE TRY:" + gaia.toString());
+		log.debug("BEFORE TRY:" + gPUdb.toString());
 
 		// get the connection object
-		RequestConnection rc = gaia.getRequestConnection();
+		RequestConnection rc = gPUdb.getRequestConnection();
 		try {
 			log.debug(String.format("file:%s and rc:%s\n", file, rc.toString()));
 
-			URL gaiaUrl = rc.buildURL(file);
-			log.debug(gaiaUrl.toString());
+			URL gpudbUrl = rc.buildURL(file);
+			log.debug(gpudbUrl.toString());
 
 			long startTime = System.currentTimeMillis();
-			HttpURLConnection connection = (HttpURLConnection) gaiaUrl
+			HttpURLConnection connection = (HttpURLConnection) gpudbUrl
 					.openConnection();
 			
 			connection.setRequestMethod("POST");
@@ -106,7 +106,7 @@ public abstract class Request {
 			connection.disconnect();
 
 			// Lets create and write to a replay file if needed
-			if (gaia.isCollectForReplay()) {
+			if (gPUdb.isCollectForReplay()) {
 
 				writeReplayFile(file, requestData.getData(),
 						(endTime - startTime) / 1000);
@@ -114,13 +114,13 @@ public abstract class Request {
 			log.debug("ret ba length [" + baf.length() + "]");
 		} catch (java.net.ConnectException e) {
 			log.error(e.toString());
-			throw new GaiaException(
-					"Java net connection when posting and reading from gaia; connection:"
+			throw new GPUdbException(
+					"Java net connection when posting and reading from gpudb; connection:"
 							+ rc.toString() + " error:" + e.toString());
 		} catch (Exception e) {
 			log.error(e.toString());
-			throw new GaiaException(
-					"Exception when posting and reading from gaia; connection:"
+			throw new GPUdbException(
+					"Exception when posting and reading from gpudb; connection:"
 							+ rc.toString() + " error:" + e.toString());
 		}
 
@@ -131,7 +131,7 @@ public abstract class Request {
 
 		try {
 			PrintWriter out = new PrintWriter(new BufferedWriter(
-					new FileWriter("gaia_replay.txt", true)));
+					new FileWriter("gpudb_replay.txt", true)));
 			out.println("ET:" + elapsedSecs);
 			out.println(file);
 			String encodedData = Base64.encodeBase64URLSafeString(data);

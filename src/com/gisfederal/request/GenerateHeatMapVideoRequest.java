@@ -6,14 +6,14 @@ import java.util.Arrays;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.filter_then_histogram_request;
-import avro.java.gaia.generate_heatmap_video_request;
-import avro.java.gaia.generate_video_request;
+import avro.java.gpudb.filter_then_histogram_request;
+import avro.java.gpudb.generate_heatmap_video_request;
+import avro.java.gpudb.generate_video_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
-import com.gisfederal.GaiaHeatMapVideoGenRequest;
-import com.gisfederal.GaiaVideoGenRequest;
+import com.gisfederal.GPUdb;
+import com.gisfederal.GpudbHeatMapVideoGenRequest;
+import com.gisfederal.GPUdbVideoGenRequest;
 
 /**
  * @author gisfederal
@@ -21,12 +21,12 @@ import com.gisfederal.GaiaVideoGenRequest;
  */
 public class GenerateHeatMapVideoRequest extends Request {
 
-	public GenerateHeatMapVideoRequest(Gaia gaia, String file, GaiaHeatMapVideoGenRequest gvgr) {
-		this.gaia = gaia;
+	public GenerateHeatMapVideoRequest(GPUdb gPUdb, String file, GpudbHeatMapVideoGenRequest gvgr) {
+		this.gPUdb = gPUdb;
 		this.file = file;		
 		this.log = Logger.getLogger(GenerateHeatMapVideoRequest.class);
 		
-		this.log.debug("gaia:"+gaia.toString()+" Video Gen Request packet is :"+gvgr);
+		this.log.debug("gpudb:"+gPUdb.toString()+" Video Gen Request packet is :"+gvgr);
 		
 		generate_heatmap_video_request request = new generate_heatmap_video_request();
 		request.setMinX(gvgr.getMin_x());
@@ -51,7 +51,7 @@ public class GenerateHeatMapVideoRequest extends Request {
 		request.setVideoStyle(gvgr.getVideo_style());
 		request.setSessionKey(gvgr.getSession_key());
 		
-		request.setUserAuthString(gaia.getUserAuth());
+		request.setUserAuthString(gPUdb.getUserAuth());
 		
 		this.log.debug("Build request object");
 

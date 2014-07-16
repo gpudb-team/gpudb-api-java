@@ -19,35 +19,35 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.avro.Schema;
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.add_object_response;
-import avro.java.gaia.bounding_box_response;
-import avro.java.gaia.bulk_add_response;
-import avro.java.gaia.delete_object_response;
-import avro.java.gaia.filter_by_bounds_response;
-import avro.java.gaia.filter_by_list_response;
-import avro.java.gaia.filter_by_nai_response;
-import avro.java.gaia.filter_by_radius_response;
-import avro.java.gaia.filter_by_set_response;
-import avro.java.gaia.filter_by_value_response;
-import avro.java.gaia.get_objects_response;
-import avro.java.gaia.get_set_response;
-import avro.java.gaia.get_sorted_sets_response;
-import avro.java.gaia.get_tracks_response;
-import avro.java.gaia.group_by_response;
-import avro.java.gaia.histogram_response;
-import avro.java.gaia.max_min_response;
-import avro.java.gaia.predicate_join_response;
-import avro.java.gaia.register_trigger_range_response;
-import avro.java.gaia.select_response;
-import avro.java.gaia.set_info_response;
-import avro.java.gaia.sort_response;
-import avro.java.gaia.spatial_set_query_response;
-import avro.java.gaia.stats_response;
-import avro.java.gaia.status_response;
-import avro.java.gaia.store_group_by_response;
-import avro.java.gaia.turn_off_response;
-import avro.java.gaia.unique_response;
-import avro.java.gaia.update_object_response;
+import avro.java.gpudb.add_object_response;
+import avro.java.gpudb.bounding_box_response;
+import avro.java.gpudb.bulk_add_response;
+import avro.java.gpudb.delete_object_response;
+import avro.java.gpudb.filter_by_bounds_response;
+import avro.java.gpudb.filter_by_list_response;
+import avro.java.gpudb.filter_by_nai_response;
+import avro.java.gpudb.filter_by_radius_response;
+import avro.java.gpudb.filter_by_set_response;
+import avro.java.gpudb.filter_by_value_response;
+import avro.java.gpudb.get_objects_response;
+import avro.java.gpudb.get_set_response;
+import avro.java.gpudb.get_sorted_sets_response;
+import avro.java.gpudb.get_tracks_response;
+import avro.java.gpudb.group_by_response;
+import avro.java.gpudb.histogram_response;
+import avro.java.gpudb.max_min_response;
+import avro.java.gpudb.predicate_join_response;
+import avro.java.gpudb.register_trigger_range_response;
+import avro.java.gpudb.select_response;
+import avro.java.gpudb.set_info_response;
+import avro.java.gpudb.sort_response;
+import avro.java.gpudb.spatial_set_query_response;
+import avro.java.gpudb.stats_response;
+import avro.java.gpudb.status_response;
+import avro.java.gpudb.store_group_by_response;
+import avro.java.gpudb.turn_off_response;
+import avro.java.gpudb.unique_response;
+import avro.java.gpudb.update_object_response;
 
 import com.gisfederal.semantic.types.GenericSemanticType;
 import com.gisfederal.semantic.types.Line;
@@ -60,22 +60,22 @@ import com.gisfederal.semantic.types.Track;
 import com.gisfederal.utils.SpatialOperationEnum;
 
 /**
- * The object that encapsulates a GAIA Set.
+ * The object that encapsulates a GPUDB Set.
  *
  */
 public class NamedSet{
 		
 	/**
-	 * This constant is used to indicate the end of a gaia set. Used when getting data out of a set.
+	 * This constant is used to indicate the end of a gpudb set. Used when getting data out of a set.
 	 */
 	public static final int END_OF_SET = -9999;
 
 	// This is not very pleasant but for now we will match strings sent by the server
 	private static final String EMPTY_SET_ERROR_MSG = "At least 1 child set must match the given semantic type"; 
 
-	// Keeps it's name (i.e. guid) and the instance of gaia to hit up
+	// Keeps it's name (i.e. guid) and the instance of gpudb to hit up
 	private SetId id;
-	private Gaia gaia;
+	private GPUdb gPUdb;
 	private Logger log;
 
 	// type and children	
@@ -94,9 +94,9 @@ public class NamedSet{
 	 * Coordinates with the server.
 	 * @param type The type of the child set.
 	 * @return The child NamedSet
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet getChild(Type childType) throws GaiaException{
+	public NamedSet getChild(Type childType) throws GPUdbException{
 		if(typeToChildren.containsKey(childType)) {
 			return typeToChildren.get(childType);
 		} else {
@@ -105,17 +105,17 @@ public class NamedSet{
 			if(typeToChildren.containsKey(childType)) {
 				return typeToChildren.get(childType);
 			} else {
-				// now create the child; NOTE: in the future it would be nice if we could avoid doing this getChildrenFromServer()  (GAIADB-474)				
-				// we don't know that this Type actually exists in gaia so create it
+				// now create the child; NOTE: in the future it would be nice if we could avoid doing this getChildrenFromServer()  (GPUDBDB-474)				
+				// we don't know that this Type actually exists in gpudb so create it
 				// OLD NOTE: security annotation of ARTIFACTID? is this right? very UCD specific, it would be better to add that annotation attribute to the type object				
 				// NEW NOTE: security annotation is OBJECTAUTH now
-				childType = gaia.create_type(childType.getAvroSchema().toString(), "OBJECTAUTH", childType.getTypeLabel(), childType.getSemanticTypeEnum());
+				childType = gPUdb.create_type(childType.getAvroSchema().toString(), "OBJECTAUTH", childType.getTypeLabel(), childType.getSemanticTypeEnum());
 				
 				try {
-					NamedSet child = gaia.newNamedSet(this.id, childType);
+					NamedSet child = gPUdb.newNamedSet(this.id, childType);
 					typeToChildren.put(childType, child);
 					return child;
-				} catch (GaiaException ge) {
+				} catch (GPUdbException ge) {
 					if( ge.getMessage().contains("Identical child type in MASTER detected")) {
 						this.getChildrenFromServer();
 						return typeToChildren.get(childType);
@@ -145,7 +145,7 @@ public class NamedSet{
 		if(type.isParent()) {
 			
 			Map<String, Integer> setId2Size = new HashMap<String, Integer>();
-			status_response response = gaia.do_status(this);
+			status_response response = gPUdb.do_status(this);
 			List<CharSequence> setids = response.getSetIds();
 			List<Integer> setsizes = response.getFullSizes();
 			
@@ -156,7 +156,7 @@ public class NamedSet{
 				setId2Size.put(setid, size);
 				idx++;
 			}
-			// only return types for children that have a size > 0 (GAIADB-524).
+			// only return types for children that have a size > 0 (GPUDBDB-524).
 			Iterator iter = this.typeToChildren.entrySet().iterator();
 			while(iter.hasNext()) {
 				Map.Entry<Type, NamedSet> entry = (Map.Entry<Type, NamedSet>)iter.next();
@@ -183,11 +183,11 @@ public class NamedSet{
 	/**
 	 * Get the list of all different "sources" in this set. Relies upon the DATASOURCEKEY being present in the objects.  
 	 * @return List of SourceType objects. Each one has a type and a subtype.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public List<SourceType> listAllSources() throws GaiaException{
+	public List<SourceType> listAllSources() throws GPUdbException{
 		List<SourceType> sources = new ArrayList<SourceType>();
-		unique_response response = gaia.do_unique(this, "DATASOURCEKEY");
+		unique_response response = gPUdb.do_unique(this, "DATASOURCEKEY");
 		List<CharSequence> values = response.getValuesStr();
 		for(CharSequence composite : values) {
 			// each composite a source type object
@@ -205,10 +205,10 @@ public class NamedSet{
 		Map<SourceType, Integer> map2counts = new HashMap<SourceType, Integer>();
 		List<String> attributes = new ArrayList<String>();
 
-		// NOTE: this assumes the key added by gaia UCD is there...so not appropriate otherwise
+		// NOTE: this assumes the key added by gpudb UCD is there...so not appropriate otherwise
 		attributes.add("DATASOURCEKEY"); //MAGIC KEYWORD!
 		// do the actual counting
-		group_by_response response = gaia.do_group_by(this, attributes);			
+		group_by_response response = gPUdb.do_group_by(this, attributes);			
 
 		// build out the source types
 		Iterator iter = response.getCountMap().entrySet().iterator();
@@ -270,7 +270,7 @@ public class NamedSet{
 			return typeToCount;
 		}
 		
-		status_response response = gaia.do_status(this);
+		status_response response = gPUdb.do_status(this);
 		List<CharSequence> stypes = response.getSemanticTypes();
 		List<Integer> setsizes = response.getSizes();
 		int idx = 0;
@@ -294,12 +294,12 @@ public class NamedSet{
 
 	/**
 	 * Retrieve the children from the server.  Throws an error if this set is not a parent set. 
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public void getChildrenFromServer() throws GaiaException{
+	public void getChildrenFromServer() throws GPUdbException{
 		if(!type.isParent()) {
 			log.error("Getting children from a non-parent set; probably an error.");
-			throw new GaiaException("Getting children from a non-parent set; probably an error.");
+			throw new GPUdbException("Getting children from a non-parent set; probably an error.");
 		}
 		log.debug("get children from server for set:"+this.id.get_id());
 
@@ -308,9 +308,9 @@ public class NamedSet{
 
 		// we need to grab the children from the server using the set info
 		try {
-			set_info_response response = gaia.do_set_info(id);
+			set_info_response response = gPUdb.do_set_info(id);
 			buildChildren(response);
-		} catch(GaiaException e) {
+		} catch(GPUdbException e) {
 			if( !e.getMessage().equals("set doesn't exist:MASTER") ) { // This can be ignored.....
 				e.printStackTrace();
 			}
@@ -342,25 +342,25 @@ public class NamedSet{
 			Type childType = new Type(typeIDs.get(i).toString(), GenericObject.class, 
 					Schema.parse(typeSchemas.get(i).toString()), labels.get(i).toString(), 
 					semanticTypes.get(i).toString());
-			NamedSet child = new NamedSet(new SetId(setIDs.get(i).toString()), gaia, childType); 
-			gaia.setInStore(child.get_setid(), child);
+			NamedSet child = new NamedSet(new SetId(setIDs.get(i).toString()), gPUdb, childType); 
+			gPUdb.setInStore(child.get_setid(), child);
 			this.typeToChildren.put(childType, child);
 		}
 	}
 
 	/**
-	 * Add the NamedSet child to the child mapping in this object. NOTE: This is used in Gaia.java but is NOT a way of adding a child
-	 * set to gaia server system. Throws if there is already a child with this type.
+	 * Add the NamedSet child to the child mapping in this object. NOTE: This is used in Gpudb.java but is NOT a way of adding a child
+	 * set to gpudb server system. Throws if there is already a child with this type.
 	 * @param child
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public void addChild(Type childType, NamedSet child) throws GaiaException {
+	public void addChild(Type childType, NamedSet child) throws GPUdbException {
 		if(this.typeToChildren.containsKey(childType))
-			throw new GaiaException("There is already a child of this type:"+childType);
+			throw new GPUdbException("There is already a child of this type:"+childType);
 		this.typeToChildren.put(childType, child);
 	}
 	
-	public boolean childExists(Type childType) throws GaiaException {
+	public boolean childExists(Type childType) throws GPUdbException {
 		return typeToChildren.containsKey(childType);
 	}
 
@@ -379,7 +379,7 @@ public class NamedSet{
 		
 		// group the ids based upon their set id
 		for(int i=0; i<child_ids.size(); i++) {
-			NamedSet ns = gaia.getNamedSet(new SetId(child_ids.get(i).toString()));
+			NamedSet ns = gPUdb.getNamedSet(new SetId(child_ids.get(i).toString()));
 			if(!ns_to_ids.containsKey(ns)){
 				ns_to_ids.put(ns, new ArrayList<String>());			
 			}
@@ -406,7 +406,7 @@ public class NamedSet{
 	}
 	
 
-	public List<SemanticType> getObjectsByID(Class<? extends SemanticType> cls, Collection<String> ids) throws GaiaException{		
+	public List<SemanticType> getObjectsByID(Class<? extends SemanticType> cls, Collection<String> ids) throws GPUdbException{		
 		List<CharSequence> list = new ArrayList<CharSequence>();
 		list.addAll(ids);		
 		List<SemanticType> objectList = new ArrayList<SemanticType>();
@@ -418,7 +418,7 @@ public class NamedSet{
 			objectList.addAll(convertToPolygons((List<GenericObject>)this.get_objects(Polygon.groupingFieldName, list)));
 		} else {
 			log.error("Unsupported class:"+cls);
-			throw new GaiaException("Unsupported class:"+cls);
+			throw new GPUdbException("Unsupported class:"+cls);
 		}
 
 		return objectList;
@@ -434,7 +434,7 @@ public class NamedSet{
 			for(com.gisfederal.GenericObject go : gos) {
 				if(!go.dataMap.containsKey("WKT")) {
 					log.error("The expected WKT key is not in the object even though its a polygon");
-					throw new GaiaException("The expected WKT key is not in the object even though its a polygon");
+					throw new GPUdbException("The expected WKT key is not in the object even though its a polygon");
 				}
 	
 				// populate the other keys NOTE: keys to ignore? i.e. we don't want "x" and "y" -- what was pulled out of wkt
@@ -451,7 +451,7 @@ public class NamedSet{
 				// add the polygon
 				polygons.add(polygon);															
 			}	
-		} catch( GaiaException ge ) {
+		} catch( GPUdbException ge ) {
 			if( !ge.getMessage().contains(EMPTY_SET_ERROR_MSG)) {
 				throw ge;
 			}
@@ -461,7 +461,7 @@ public class NamedSet{
 
 	}
 
-	private List<Line> convertToLines(List<GenericObject> gos) throws GaiaException {
+	private List<Line> convertToLines(List<GenericObject> gos) throws GPUdbException {
 		List<Line> semanticObjs = new ArrayList<Line>();
 
 		// we are assuming that each "GO" maps to one semantic object
@@ -469,7 +469,7 @@ public class NamedSet{
 		for(com.gisfederal.GenericObject go : gos) {
 			if(!go.dataMap.containsKey("WKT")) {
 				log.error("The expected WKT key is not in the object even though its a line");
-				throw new GaiaException("The expected WKT key is not in the object even though its a line");
+				throw new GPUdbException("The expected WKT key is not in the object even though its a line");
 			}
 
 			// populate the other keys
@@ -490,18 +490,18 @@ public class NamedSet{
 	}
 
 	/**
-	 * Return a list of Polygon objects, one for each polygon in this gaia set.
+	 * Return a list of Polygon objects, one for each polygon in this gpudb set.
 	 * @param start The start index.
 	 * @param end The end index.
 	 * @return List of Polygons
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public List<Polygon> getPolygons(int start, int end) throws GaiaException{	
+	public List<Polygon> getPolygons(int start, int end) throws GPUdbException{	
 		
 		try {
 			List<com.gisfederal.GenericObject> gos = (List<com.gisfederal.GenericObject>)this.list(start,end,Polygon.type.toString());
 			return convertToPolygons(gos);
-		} catch( GaiaException ge ) {
+		} catch( GPUdbException ge ) {
 			if( !ge.getMessage().contains(EMPTY_SET_ERROR_MSG)) {
 				throw ge;
 			}	
@@ -514,9 +514,9 @@ public class NamedSet{
 	 * @param start The start index.
 	 * @param end The end index.
 	 * @return List of Point2Ds.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public List<Point2D> getPoints(int start, int end) throws GaiaException{
+	public List<Point2D> getPoints(int start, int end) throws GPUdbException{
 		// the polygon list
 		List<Point2D> semanticObjs = new ArrayList<Point2D>();
 
@@ -533,7 +533,7 @@ public class NamedSet{
 			for(com.gisfederal.GenericObject go : goList) {
 				if(!go.dataMap.containsKey("x") || !go.dataMap.containsKey("y")) {
 					log.error("The expected x and y key are not in the object even though its a "+semanticType);
-					throw new GaiaException("The expected x and y key are not in the object even though its a "+semanticType);
+					throw new GPUdbException("The expected x and y key are not in the object even though its a "+semanticType);
 				}
 	
 				// populate the other keys NOTE: keys to ignore? i.e. we don't want "x" and "y" -- what was pulled out of wkt
@@ -551,7 +551,7 @@ public class NamedSet{
 				// add the polygon
 				semanticObjs.add(point);					
 			}	
-		} catch ( GaiaException ge ) {
+		} catch ( GPUdbException ge ) {
 			if( !ge.getMessage().contains(EMPTY_SET_ERROR_MSG)) {
 				throw ge;
 			}
@@ -564,9 +564,9 @@ public class NamedSet{
 	 * @param start The start index.
 	 * @param end The end index.
 	 * @return List of GenericSemanticType.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public List<GenericSemanticType> getGenericSemanticObjects(int start, int end) throws GaiaException{
+	public List<GenericSemanticType> getGenericSemanticObjects(int start, int end) throws GPUdbException{
 		// the list of genric objects
 		List<GenericSemanticType> semanticObjs = new ArrayList<GenericSemanticType>();
 
@@ -593,14 +593,14 @@ public class NamedSet{
 	 * @param start The start index.
 	 * @param end The end index.
 	 * @return List of Line objects.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public List<Line> getLines(int start, int end) throws GaiaException{
+	public List<Line> getLines(int start, int end) throws GPUdbException{
 		
 		try {
 			List<com.gisfederal.GenericObject> gos = (List<com.gisfederal.GenericObject>)this.list(start,end,Line.type.toString());
 			return convertToLines(gos);
-		} catch( GaiaException ge ) {
+		} catch( GPUdbException ge ) {
 			if( !ge.getMessage().contains(EMPTY_SET_ERROR_MSG)) {
 				throw ge;
 			}	
@@ -613,9 +613,9 @@ public class NamedSet{
 	 * @param start The start index.
 	 * @param end The end index.
 	 * @return List of Polygon.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public List<Polygon> getPolygon3Ds(int start, int end) throws GaiaException{
+	public List<Polygon> getPolygon3Ds(int start, int end) throws GPUdbException{
 		// the polygon list
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
@@ -632,7 +632,7 @@ public class NamedSet{
 		for(com.gisfederal.GenericObject go : goList) {
 			if(!go.dataMap.containsKey("WKT")) {
 				log.error("The expected WKT key is not in the object even though its a "+semanticType);
-				throw new GaiaException("The expected WKT key is not in the object even though its a "+semanticType);
+				throw new GPUdbException("The expected WKT key is not in the object even though its a "+semanticType);
 			}
 
 			// populate the other keys NOTE: keys to ignore? i.e. we don't want "x" and "y" -- what was pulled out of wkt
@@ -658,9 +658,9 @@ public class NamedSet{
 	 * @param start The start index.
 	 * @param end The end index.
 	 * @return List of Time.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public List<Time> getTimes(int start, int end) throws GaiaException{
+	public List<Time> getTimes(int start, int end) throws GPUdbException{
 		// the polygon list
 		List<Time> semanticObjs = new ArrayList<Time>();
 
@@ -676,7 +676,7 @@ public class NamedSet{
 		for(com.gisfederal.GenericObject go : goList) {
 			if(!go.dataMap.containsKey("TIMESTAMP")) {
 				log.error("The expected TIMESTAMP key are not in the object even though its a "+semanticType);
-				throw new GaiaException("The expected TIMESTAMP key are not in the object even though its a "+semanticType);
+				throw new GPUdbException("The expected TIMESTAMP key are not in the object even though its a "+semanticType);
 			}
 
 			// populate the other keys NOTE: keys to ignore? i.e. we don't want "x" and "y" -- what was pulled out of wkt
@@ -698,14 +698,14 @@ public class NamedSet{
 	}
 	
 	// new get tracks
-	public List<Track> getTracks(NamedSet world, int start , int end, double min_x, double min_y, double max_x, double max_y) throws GaiaException {
+	public List<Track> getTracks(NamedSet world, int start , int end, double min_x, double min_y, double max_x, double max_y) throws GPUdbException {
 		
 		List<Track> tracks = new ArrayList<Track>();
 		
 		boolean doExtent = (min_x <= -180 && max_x >= 180 && min_y <= -90 && max_y >= 90) ? false : true; 
 
 		//long st = System.currentTimeMillis();
-		get_tracks_response response = gaia.do_get_tracks(this, world, start, end, min_x, min_y, max_x, max_y, doExtent);
+		get_tracks_response response = gPUdb.do_get_tracks(this, world, start, end, min_x, min_y, max_x, max_y, doExtent);
 		//long et = System.currentTimeMillis();
 		//System.out.println("do_get_tracks time taken = " + (et - st) + " milli secs");
 		log.debug("get tracks response - number of tracks: " + response.getTrackIds().size());
@@ -722,7 +722,7 @@ public class NamedSet{
 		
 		//st = System.currentTimeMillis();
 		// get back the objects
-		get_sorted_sets_response respsorted = gaia.do_get_sorted_sets(setIDs, "TIMESTAMP");
+		get_sorted_sets_response respsorted = gPUdb.do_get_sorted_sets(setIDs, "TIMESTAMP");
 		//et = System.currentTimeMillis();
 		//System.out.println("do_sorted_set time taken = " + (et - st) + " milli secs");
 
@@ -741,7 +741,7 @@ public class NamedSet{
 			List<Object> list_decoded = new ArrayList<Object>();
 			// go through decoding each encoded object and adding it
 			for(ByteBuffer bytes : list_encoded) {
-				list_decoded.add(gaia.getNamedSet(new SetId(setId.toString())).getType().decode(bytes));
+				list_decoded.add(gPUdb.getNamedSet(new SetId(setId.toString())).getType().decode(bytes));
 			}
 			listOfLists.add(list_decoded);			
 		}
@@ -791,7 +791,7 @@ public class NamedSet{
 
 		// try and delete the intermediate sets which were created as a result of the do_get_tracks call
 		for( SetId setId : setIDs ) {
-			gaia.do_clear_set(setId);
+			gPUdb.do_clear_set(setId);
 		}
 
 		return tracks;
@@ -809,9 +809,9 @@ public class NamedSet{
 	 * @param max_x Extent that is applied to the world.
 	 * @param max_y Extent that is applied to the world.
 	 * @return List of Track objects
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public List<Track> getTracksOld(NamedSet world, int start , int end, double min_x, double min_y, double max_x, double max_y) throws GaiaException {
+	public List<Track> getTracksOld(NamedSet world, int start , int end, double min_x, double min_y, double max_x, double max_y) throws GPUdbException {
 		// group by on the track id (group_id) and then store group		
 		this.log.debug("Get tracks; got named set with id:"+this.get_setid().get_id()+" start:"+start+" end:"+end+" min_x:"+min_x+" min_y:"+min_y+" max_x:"+max_x+" max_y:"+max_y);		
 
@@ -843,7 +843,7 @@ public class NamedSet{
 		// if either this namedset isn't of type track or there were no children with that type
 		if(childTrack == null) {
 			log.error("No data of track type");
-			throw new GaiaException("No data of track type");
+			throw new GPUdbException("No data of track type");
 		}
 
 		// need to do the same thing with the world set; we need to get another set that is of the same exact type
@@ -871,19 +871,19 @@ public class NamedSet{
 		// if either this namedset isn't of type track or there were no children with that type
 		if(worldChildTrack == null) {
 			log.error("No data of track type in world");
-			throw new GaiaException("No data of track type in world");
+			throw new GPUdbException("No data of track type in world");
 		}
 
 		// this is going to be the sub-world we do the store group by against [the extent -- because the "ns" that comes in is probably the result of a BB]
-		SetId bbResultSetId =gaia.new_setid();        		
-		bounding_box_response b_response = gaia.do_bounding_box(worldChildTrack, bbResultSetId, "x", "y", min_x, max_x, min_y, max_y);
+		SetId bbResultSetId =gPUdb.new_setid();        		
+		bounding_box_response b_response = gPUdb.do_bounding_box(worldChildTrack, bbResultSetId, "x", "y", min_x, max_x, min_y, max_y);
 		log.debug("bb_result_set count"+b_response.getCount());
-		NamedSet subworld = gaia.getNamedSet(bbResultSetId);				
+		NamedSet subworld = gPUdb.getNamedSet(bbResultSetId);				
 
 		// do the group by
 		List<String> attributes = new ArrayList<String>();
 		attributes.add(Track.groupingFieldName);
-		group_by_response response = gaia.do_group_by(this, attributes);
+		group_by_response response = gPUdb.do_group_by(this, attributes);
 
 		// we'll need to prune the count_map; don't store all the tracks
 		Map<CharSequence, List<CharSequence>> count_map = response.getCountMap();
@@ -922,13 +922,13 @@ public class NamedSet{
 		}
 
 		// store these tracks; they are sorted as they are stored				
-		store_group_by_response s_response = gaia.do_store_group_by(subworld, Track.groupingFieldName, sub_map, "TIMESTAMP"); // another magic key...
+		store_group_by_response s_response = gPUdb.do_store_group_by(subworld, Track.groupingFieldName, sub_map, "TIMESTAMP"); // another magic key...
 
 		// build up the list of track objects
 		List<Track> tracks = new ArrayList<Track>();
 
 		// get back the objects
-		List<List> listOfLists = gaia.do_get_sorted_sets(setIDs, "TIMESTAMP", trackType);			
+		List<List> listOfLists = gPUdb.do_get_sorted_sets(setIDs, "TIMESTAMP", trackType);			
 		log.debug("got back from get sorted sets; listOfLists.size():"+listOfLists.size());
 
 		// convert into the List<Track> every "list" collapses to one track object			
@@ -1006,20 +1006,20 @@ public class NamedSet{
 	 */
 	public int size() {
 		
-		status_response response = gaia.do_status(this);
+		status_response response = gPUdb.do_status(this);
 		return response.getTotalSize();
 	}
 	
 	/**
 	 * Return the element size of this set i.e., the total number of elements within the set. For polygons ( points, lines, generic objects, events) e.g., 
-	 * the number of polygons is equal to the number of objects which is also equal to the number of elements in GAIA. For tracks, the number of tracks is
+	 * the number of polygons is equal to the number of objects which is also equal to the number of elements in GPUDB. For tracks, the number of tracks is
 	 * equal to the number of objects but the total number of trackpoints making up those tracks is equal to the number of elements for the 
 	 * track set. 
 	 * This will hit the server.
 	 * @return size of this set
 	 */
 	public int fullSize() {
-		status_response response = gaia.do_status(this);
+		status_response response = gPUdb.do_status(this);
 		return response.getTotalFullSize();
 	}
 
@@ -1057,28 +1057,28 @@ public class NamedSet{
 	
 	/**
 	 * Update an object in this set. 
-	 * @param obj The java object to add to the gaia set.
+	 * @param obj The java object to add to the gpudb set.
 	 * @param objectId The objectId to update.
 	 * @return An add object response which has the object id for this object.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
 	public update_object_response update(Object obj, String objectId) {
-		return gaia.do_update_object(this, obj, objectId);
+		return gPUdb.do_update_object(this, obj, objectId);
 	}
 
 
 	/**
 	 * Add an object to this set. Throws if you use on a parent set.
-	 * @param obj The java object to add to the gaia set.
+	 * @param obj The java object to add to the gpudb set.
 	 * @return An add object response which has the object id for this object.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
 	public add_object_response add(Object obj) {
 		if(type.isParent()){
 			log.error("Can't add an object directly to a parent set");
-			throw new GaiaException("Can't add an object directly to a parent set");
+			throw new GPUdbException("Can't add an object directly to a parent set");
 		}
-		return gaia.do_add_object(this, obj);
+		return gPUdb.do_add_object(this, obj);
 	}
 
 	/**
@@ -1098,7 +1098,7 @@ public class NamedSet{
 			List<Object> sublist;			
 			do {
 				sublist = list_obj.subList(startIndex, endIndex); // a list of length bulk add limit [or less if this is the last loop]
-				response = gaia.do_add_object_list(sublist, this);
+				response = gPUdb.do_add_object_list(sublist, this);
 
 				// update the indices
 				startIndex = endIndex;
@@ -1110,7 +1110,7 @@ public class NamedSet{
 
 			return response; // can't trust this, in the sense that not all obj_ids etc. will be there...
 		} else {
-			return gaia.do_add_object_list(list_obj, this);
+			return gPUdb.do_add_object_list(list_obj, this);
 		}
 	}
 
@@ -1120,13 +1120,13 @@ public class NamedSet{
 	 * @param attribute
 	 * @param values
 	 * @return List of objects.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public List get_objects(String attribute, List<CharSequence> values) throws GaiaException {		
+	public List get_objects(String attribute, List<CharSequence> values) throws GPUdbException {		
 		if(this.type.isParent()) 
-			throw new GaiaException("Can't call this function on a parent set; id:"+this.id.get_id());
+			throw new GPUdbException("Can't call this function on a parent set; id:"+this.id.get_id());
 		
-		get_objects_response response = gaia.do_get_objects(this.id, attribute, values);
+		get_objects_response response = gPUdb.do_get_objects(this.id, attribute, values);
 		List objectList = new ArrayList();
 
 		List<ByteBuffer> bytesList = response.getList();
@@ -1168,9 +1168,9 @@ public class NamedSet{
 		// need to use get set sorted if its a sorted set
 		if(this.is_sorted) {
 			log.debug("Is sorted");
-			response = gaia.do_list_sorted(id, start, end);
+			response = gPUdb.do_list_sorted(id, start, end);
 		} else {
-			response = gaia.do_list(id, start, end, "");
+			response = gPUdb.do_list(id, start, end, "");
 		}
 
 		Schema schema = this.type.getAvroSchema();
@@ -1219,9 +1219,9 @@ public class NamedSet{
 		// need to use get set sorted if its a sorted set
 		if(this.is_sorted) {
 			log.debug("Is sorted - won't work with semantic types");
-			response = gaia.do_list_sorted(id, start, end);
+			response = gPUdb.do_list_sorted(id, start, end);
 		} else {
-			response = gaia.do_list(id, start, end, semantic_type);
+			response = gPUdb.do_list(id, start, end, semantic_type);
 		}
 
 		Schema schema = this.type.getAvroSchema();
@@ -1252,44 +1252,44 @@ public class NamedSet{
 	}
 
 	/**
-	 * Get all objects of the given source type and subtype. Intended for sets populated by the GaiaUCD adds. 
+	 * Get all objects of the given source type and subtype. Intended for sets populated by the GpudbUCD adds. 
 	 * @param sourceType The source type.
 	 * @return A NamedSet where all the objects match the given source.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet filterByDatasourceType(String sourceType) throws GaiaException{
+	public NamedSet filterByDatasourceType(String sourceType) throws GPUdbException{
 		log.debug("do the filter by datasource type \""+sourceType);
 		return this.do_filter_by_list("DATASOURCE", sourceType);//Horrifying magic attribute key!
 	}
 
 	/**
-	 * Get all objects of the given sub type. Intended for sets populated by the GaiaUCD adds. 
+	 * Get all objects of the given sub type. Intended for sets populated by the GpudbUCD adds. 
 	 * @param subType The sub type.
 	 * @return A NamedSet where all the objects match the given source.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet filterByDatasourceSubType(String subType) throws GaiaException{
+	public NamedSet filterByDatasourceSubType(String subType) throws GPUdbException{
 		log.debug("do the filter by datasource type \""+subType);
 		return this.do_filter_by_list("DATASOURCESUB", subType);//Horrifying magic attribute key!
 	}
 
 	/**
-	 * Get all objects of the given SourceType (i.e. source type and subtype). Intended for sets populated by the GaiaUCD adds. 
+	 * Get all objects of the given SourceType (i.e. source type and subtype). Intended for sets populated by the GpudbUCD adds. 
 	 * @param sourceType The SourceType.
 	 * @return A NamedSet where all the objects match the given source.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet filterByDatasource(SourceType sourceType) throws GaiaException{
+	public NamedSet filterByDatasource(SourceType sourceType) throws GPUdbException{
 		return this.filterByDatasource(Arrays.asList(sourceType));
 	}
 
 	/**
-	 * Get all objects of the given SourceTypes. Intended for sets populated by the GaiaUCD adds.
+	 * Get all objects of the given SourceTypes. Intended for sets populated by the GpudbUCD adds.
 	 * @param sourceTypse The SourceType (has the type and the subtype)
 	 * @return A NamedSet where all the objects match the given source.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet filterByDatasource(Collection<SourceType> sourceTypes) throws GaiaException{
+	public NamedSet filterByDatasource(Collection<SourceType> sourceTypes) throws GPUdbException{
 		log.debug("filter on data sources; number of source types:"+sourceTypes.size());
 		List<CharSequence> sources = new ArrayList<CharSequence>();
 		for(SourceType st : sourceTypes) {
@@ -1310,29 +1310,29 @@ public class NamedSet{
 	 * @param min_y The min value of the the "y" attribute.
 	 * @param max_y The max value of the the "y" attribute.
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet bounding_box(String x_attribute, String y_attribute, double min_x, double max_x, double min_y, double max_y) throws GaiaException {
+	public NamedSet bounding_box(String x_attribute, String y_attribute, double min_x, double max_x, double min_y, double max_y) throws GPUdbException {
 
-		SetId rs = gaia.new_setid();
-		bounding_box_response response = gaia.do_bounding_box(this, rs, x_attribute, y_attribute, min_x, max_x, min_y, max_y);
+		SetId rs = gPUdb.new_setid();
+		bounding_box_response response = gPUdb.do_bounding_box(this, rs, x_attribute, y_attribute, min_x, max_x, min_y, max_y);
 		log.debug("bounding box count:"+response.getCount());
 
-		return gaia.getNamedSet(rs);
+		return gPUdb.getNamedSet(rs);
 	}
 
-	public NamedSet filterByValue(double value, String attribute) throws GaiaException {
-		SetId rs = gaia.new_setid();
-		filter_by_value_response response = gaia.do_filter_by_value(this, rs, false, value, "", attribute);
+	public NamedSet filterByValue(double value, String attribute) throws GPUdbException {
+		SetId rs = gPUdb.new_setid();
+		filter_by_value_response response = gPUdb.do_filter_by_value(this, rs, false, value, "", attribute);
 		log.debug("filter by value count:"+response.getCount());
-		return gaia.getNamedSet(rs);
+		return gPUdb.getNamedSet(rs);
 	}
 
-	public NamedSet filterByValue(String value, String attribute) throws GaiaException {
-		SetId rs = gaia.new_setid();
-		filter_by_value_response response = gaia.do_filter_by_value(this, rs, true, 0.0, value, attribute);
+	public NamedSet filterByValue(String value, String attribute) throws GPUdbException {
+		SetId rs = gPUdb.new_setid();
+		filter_by_value_response response = gPUdb.do_filter_by_value(this, rs, true, 0.0, value, attribute);
 		log.debug("filter by value count:"+response.getCount());
-		return gaia.getNamedSet(rs);
+		return gPUdb.getNamedSet(rs);
 	}
 
 	
@@ -1343,9 +1343,9 @@ public class NamedSet{
 	 * @param min_y The min value of the the "y" attribute.
 	 * @param max_y The max value of the the "y" attribute.
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet bounding_box(double min_x, double max_x, double min_y, double max_y) throws GaiaException {
+	public NamedSet bounding_box(double min_x, double max_x, double min_y, double max_y) throws GPUdbException {
 		return this.bounding_box("x", "y", min_x, max_x, min_y, max_y);
 	}
 
@@ -1353,29 +1353,29 @@ public class NamedSet{
 	 * Run a select calculation on this set.
 	 * @param expression The expression string.
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet select(String expression) throws GaiaException {
+	public NamedSet select(String expression) throws GPUdbException {
 
-		SetId rs = gaia.new_setid();
-		select_response response = gaia.do_select(this, rs, expression);
+		SetId rs = gPUdb.new_setid();
+		select_response response = gPUdb.do_select(this, rs, expression);
 		log.debug("select count:"+response.getCount());
 
-		return gaia.getNamedSet(rs);
+		return gPUdb.getNamedSet(rs);
 	}
 
 	/**
 	 * Run a filter_by_list calculation on this set.
 	 * @param attribute_map The map of attributes and values the attributes must be.
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet do_filter_by_list(Map<CharSequence, List<CharSequence>> attribute_map) throws GaiaException {
-		SetId rs = gaia.new_setid();
-		filter_by_list_response response = gaia.do_filter_by_list(this, rs, attribute_map);
+	public NamedSet do_filter_by_list(Map<CharSequence, List<CharSequence>> attribute_map) throws GPUdbException {
+		SetId rs = gPUdb.new_setid();
+		filter_by_list_response response = gPUdb.do_filter_by_list(this, rs, attribute_map);
 		log.debug("filter by list count:"+response.getCount());
 
-		return gaia.getNamedSet(rs);
+		return gPUdb.getNamedSet(rs);
 	}
 	
 	/**
@@ -1384,15 +1384,15 @@ public class NamedSet{
 	 * @param sourceSetId - the source set where the filter data is present
 	 * @param source_attribute - the attribute on the source set
 	 * @return
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet do_filter_by_set(String attribute, SetId sourceSetId, String source_attribute) throws GaiaException {
-		SetId rs = gaia.new_setid();
-		filter_by_set_response response = gaia.do_filter_by_set(this, rs, attribute, sourceSetId, source_attribute);
+	public NamedSet do_filter_by_set(String attribute, SetId sourceSetId, String source_attribute) throws GPUdbException {
+		SetId rs = gPUdb.new_setid();
+		filter_by_set_response response = gPUdb.do_filter_by_set(this, rs, attribute, sourceSetId, source_attribute);
 				
 		log.debug("filter by set count:"+response.getCount());
 
-		return gaia.getNamedSet(rs);
+		return gPUdb.getNamedSet(rs);
 	}
 
 	/**
@@ -1400,23 +1400,23 @@ public class NamedSet{
 	 * @param attribute The attribute to filter on.
 	 * @param values The list of values that we are trying to match on.
 	 * @return The NamedSet consisting of the objects that matched.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet do_filter_by_list(String attribute, List<CharSequence> values) throws GaiaException {
-		SetId rs = gaia.new_setid();
-		filter_by_list_response response = this.gaia.do_filter_by_list(this, rs, attribute, values);
-		return gaia.getNamedSet(rs);
+	public NamedSet do_filter_by_list(String attribute, List<CharSequence> values) throws GPUdbException {
+		SetId rs = gPUdb.new_setid();
+		filter_by_list_response response = this.gPUdb.do_filter_by_list(this, rs, attribute, values);
+		return gPUdb.getNamedSet(rs);
 	}
 
 	/**
 	 * Delete an object from this set.
 	 * @param objId The objectId to delete.
 	 * @return A status for the delete operation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public String do_delete_object(String objId) throws GaiaException {
-		SetId rs = gaia.new_setid();
-		delete_object_response response = gaia.do_delete_object(this, objId);
+	public String do_delete_object(String objId) throws GPUdbException {
+		SetId rs = gPUdb.new_setid();
+		delete_object_response response = gPUdb.do_delete_object(this, objId);
 		log.debug("delete object status:"+response.getStatus());
 
 		return response.getStatus().toString();
@@ -1428,14 +1428,14 @@ public class NamedSet{
 	 * @param attribute The attribute to compare.
 	 * @param value The filter value for this attribute
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet do_filter_by_list(String attribute, String value) throws GaiaException {
-		SetId rs = gaia.new_setid();
-		filter_by_list_response response = gaia.do_filter_by_list(this, rs, attribute, value);
+	public NamedSet do_filter_by_list(String attribute, String value) throws GPUdbException {
+		SetId rs = gPUdb.new_setid();
+		filter_by_list_response response = gPUdb.do_filter_by_list(this, rs, attribute, value);
 		log.debug("filter by list count:"+response.getCount());
 
-		return gaia.getNamedSet(rs);
+		return gPUdb.getNamedSet(rs);
 	}
 
 	/**
@@ -1444,16 +1444,16 @@ public class NamedSet{
 	 * @param lower_bounds The lower bound for the given attribute.
 	 * @param upper_bounds The upper bound for the given attribute.
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet do_filter_by_bounds(String attribute, double lower_bounds, double upper_bounds) throws GaiaException {
+	public NamedSet do_filter_by_bounds(String attribute, double lower_bounds, double upper_bounds) throws GPUdbException {
 		this.log.debug("Do filter by bounds");
 
-		SetId rs = gaia.new_setid();
-		filter_by_bounds_response response = gaia.do_filter_by_bounds(this, rs, attribute, lower_bounds, upper_bounds);
+		SetId rs = gPUdb.new_setid();
+		filter_by_bounds_response response = gPUdb.do_filter_by_bounds(this, rs, attribute, lower_bounds, upper_bounds);
 		log.debug("filter by bounds count:"+response.getCount());
 
-		return gaia.getNamedSet(rs);
+		return gPUdb.getNamedSet(rs);
 	}
 
 	/**
@@ -1461,9 +1461,9 @@ public class NamedSet{
 	 * @param lower_bounds The lower bound for the time.
 	 * @param upper_bounds The upper bound for the time.
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet do_filter_by_time(double lower_bounds, double upper_bounds) throws GaiaException{
+	public NamedSet do_filter_by_time(double lower_bounds, double upper_bounds) throws GPUdbException{
 		return this.do_filter_by_bounds("TIMESTAMP", lower_bounds, upper_bounds);
 	}
 
@@ -1474,14 +1474,14 @@ public class NamedSet{
 	 * @param y_attribute The name of the y-attribute
 	 * @param y_vector The list of y values.
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet do_filter_by_nai(String x_attribute, List<Double> x_vector, String y_attribute, List<Double> y_vector) throws GaiaException {
-		SetId rs = gaia.new_setid();
-		filter_by_nai_response response = gaia.do_filter_by_nai(this, rs, x_attribute, x_vector, y_attribute, y_vector);
+	public NamedSet do_filter_by_nai(String x_attribute, List<Double> x_vector, String y_attribute, List<Double> y_vector) throws GPUdbException {
+		SetId rs = gPUdb.new_setid();
+		filter_by_nai_response response = gPUdb.do_filter_by_nai(this, rs, x_attribute, x_vector, y_attribute, y_vector);
 		log.debug("filter by nai count:"+response.getCount());
 
-		return gaia.getNamedSet(rs);
+		return gPUdb.getNamedSet(rs);
 	}
 
 	/**
@@ -1489,9 +1489,9 @@ public class NamedSet{
 	 * @param x_vector The list of x values.
 	 * @param y_vector The list of y values.
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet do_filter_by_nai(List<Double> x_vector, List<Double> y_vector) throws GaiaException {
+	public NamedSet do_filter_by_nai(List<Double> x_vector, List<Double> y_vector) throws GPUdbException {
 		return this.do_filter_by_nai("x", x_vector, "y", y_vector);
 	}
 
@@ -1503,15 +1503,15 @@ public class NamedSet{
 	 * @param y_center The center point y coordinate (i.e. latitude)
 	 * @param radius The search radius (in meters)
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet do_filter_by_radius(String x_attribute, String y_attribute, Double x_center, Double y_center, Double radius) throws GaiaException {
+	public NamedSet do_filter_by_radius(String x_attribute, String y_attribute, Double x_center, Double y_center, Double radius) throws GPUdbException {
 
-		SetId rs = gaia.new_setid();
-		filter_by_radius_response response = gaia.do_filter_by_radius(this, rs, x_attribute, y_attribute, x_center, y_center, radius);
+		SetId rs = gPUdb.new_setid();
+		filter_by_radius_response response = gPUdb.do_filter_by_radius(this, rs, x_attribute, y_attribute, x_center, y_center, radius);
 		log.debug("filter by radius count:"+response.getCount());
 
-		return gaia.getNamedSet(rs);
+		return gPUdb.getNamedSet(rs);
 	}
 
 	/**
@@ -1520,9 +1520,9 @@ public class NamedSet{
 	 * @param y_center The center point y coordinate (i.e. latitude)
 	 * @param radius The search radius (in meters)
 	 * @return The NamedSet consisting of the results of this calculation.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public NamedSet do_filter_by_radius(Double x_center, Double y_center, Double radius) throws GaiaException {
+	public NamedSet do_filter_by_radius(Double x_center, Double y_center, Double radius) throws GPUdbException {
 		return this.do_filter_by_radius("x", "y", x_center, y_center, radius);
 	}
 
@@ -1530,10 +1530,10 @@ public class NamedSet{
 	 * Return the unique values and associated count for this attribute in this set.
 	 * @param attribute The attribute to group on.
 	 * @return Map contains a map of the values to counts.
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public Map<String, Integer> do_group_by(String attribute) throws GaiaException {
-		group_by_response response =  gaia.do_group_by(this, Arrays.asList(attribute));
+	public Map<String, Integer> do_group_by(String attribute) throws GPUdbException {
+		group_by_response response =  gPUdb.do_group_by(this, Arrays.asList(attribute));
 		Map<CharSequence, List<CharSequence>> count_map = response.getCountMap();
 
 		// NOTE: so the CharSequences in avro are really org.apache.avro.util.Utf8 let's convert into strings
@@ -1549,7 +1549,7 @@ public class NamedSet{
 				group_count_map.put(str_key, Integer.valueOf(value.toString()));
 			} catch(Exception e) {
 				log.error(e.toString());
-				throw new GaiaException(e.getMessage());
+				throw new GPUdbException(e.getMessage());
 			}
 		}		
 		return group_count_map;
@@ -1561,14 +1561,14 @@ public class NamedSet{
 	 * getChildrenFromServer() first. 
 	 * @param typeID The type id.  Empty string is *not* a wild card. 
 	 * @return The NamedSet whose type has the given id.
-	 * @throws GaiaException if there is not child set with this type id
+	 * @throws GPUdbException if there is not child set with this type id
 	 */	
-	public NamedSet do_get_sets_by_type_id(String typeID) throws GaiaException{
+	public NamedSet do_get_sets_by_type_id(String typeID) throws GPUdbException{
 		List<NamedSet> sets = this.do_get_sets_by_type_info(typeID, "", "");
 		if(sets.size() == 1) {
 			return sets.get(0);
 		} else if(sets.size() == 0) {
-			throw new GaiaException("No children with this typeID:"+typeID);
+			throw new GPUdbException("No children with this typeID:"+typeID);
 		} else {
 			log.warn("Multiple children with the same type id:"+typeID+" children:"+sets.size());
 			return sets.get(0);
@@ -1648,20 +1648,20 @@ public class NamedSet{
 	 * we return a count of the number of objects within those bins.  The first bin is the multiplicity of the set min time.  	
 	 * @param interval The interval (bin length)
 	 * @return histogram_response
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public histogram_response do_histogram(long interval) throws GaiaException {
-		return gaia.do_histogram(this, "TIMESTAMP", interval);
+	public histogram_response do_histogram(long interval) throws GPUdbException {
+		return gPUdb.do_histogram(this, "TIMESTAMP", interval);
 	}
 	
 	/**
 	 * Sort this set by "attribute".
 	 * @param attribute The sort attribute
 	 * @return sort_response really just a status
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public sort_response do_sort(String attribute) throws GaiaException{
-		return gaia.do_sort(this, attribute);
+	public sort_response do_sort(String attribute) throws GPUdbException{
+		return gPUdb.do_sort(this, attribute);
 	}
 
 	/**
@@ -1670,7 +1670,7 @@ public class NamedSet{
 	 * @param ttl The time to live for this set in minutes.
 	 */
 	public void do_update_ttl(int ttl) {
-		this.gaia.do_update_ttl(this.id, ttl);
+		this.gPUdb.do_update_ttl(this.id, ttl);
 	}
 	
 	/**
@@ -1678,7 +1678,7 @@ public class NamedSet{
 	 * @param attribute - attribute of the set for which unique values are sought
 	 */
 	public unique_response do_unique(String attribute) {
-		return this.gaia.do_unique(this, attribute);
+		return this.gPUdb.do_unique(this, attribute);
 	}
 	
 	/**
@@ -1686,7 +1686,7 @@ public class NamedSet{
 	 * @param attribute - attribute of the set for which unique values are sought
 	 */
 	public List<CharSequence> getUniqueTrackIds(String attribute) {
-		unique_response tr = this.gaia.do_unique(this, Track.groupingFieldName);
+		unique_response tr = this.gPUdb.do_unique(this, Track.groupingFieldName);
 		return tr.getValuesStr();
 	}
 
@@ -1699,12 +1699,12 @@ public class NamedSet{
 	 * @param threshold 
 	 * @return Map<String, List<PointPair>>
 	 */	
-	public Map<String, List<PointPair>> do_turn_off(double threshold) throws GaiaException {		
+	public Map<String, List<PointPair>> do_turn_off(double threshold) throws GPUdbException {		
 		Map<String, List<PointPair>> track_map = new HashMap<String, List<PointPair>>();		
 
 		// NOTE: check that this is of type track!
-		turn_off_response response = this.gaia.do_turn_off(this.id, "TRACKID", "TIMESTAMP", "x", "y", threshold);
-		//turn_off_response response = this.gaia.do_turn_off(this.id, "group_id", "timestamp", "x", "y", threshold);
+		turn_off_response response = this.gPUdb.do_turn_off(this.id, "TRACKID", "TIMESTAMP", "x", "y", threshold);
+		//turn_off_response response = this.gpudb.do_turn_off(this.id, "group_id", "timestamp", "x", "y", threshold);
 		log.debug("Got the turn off response:"+response.toString());
 
 		// convert the map
@@ -1729,7 +1729,7 @@ public class NamedSet{
 							(new PointWithTime(values.get(i),values.get(i+1), values.get(i+2)), new PointWithTime(values.get(i+3),values.get(i+4), values.get(i+5))));
 
 				} catch (Exception e) {
-					throw new GaiaException("Error parsing the turn off response map");
+					throw new GPUdbException("Error parsing the turn off response map");
 				}
 			}
 
@@ -1767,16 +1767,16 @@ public class NamedSet{
 			childTrack = this;
 		}
 
-		SetId rs = this.gaia.new_setid();
+		SetId rs = this.gPUdb.new_setid();
 		log.debug("childTrack:"+childTrack.get_setid());
-		predicate_join_response response = this.gaia.do_dynamic_duo(childTrack, "x", "y", "TIMESTAMP", "TRACKID", distance, time_threshold, rs);
+		predicate_join_response response = this.gPUdb.do_dynamic_duo(childTrack, "x", "y", "TIMESTAMP", "TRACKID", distance, time_threshold, rs);
 		log.debug("dynamic duo response count:"+response.getCount());
 
-		return this.gaia.getNamedSet(rs);
+		return this.gPUdb.getNamedSet(rs);
 	}
 
 	public spatial_set_query_response do_spatial_set_query(CharSequence wkt_attr_name, CharSequence wkt_string, SpatialOperationEnum operation) {
-		return this.gaia.do_spatial_set_query(Arrays.asList(this.id), wkt_attr_name, wkt_string, operation);
+		return this.gPUdb.do_spatial_set_query(Arrays.asList(this.id), wkt_attr_name, wkt_string, operation);
 	}
 	
 	/**
@@ -1786,10 +1786,10 @@ public class NamedSet{
 	 * @param highest
 	 * @param grouping_attribute
 	 * @return register_trigger_range_response 
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public register_trigger_range_response do_register_trigger(String attribute, double lowest, double highest, String grouping_attribute) throws GaiaException{
-		return gaia.do_register_trigger(this.id, attribute, lowest, highest, grouping_attribute);
+	public register_trigger_range_response do_register_trigger(String attribute, double lowest, double highest, String grouping_attribute) throws GPUdbException{
+		return gPUdb.do_register_trigger(this.id, attribute, lowest, highest, grouping_attribute);
 	}
 	
 	/**
@@ -1797,8 +1797,8 @@ public class NamedSet{
 	 * @return Rectangle2D
 	 */
 	public Rectangle2D getBoundingBox() {
-		max_min_response xresp = gaia.do_max_min(this,"x");
-		max_min_response yresp = gaia.do_max_min(this,"y");
+		max_min_response xresp = gPUdb.do_max_min(this,"x");
+		max_min_response yresp = gPUdb.do_max_min(this,"y");
 		return new Rectangle2D.Double(xresp.getMin(), yresp.getMin(), xresp.getMax() - xresp.getMin(), 
 				yresp.getMax() - yresp.getMin());
 	}
@@ -1811,9 +1811,9 @@ public class NamedSet{
 		return id;
 	}
 
-	private void initialize(SetId id, Gaia gaia, Type type) {
+	private void initialize(SetId id, GPUdb gPUdb, Type type) {
 		this.id = id;
-		this.gaia = gaia;
+		this.gPUdb = gPUdb;
 		this.log = Logger.getLogger(NamedSet.class);
 		this.is_sorted = false;
 
@@ -1823,9 +1823,9 @@ public class NamedSet{
 	}
 
 	/**
-	 * Build the named set NOTE: don't use this; construct from a gaia object.
+	 * Build the named set NOTE: don't use this; construct from a gpudb object.
 	 */	
-	public NamedSet(SetId id, Gaia gaia, Type type) {
-		initialize(id, gaia, type);
+	public NamedSet(SetId id, GPUdb gPUdb, Type type) {
+		initialize(id, gPUdb, type);
 	}		
 }

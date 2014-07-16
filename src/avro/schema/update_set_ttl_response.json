@@ -1,5 +1,5 @@
 {
-   "namespace" : "avro.java.gaia",
+    "namespace" : "avro.java.gpudb",
     "type" : "record",
     "name" : "update_set_ttl_response",
     "fields" : [

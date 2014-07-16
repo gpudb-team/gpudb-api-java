@@ -79,7 +79,7 @@ public class Type {
 	
 	/**
 	 * Construct a Type object with the given ID and the associated Java class.
-	 * @param _type_id The ID that GAIA knows this type as.
+	 * @param _type_id The ID that GPUDB knows this type as.
 	 * @param c The class that the Java API will use to build and decode this object.
 	 * @param schema The avro schema for this type.
 	 * @param label The type label.
@@ -98,7 +98,7 @@ public class Type {
 	
 	/**
 	 * Construct a Type object with the given ID and the associated Java class. Empty type label and semantic type.
-	 * @param type_id The ID that GAIA knows this type as.
+	 * @param type_id The ID that GPUDB knows this type as.
 	 * @param c The class that the Java API will use to build and decode this object.
 	 * @param schema The avro schema for this type.
 	 */
@@ -108,7 +108,7 @@ public class Type {
 
 	/**
 	 * Construct a Type object with the given ID and the associated Java class.
-	 * @param _type_id The ID that GAIA knows this type as.
+	 * @param _type_id The ID that GPUDB knows this type as.
 	 * @param c The class that the Java API will use to build and decode this object.
 	 */
 	public Type(String _type_id, Class c){
@@ -245,7 +245,7 @@ public class Type {
 		if(other == this) return true;
 		if(!(other instanceof Type)) return false;
 		Type type = (Type)other;
-		// uniquely defines a type as far as gaia is concerned
+		// uniquely defines a type as far as gpudb is concerned
 		if(type.label.equals(this.label) && type.semanticType.equals(this.semanticType) && type.schema.equals(this.schema)) return true;
 		
 		return false;

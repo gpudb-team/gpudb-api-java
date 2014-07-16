@@ -1,5 +1,5 @@
 {
-   "namespace" : "avro.java.gaia",
+    "namespace" : "avro.java.gpudb",
     "type" : "record",
     "name" : "bounding_box_request",
     "fields" : [

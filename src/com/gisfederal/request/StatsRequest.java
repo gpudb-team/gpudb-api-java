@@ -2,15 +2,15 @@
  * 
  */
 package com.gisfederal.request;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.AvroUtils;
 import com.gisfederal.SetId;
 import com.gisfederal.NamedSet;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.sort_request;
-import avro.java.gaia.stats_request;
+import avro.java.gpudb.sort_request;
+import avro.java.gpudb.stats_request;
 
 /**
  * @author pjacobs
@@ -18,8 +18,8 @@ import avro.java.gaia.stats_request;
  */
 public class StatsRequest extends Request {
 
-	public StatsRequest(Gaia gaia, String file, String set_id) {
-		this.gaia = gaia;
+	public StatsRequest(GPUdb gPUdb, String file, String set_id) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(StatsRequest.class);
 		

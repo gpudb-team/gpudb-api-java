@@ -1,5 +1,5 @@
 {
-   "namespace" : "avro.java.gaia",
+    "namespace" : "avro.java.gpudb",
    "type" : "record",
    "name" : "server_status_response",
    "fields" : [

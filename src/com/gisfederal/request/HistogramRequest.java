@@ -1,21 +1,21 @@
 package com.gisfederal.request;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.AvroUtils;
 import com.gisfederal.SetId;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.get_set_sorted_request;
-import avro.java.gaia.histogram_request;
+import avro.java.gpudb.get_set_sorted_request;
+import avro.java.gpudb.histogram_request;
 
 public class HistogramRequest extends Request {
-	public HistogramRequest(Gaia gaia, String file, SetId id, String attribute, long interval, double start, double end) {
-		this.gaia = gaia;
+	public HistogramRequest(GPUdb gPUdb, String file, SetId id, String attribute, long interval, double start, double end) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(HistogramRequest.class);
 		
 		log.debug("file:"+file+" id:"+id.get_id()+" start:"+start+" end:"+end);
-		histogram_request request = new histogram_request(attribute, end, interval, id.get_id(), start, this.gaia.getUserAuth());
+		histogram_request request = new histogram_request(attribute, end, interval, id.get_id(), start, this.gPUdb.getUserAuth());
 	
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));
 		

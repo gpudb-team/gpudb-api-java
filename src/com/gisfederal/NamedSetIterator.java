@@ -34,13 +34,13 @@ public class NamedSetIterator implements Iterator {
 				//System.out.println(" %%% UpdateInternalList entering size is " + size);
 				startIndex = 0;
 				endIndex = pageSize >= size ? size-1 : pageSize;
-				getDataFromGaia(list, startIndex, endIndex);				
+				getDataFromGpudb(list, startIndex, endIndex);				
 			} else {
 				list = new ArrayList();
 			}
 		} else {
 			// valid; get the next list
-			getDataFromGaia(list, startIndex, endIndex);
+			getDataFromGpudb(list, startIndex, endIndex);
 		}		
 		listIter = list.iterator();
 		
@@ -56,10 +56,10 @@ public class NamedSetIterator implements Iterator {
 
 	}
 	
-	private void getDataFromGaia(List<Object> list2, int startIndex,
+	private void getDataFromGpudb(List<Object> list2, int startIndex,
 			int endIndex) {
 		
-		//System.out.println(" ## Fetch data from GAIA for set " + ns.get_setid() + "  SI and EI are " + startIndex + " $$ " + endIndex);
+		//System.out.println(" ## Fetch data from GPUDB for set " + ns.get_setid() + "  SI and EI are " + startIndex + " $$ " + endIndex);
 		
 		list = (List<Object>)ns.list(startIndex, endIndex);		
 	}

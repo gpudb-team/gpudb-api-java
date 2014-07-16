@@ -19,16 +19,16 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.add_object_request;
-import avro.java.gaia.bulk_add_request;
+import avro.java.gpudb.add_object_request;
+import avro.java.gpudb.bulk_add_request;
 
 import com.google.gson.Gson;
 import com.gisfederal.*;
 
 public class BulkAddRequest extends Request {
 
-	public BulkAddRequest(Gaia gaia, String file, List<Object> list_obj, NamedSet ns) {		
-		this.gaia = gaia;
+	public BulkAddRequest(GPUdb gPUdb, String file, List<Object> list_obj, NamedSet ns) {		
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(BulkAddRequest.class);
 

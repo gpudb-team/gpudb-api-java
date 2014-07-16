@@ -5,21 +5,21 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.filter_by_list_request;
-import avro.java.gaia.get_tracks_request;
-import avro.java.gaia.get_type_info_request;
+import avro.java.gpudb.filter_by_list_request;
+import avro.java.gpudb.get_tracks_request;
+import avro.java.gpudb.get_type_info_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 
 public class GetTypeInfoRequest extends Request {
-	public GetTypeInfoRequest(Gaia gaia, String file, String typeID, String label, String semanticType) {
-		this.gaia = gaia;
+	public GetTypeInfoRequest(GPUdb gPUdb, String file, String typeID, String label, String semanticType) {
+		this.gPUdb = gPUdb;
 		this.file = file;		
 		this.log = Logger.getLogger(GetTypeInfoRequest.class);
 		
-		this.log.debug("gaia:"+gaia.toString());
+		this.log.debug("gpudb:"+gPUdb.toString());
 		get_type_info_request request = new get_type_info_request(typeID, label, semanticType);
 		this.log.debug("Build request object");
 

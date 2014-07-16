@@ -6,20 +6,20 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.plot2d_multiple_request;
-import avro.java.gaia.register_trigger_nai_request;
+import avro.java.gpudb.plot2d_multiple_request;
+import avro.java.gpudb.register_trigger_nai_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 
 public class RegisterTriggerNAI extends Request {
 
-	public RegisterTriggerNAI(Gaia gaia, String file, List<SetId> set_ids, String x_attribute, List<Double> x_vector, String y_attribute, List<Double> y_vector, String grouping_attribute) {
-		this.gaia = gaia;
+	public RegisterTriggerNAI(GPUdb gPUdb, String file, List<SetId> set_ids, String x_attribute, List<Double> x_vector, String y_attribute, List<Double> y_vector, String grouping_attribute) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(RegisterTriggerNAI.class);
-		log.debug("gaia:"+gaia.toString()+" file:"+file+" ids.size():"+set_ids.size());
+		log.debug("gpudb:"+gPUdb.toString()+" file:"+file+" ids.size():"+set_ids.size());
 		
 		// convert list of set ids
 		List<CharSequence> list = new ArrayList<CharSequence>();

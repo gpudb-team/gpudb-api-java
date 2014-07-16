@@ -6,28 +6,28 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.sort_request;
-import avro.java.gaia.update_object_request;
+import avro.java.gpudb.sort_request;
+import avro.java.gpudb.update_object_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
-import com.gisfederal.GaiaException;
+import com.gisfederal.GPUdb;
+import com.gisfederal.GPUdbException;
 import com.gisfederal.NamedSet;
 
 public class UpdateObjectRequest extends Request{
 
 	// Given the object to add and the set id of named set to add it too
-	public UpdateObjectRequest(Gaia gaia, String file, Object obj, String objectId, NamedSet ns) throws GaiaException{
-		this.gaia = gaia;
+	public UpdateObjectRequest(GPUdb gPUdb, String file, Object obj, String objectId, NamedSet ns) throws GPUdbException{
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(AddObjectRequest.class);
 		
-		ByteBuffer serialized = AddObjectRequest.encodeObject(gaia, file, obj, ns, log);
+		ByteBuffer serialized = AddObjectRequest.encodeObject(gPUdb, file, obj, ns, log);
 
 		// add to avro object
 		List<CharSequence> setids = new ArrayList<CharSequence>();
 		setids.add(ns.get_setid().get_id());
-		update_object_request request = new update_object_request(setids, objectId, serialized, "", "BINARY", gaia.getUserAuth());	
+		update_object_request request = new update_object_request(setids, objectId, serialized, "", "BINARY", gPUdb.getUserAuth());	
 		log.debug(request.getObjectData().toString());
 
 		log.debug("Add object request created");	

@@ -8,11 +8,11 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.authenticate_users_request;
-import avro.java.gaia.set_info_request;
+import avro.java.gpudb.authenticate_users_request;
+import avro.java.gpudb.set_info_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 
 /**
@@ -25,11 +25,11 @@ public class AuthenticateUsersRequest extends Request {
 	/**
 	 * 
 	 */
-	public AuthenticateUsersRequest(Gaia gaia, String file, List<String> user_authorizations, List<SetId> set_ids) {
+	public AuthenticateUsersRequest(GPUdb gPUdb, String file, List<String> user_authorizations, List<SetId> set_ids) {
 		
 		throw new UnsupportedOperationException(" --- NOT IMPLEMENTED ----");
 		/*
-		this.gaia = gaia;
+		this.gpudb = gpudb;
 		this.file = file;
 		this.log = Logger.getLogger(AuthenticateUsersRequest.class);
 		
