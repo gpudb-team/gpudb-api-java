@@ -1,20 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.gisfederal.gaia</groupId>
-  <artifactId>gaia2-client</artifactId>
-  <version>3.0.9-SNAPSHOT</version>
+  <groupId>com.gisfederal.gpudb</groupId>
+  <artifactId>gpudb-client</artifactId>
+  <version>4.0.1</version>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   
-	<distributionManagement> 
-		<snapshotRepository> 
-			<id>iep-infrastructure-snapshots</id> 
-			<url>http://nexus.ci.rladcl.net/nexus/content/repositories/iep-infrastructure-snapshots</url> 
-		</snapshotRepository> 
-	</distributionManagement>
-
+ 
   
   <repositories>
 
@@ -116,7 +110,7 @@
 			                    <include>avro/**</include>
 			                    <include>com/gisfederal/**</include>
 			                    <include>org.apache.avro:*</include>
- 			                    <include>avro.java.gaia:*</include>
+ 			                    <include>avro.java.gpudb:*</include>
 							</includes>
               			</artifactSet>
 						<relocations>
