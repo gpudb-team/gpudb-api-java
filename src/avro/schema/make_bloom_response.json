@@ -1,8 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "make_bloom_response",
-    "fields" : [
-        { "name" : "status", "type" : "string" }
-    ]
-}

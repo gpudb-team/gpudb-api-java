@@ -1,9 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "get_orphans_response",
-    "fields" : [
-        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
-        { "name" : "is_parent", "type" : { "type" : "array", "items" : "boolean" }}
-    ]
-}

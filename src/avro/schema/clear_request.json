@@ -1,9 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "clear_request",
-    "fields" : [
-        { "name" : "set_id", "type" : "string" },
-        { "name" : "authorization", "type" : "string" }
-    ]
-}

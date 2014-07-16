@@ -1,9 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "copy_set_response",
-    "fields" : [
-        { "name" : "new_set_id", "type" : "string" },
-        { "name" : "count", "type" : "int" }
-    ]
-}

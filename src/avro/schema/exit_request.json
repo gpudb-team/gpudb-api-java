@@ -1,9 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "exit_request",
-    "fields" : [
-        { "name" : "exit_type", "type" : "string" },
-        { "name" : "authorization", "type" : "string" }
-    ]
-}

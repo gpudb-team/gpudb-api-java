@@ -1,8 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "bounding_box_response",
-    "fields" : [
-        { "name" : "count", "type" : "int" }
-    ]
-}

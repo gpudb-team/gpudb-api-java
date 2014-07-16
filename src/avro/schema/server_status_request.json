@@ -1,8 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-   "type" : "record",
-   "name" : "server_status_request",
-   "fields" : [
-        { "name" : "option", "type" : "string" }
-    ]
-}

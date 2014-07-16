@@ -1,8 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "shape_literal_intersection_response",
-    "fields" : [
-        { "name" : "intersects", "type" : "string" }
-    ]
-}

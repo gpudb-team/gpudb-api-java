@@ -1,9 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "update_set_ttl_request",
-    "fields" : [
-        { "name" : "set_id", "type" : "string" },
-        { "name" : "ttl", "type" : "int" }
-    ]
-}

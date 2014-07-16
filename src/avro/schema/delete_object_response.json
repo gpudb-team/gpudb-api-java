@@ -1,9 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "delete_object_response",
-    "fields" : [
-        { "name" : "status", "type" : "string" },
-        { "name" : "OBJECT_ID", "type" : "string" }
-    ]
-}

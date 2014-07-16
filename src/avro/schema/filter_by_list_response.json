@@ -1,8 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "filter_by_list_response",
-    "fields" : [
-        { "name" : "count", "type" : "int" }
-    ]
-}

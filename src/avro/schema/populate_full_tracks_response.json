@@ -1,8 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "populate_full_tracks_response",
-    "fields" : [
-        { "name" : "count", "type" : "int" }
-    ]
-}

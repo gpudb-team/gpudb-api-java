@@ -1,9 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "random_response",
-    "fields" : [
-        { "name" : "set_id", "type" : "string" },
-        { "name" : "count", "type" : "int" }
-    ]
-}

@@ -1,8 +1,0 @@
-{
-   "namespace" : "avro.java.gaia",
-    "type" : "record",
-    "name" : "register_parent_set_response",
-    "fields" : [
-        { "name" : "set_id", "type" : "string" }
-    ]
-}
