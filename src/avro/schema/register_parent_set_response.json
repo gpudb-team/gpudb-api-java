@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "register_parent_set_response",
+    "fields" : [
+        { "name" : "set_id", "type" : "string" }
+    ]
+}

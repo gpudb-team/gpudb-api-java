@@ -1,0 +1,12 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "gaia_response",
+    "fields" : [
+        { "name" : "status", "type" : "string" },
+        { "name" : "message", "type" : "string" },
+        { "name" : "data_type", "type" : "string" },
+        { "name" : "data", "type" : "bytes" },
+        { "name" : "data_str", "type" : "string" }
+    ]
+}

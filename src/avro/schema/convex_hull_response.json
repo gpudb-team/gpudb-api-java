@@ -1,0 +1,11 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "convex_hull_response",
+    "fields" : [
+        { "name" : "x_vector", "type" : { "type" : "array", "items" : "double" }},
+        { "name" : "y_vector", "type" : { "type" : "array", "items" : "double" }},
+        { "name" : "count", "type" : "int" },
+        { "name" : "is_valid", "type" : "boolean" }
+    ]
+}

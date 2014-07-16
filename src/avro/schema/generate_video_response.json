@@ -1,0 +1,13 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "generate_video_response",
+    "fields" : [
+        { "name" : "width", "type" : "double" },
+        { "name" : "height", "type" : "double" },
+        { "name" : "bg_color", "type" : "long" },
+        { "name" : "num_frames", "type" : "int" },
+        { "name" : "session_key", "type" : "string" },
+        { "name" : "data", "type" :  { "type" : "array", "items" : "bytes" }}
+    ]
+}

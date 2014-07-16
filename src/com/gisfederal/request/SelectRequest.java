@@ -3,15 +3,15 @@
  */
 package com.gisfederal.request;
 
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.AvroUtils;
 import com.gisfederal.SetId;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.register_trigger_nai_request;
-import avro.java.gaia.select_request;
-import avro.java.gaia.sort_request;
+import avro.java.gpudb.register_trigger_nai_request;
+import avro.java.gpudb.select_request;
+import avro.java.gpudb.sort_request;
 
 /**
  * @author pjacobs
@@ -20,13 +20,13 @@ import avro.java.gaia.sort_request;
 public class SelectRequest extends Request {
 
 	
-	public SelectRequest(Gaia gaia, String file, SetId in_set, SetId out_set, String expression) {
-		this.gaia = gaia;
+	public SelectRequest(GPUdb gPUdb, String file, SetId in_set, SetId out_set, String expression) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(SelectRequest.class);
 		
 		// construct avro object and then convert to bytes
-		select_request request = new select_request(expression, out_set.get_id(), in_set.get_id(), this.gaia.getUserAuth());
+		select_request request = new select_request(expression, out_set.get_id(), in_set.get_id(), this.gPUdb.getUserAuth());
 		
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));
 		

@@ -6,7 +6,7 @@ package com.gisfederal.request;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import com.gisfederal.GaiaException;
+import com.gisfederal.GPUdbException;
 
 
 public class RequestConnection {
@@ -25,9 +25,9 @@ public class RequestConnection {
 	 * @param protocol The protocol (HTTP or HTTPS)
 	 * @param ip The IP address (ex: 127.0.0.1)
 	 * @param port The port (ex: 9191)	 
-	 * @throws GaiaException
+	 * @throws GPUdbException
 	 */
-	public RequestConnection(String protocol, String ip, int port) throws GaiaException{
+	public RequestConnection(String protocol, String ip, int port) throws GPUdbException{
 		this.ip = ip;
 		this.port = port;
 		this.protocol = protocol;
@@ -37,7 +37,7 @@ public class RequestConnection {
 		try {
 			buildURL("test");		
 		} catch (MalformedURLException e) {
-			throw new GaiaException("Malformed url; "+e.toString());
+			throw new GPUdbException("Malformed url; "+e.toString());
 		}		
 	}
 
@@ -48,7 +48,7 @@ public class RequestConnection {
 		this.protocol = protocol;
 	}
 	
-	public RequestConnection(String protocol, String ip) throws GaiaException{
+	public RequestConnection(String protocol, String ip) throws GPUdbException{
 		// We dont have a port. If HTTPS - try 443, otherwise try 80
 		this(protocol, ip, protocol.equalsIgnoreCase("https") ? 443 : 80);
 	}

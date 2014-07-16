@@ -5,14 +5,14 @@ package com.gisfederal.request;
 
 import java.util.List;
 
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.AvroUtils;
 import com.gisfederal.SetId;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.new_set_request;
-import avro.java.gaia.plot2d_multiple_request;
+import avro.java.gpudb.new_set_request;
+import avro.java.gpudb.plot2d_multiple_request;
 
 /**
  * @author pjacobs
@@ -23,13 +23,13 @@ public class Plot2DMultipleRequest extends Request {
 	/**
 	 * 
 	 */
-	public Plot2DMultipleRequest(Gaia gaia, String file, List<CharSequence> in_sets, List<Long> colors, List<Integer> sizes, String x_attribute, String y_attribute, double min_x, double max_x, double min_y, double max_y, double width, double height, String projection, long bg_color) {
-		this.gaia = gaia;
+	public Plot2DMultipleRequest(GPUdb gPUdb, String file, List<CharSequence> in_sets, List<Long> colors, List<Integer> sizes, String x_attribute, String y_attribute, double min_x, double max_x, double min_y, double max_y, double width, double height, String projection, long bg_color) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(Plot2DMultipleRequest.class);
 		
 		// construct avro object and then encode
-		plot2d_multiple_request request = new plot2d_multiple_request(min_x, max_x, min_y, max_y, x_attribute, y_attribute, width, height, projection, in_sets, colors, sizes, bg_color, this.gaia.getUserAuth());
+		plot2d_multiple_request request = new plot2d_multiple_request(min_x, max_x, min_y, max_y, x_attribute, y_attribute, width, height, projection, in_sets, colors, sizes, bg_color, this.gPUdb.getUserAuth());
 		
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));
 	

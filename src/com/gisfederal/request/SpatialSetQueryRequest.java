@@ -5,16 +5,16 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.sort_request;
-import avro.java.gaia.spatial_set_query_request;
+import avro.java.gpudb.sort_request;
+import avro.java.gpudb.spatial_set_query_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 
 public class SpatialSetQueryRequest extends Request {
-	public SpatialSetQueryRequest(Gaia gaia, String file, List<SetId> set_ids, CharSequence wkt_attr_name, CharSequence wkt_string, CharSequence operation) {
-		this.gaia = gaia;
+	public SpatialSetQueryRequest(GPUdb gPUdb, String file, List<SetId> set_ids, CharSequence wkt_attr_name, CharSequence wkt_string, CharSequence operation) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(SpatialSetQueryRequest.class);
 		
@@ -22,7 +22,7 @@ public class SpatialSetQueryRequest extends Request {
 		for(SetId id : set_ids) {
 			ids.add(id.toString());
 		}
-		spatial_set_query_request request = new spatial_set_query_request(ids, wkt_attr_name, wkt_string, operation, gaia.getUserAuth()); 
+		spatial_set_query_request request = new spatial_set_query_request(ids, wkt_attr_name, wkt_string, operation, gPUdb.getUserAuth()); 
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));
 	
 		// Create log msg for audit

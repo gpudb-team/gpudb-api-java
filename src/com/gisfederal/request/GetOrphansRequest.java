@@ -2,15 +2,15 @@ package com.gisfederal.request;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.get_objects_request;
-import avro.java.gaia.get_orphans_request;
+import avro.java.gpudb.get_objects_request;
+import avro.java.gpudb.get_orphans_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 
 public class GetOrphansRequest extends Request {
-	public GetOrphansRequest(Gaia gaia, String file, String setNamespace) {
-		this.gaia = gaia;
+	public GetOrphansRequest(GPUdb gPUdb, String file, String setNamespace) {
+		this.gPUdb = gPUdb;
 		this.file = file;		
 		this.log = Logger.getLogger(GetOrphansRequest.class);
 		

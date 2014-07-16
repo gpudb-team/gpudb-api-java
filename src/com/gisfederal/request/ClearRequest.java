@@ -5,11 +5,11 @@ package com.gisfederal.request;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.bounding_box_request;
-import avro.java.gaia.clear_request;
+import avro.java.gpudb.bounding_box_request;
+import avro.java.gpudb.clear_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 
 /**
  * @author pjacobs
@@ -17,8 +17,8 @@ import com.gisfederal.Gaia;
  */
 public class ClearRequest extends Request {
 
-	public ClearRequest(Gaia gaia, String file, String set_id, String pwd) {
-		this.gaia = gaia;
+	public ClearRequest(GPUdb gPUdb, String file, String set_id, String pwd) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(ClearRequest.class);
 		

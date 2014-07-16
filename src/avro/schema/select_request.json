@@ -1,0 +1,11 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "select_request",
+    "fields" : [
+        { "name" : "expression", "type" : "string" },
+        { "name" : "result_set_id", "type" : "string" },
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

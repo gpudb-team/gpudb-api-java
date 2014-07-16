@@ -1,0 +1,11 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "add_object_request",
+    "fields" : [
+        { "name" : "object_data", "type" : "bytes" },
+        { "name" : "object_data_str", "type" : "string" },
+        { "name" : "object_encoding", "type" : "string" },
+        { "name" : "set_id", "type" : "string" }
+    ]
+}

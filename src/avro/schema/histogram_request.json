@@ -1,0 +1,13 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "histogram_request",
+    "fields" : [
+        { "name" : "attribute", "type" : "string" },
+        { "name" : "end", "type" : "double" },
+        { "name" : "interval", "type" : "long" },
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "start", "type" : "double" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

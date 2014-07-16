@@ -1,0 +1,12 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "cluster_response",
+    "fields" : [
+        { "name" : "attributes", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "count_map", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "string" }}},
+        { "name" : "first_pass", "type" : "boolean" },
+        { "name" : "list", "type" : { "type" : "array", "items" : "double" }},
+        { "name" : "set_id", "type" : "string" }
+    ]
+}

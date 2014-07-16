@@ -1,18 +1,18 @@
 package com.gisfederal.request;
 
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 
 /// DELETE OR REWORK
 public class DistinctRequest extends Request {
 
-	public DistinctRequest(Gaia gaia, SetId src_id, SetId dst_guid,
+	public DistinctRequest(GPUdb gPUdb, SetId src_id, SetId dst_guid,
 			String[] attrs) {
 		
 		throw new UnsupportedOperationException(" --- NOT IMPLEMENTED ----");
 		
 		/*
-		this.gaia = gaia;
+		this.gpudb = gpudb;
 		this.file = "/distinct";
 		this.log = Logger.getLogger(DistinctRequest.class);
 

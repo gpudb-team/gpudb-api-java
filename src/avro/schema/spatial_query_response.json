@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "spatial_query_response",
+    "fields" : [
+        { "name" : "result", "type" : "boolean" }
+    ]
+}

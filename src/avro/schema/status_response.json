@@ -1,0 +1,17 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "status_response",
+    "fields" : [
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "is_parent", "type" : { "type" : "array", "items" : "boolean" }},
+        { "name" : "semantic_types", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "labels", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "sizes", "type" : { "type" : "array", "items" : "int" }},
+        { "name" : "full_sizes", "type" : { "type" : "array", "items" : "int" }},
+        { "name" : "child_map", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "string" }}},
+        { "name" : "total_size", "type" : "int" },
+        { "name" : "total_full_size", "type" : "int" }
+    ]
+}

@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "add_symbol_response",
+    "fields" : [
+        { "name" : "symbol_id", "type" : "string" }
+    ]
+}

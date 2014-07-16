@@ -1,0 +1,11 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "get_sorted_sets_response",
+    "fields" : [
+        { "name" : "lists", "type" : { "type" : "array", "items" : { "type" : "array", "items" : "bytes" }}},
+        { "name" : "list_strs", "type" : { "type" : "array", "items" : { "type" : "array", "items" : "string" }}},
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "attr_vals", "type" : { "type" : "array", "items" : { "type" : "array", "items" : "double" }}}
+    ]
+}

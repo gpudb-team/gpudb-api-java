@@ -1,0 +1,10 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "merge_sets_request",
+    "fields" : [
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "merged_set_id", "type" : "string" },
+        { "name" : "common_type_id", "type" : "string" }
+    ]
+}

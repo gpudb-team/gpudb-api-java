@@ -1,0 +1,10 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "delete_object_request",
+    "fields" : [
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "OBJECT_ID", "type" : "string" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

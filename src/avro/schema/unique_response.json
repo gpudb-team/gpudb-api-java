@@ -1,0 +1,12 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "unique_response",
+    "fields" : [
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "attribute", "type" : "string" },
+        { "name" : "values", "type" : { "type" : "array", "items" : "double" }},
+        { "name" : "values_str", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "is_string", "type" : "boolean" }
+    ]
+}

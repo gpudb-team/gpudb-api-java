@@ -22,11 +22,11 @@ public class TestNonJunit {
 	public static void main(String args[]) {		
 		System.out.println("Setup class");
 		try {
-			TestGaia.setUpClass();
+			TestGpudb.setUpClass();
 		} catch (Exception e) {
 			System.err.println("Class set up error "+e.toString());
 		}
-		TestGaia test = new TestGaia();
+		TestGpudb test = new TestGpudb();
 		
 		String methodName = "";
 		if(args.length > 0) {

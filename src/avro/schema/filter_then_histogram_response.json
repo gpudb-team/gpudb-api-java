@@ -1,0 +1,10 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "filter_then_histogram_response",
+    "fields" : [
+        { "name" : "counts", "type" : { "type" : "array", "items" : { "type" : "array", "items" : "int" }}},
+        { "name" : "end", "type" : "double" },
+        { "name" : "start", "type" : "double" }
+    ]
+}

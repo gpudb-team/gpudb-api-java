@@ -2,15 +2,15 @@ package com.gisfederal.request;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.select_request;
-import avro.java.gaia.spatial_query_request;
+import avro.java.gpudb.select_request;
+import avro.java.gpudb.spatial_query_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 
 public class SpatialQueryRequest extends Request {
-	public SpatialQueryRequest(Gaia gaia, String file, CharSequence wkt1, CharSequence wkt2, CharSequence operation) {
-		this.gaia = gaia;
+	public SpatialQueryRequest(GPUdb gPUdb, String file, CharSequence wkt1, CharSequence wkt2, CharSequence operation) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(SpatialQueryRequest.class);
 		

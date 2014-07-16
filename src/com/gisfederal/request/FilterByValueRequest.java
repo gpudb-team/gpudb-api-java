@@ -4,11 +4,11 @@
 package com.gisfederal.request;
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.filter_by_string_request;
-import avro.java.gaia.filter_by_value_request;
+import avro.java.gpudb.filter_by_string_request;
+import avro.java.gpudb.filter_by_value_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 
 /**
@@ -17,18 +17,18 @@ import com.gisfederal.SetId;
  */
 
 
-//this.gaia, file, in_set, result_set_id, isString, value, value_string, attribute
+//this.gpudb, file, in_set, result_set_id, isString, value, value_string, attribute
 
 public class FilterByValueRequest extends Request {
 
-	public FilterByValueRequest(Gaia gaia, String file, SetId in_set, SetId result_set_id, boolean isString, Double value, 
+	public FilterByValueRequest(GPUdb gPUdb, String file, SetId in_set, SetId result_set_id, boolean isString, Double value, 
 			String value_string, String attribute) {
-		this.gaia = gaia;
+		this.gPUdb = gPUdb;
 		this.file = file;		
 		this.log = Logger.getLogger(FilterByValueRequest.class);
 		
-		this.log.debug("gaia:"+gaia.toString()+" in_set:"+in_set.get_id());
-		filter_by_value_request request = new filter_by_value_request(in_set.get_id(), isString, value, value_string, attribute, result_set_id.get_id(), this.gaia.getUserAuth()); 
+		this.log.debug("gpudb:"+gPUdb.toString()+" in_set:"+in_set.get_id());
+		filter_by_value_request request = new filter_by_value_request(in_set.get_id(), isString, value, value_string, attribute, result_set_id.get_id(), this.gPUdb.getUserAuth()); 
 		this.log.debug("Build request object");
 
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));

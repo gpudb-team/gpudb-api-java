@@ -1,0 +1,11 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "add_symbol_request",
+    "fields" : [
+        { "name" : "symbol_id", "type" : "string" },
+        { "name" : "symbol_format", "type" : "string" },
+        { "name" : "symbol_data", "type" : "bytes" },
+        { "name" : "params", "type" : { "type" : "map", "values" : "string"} }
+    ]
+}

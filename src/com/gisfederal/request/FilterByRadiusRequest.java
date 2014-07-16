@@ -2,7 +2,7 @@
  * 
  */
 package com.gisfederal.request;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.AvroUtils;
 import com.gisfederal.SetId;
 
@@ -10,8 +10,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.filter_by_list_request;
-import avro.java.gaia.filter_by_radius_request;
+import avro.java.gpudb.filter_by_list_request;
+import avro.java.gpudb.filter_by_radius_request;
 
 /**
  * @author pjacobs
@@ -19,13 +19,13 @@ import avro.java.gaia.filter_by_radius_request;
  */
 public class FilterByRadiusRequest extends Request {
 
-	public FilterByRadiusRequest(Gaia gaia, String file, SetId in_set, SetId result_set_id, String x_attribute, String y_attribute, Double x_center, Double y_center, Double radius) {
-		this.gaia = gaia;
+	public FilterByRadiusRequest(GPUdb gPUdb, String file, SetId in_set, SetId result_set_id, String x_attribute, String y_attribute, Double x_center, Double y_center, Double radius) {
+		this.gPUdb = gPUdb;
 		this.file = file;		
 		this.log = Logger.getLogger(FilterByRadiusRequest.class);
 		
-		this.log.debug("gaia:"+gaia.toString()+" in_set:"+in_set.get_id());
-		filter_by_radius_request request = new filter_by_radius_request(result_set_id.get_id(), in_set.get_id(), x_attribute, y_attribute, x_center, y_center, radius, this.gaia.getUserAuth()); 
+		this.log.debug("gpudb:"+gPUdb.toString()+" in_set:"+in_set.get_id());
+		filter_by_radius_request request = new filter_by_radius_request(result_set_id.get_id(), in_set.get_id(), x_attribute, y_attribute, x_center, y_center, radius, this.gPUdb.getUserAuth()); 
 		this.log.debug("Build request object");
 
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));

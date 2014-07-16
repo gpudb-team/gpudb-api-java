@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "clear_auth_cache_response",
+    "fields" : [
+        { "name" : "status", "type" : "string" }
+    ]
+}

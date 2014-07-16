@@ -2,7 +2,7 @@
  * 
  */
 package com.gisfederal.request;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.AvroUtils;
 import com.gisfederal.SetId;
 import com.gisfederal.NamedSet;
@@ -12,8 +12,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.sort_request;
-import avro.java.gaia.store_group_by_request;
+import avro.java.gpudb.sort_request;
+import avro.java.gpudb.store_group_by_request;
 
 /**
  * @author pjacobs
@@ -21,13 +21,13 @@ import avro.java.gaia.store_group_by_request;
  */
 public class StoreGroupByRequest extends Request {
 	
-	public StoreGroupByRequest(Gaia gaia, String file, SetId in_set, String attribute, Map<CharSequence, List<CharSequence>> group_map, boolean sort, String sort_attribute) {
-		this.gaia = gaia;
+	public StoreGroupByRequest(GPUdb gPUdb, String file, SetId in_set, String attribute, Map<CharSequence, List<CharSequence>> group_map, boolean sort, String sort_attribute) {
+		this.gPUdb = gPUdb;
 		this.file = file;		
 		this.log = Logger.getLogger(StoreGroupByRequest.class);
 		
-		this.log.debug("gaia:"+gaia.toString()+" in_set:"+in_set.get_id());
-		store_group_by_request request = new store_group_by_request(attribute, group_map, sort, sort_attribute, in_set.get_id(), this.gaia.getUserAuth());
+		this.log.debug("gpudb:"+gPUdb.toString()+" in_set:"+in_set.get_id());
+		store_group_by_request request = new store_group_by_request(attribute, group_map, sort, sort_attribute, in_set.get_id(), this.gPUdb.getUserAuth());
 		this.log.debug("Build request object");
 		
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));

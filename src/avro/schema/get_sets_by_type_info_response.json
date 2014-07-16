@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "get_sets_by_type_info_response",
+    "fields" : [
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }}
+    ]
+}

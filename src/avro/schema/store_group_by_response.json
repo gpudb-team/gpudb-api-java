@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "store_group_by_response",
+    "fields" : [
+        { "name" : "group_map", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "string" }}}
+    ]
+}

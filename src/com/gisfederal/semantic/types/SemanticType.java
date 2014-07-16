@@ -7,7 +7,7 @@ package com.gisfederal.semantic.types;
  */
 public abstract class SemanticType {
 	/**
-	 * This defines the field that we use to determine what gaia types combine together to form one semantic type. Empty if it's one-to-one.
+	 * This defines the field that we use to determine what gpudb types combine together to form one semantic type. Empty if it's one-to-one.
 	 */
 	public static String groupingFieldName;
 	

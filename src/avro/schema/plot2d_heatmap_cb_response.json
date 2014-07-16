@@ -1,0 +1,11 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "plot2d_heatmap_cb_response",
+    "fields" : [
+        { "name" : "width", "type" : "double" },
+        { "name" : "height", "type" : "double" },
+        { "name" : "bg_color", "type" : "long" },
+        { "name" : "image_data", "type" : "bytes" }
+    ]
+}

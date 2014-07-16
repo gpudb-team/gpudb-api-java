@@ -1,0 +1,11 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "register_type_request",
+    "fields" : [
+        { "name" : "type_definition", "type" : "string" },
+        { "name" : "annotation", "type" : "string" },
+        { "name" : "label", "type" : "string" },
+        { "name" : "semantic_type", "type" : "string" }
+    ]
+}

@@ -5,26 +5,26 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.set_info_request;
-import avro.java.gaia.shape_intersection_request;
+import avro.java.gpudb.set_info_request;
+import avro.java.gpudb.shape_intersection_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 
 public class ShapeIntersectionRequest extends Request {
-	public ShapeIntersectionRequest(Gaia gaia, String file, List<SetId> set_ids, CharSequence wkt_attr_name, List<Double> x_vector, List<Double> y_vector, CharSequence geometry_type, CharSequence wkt_string) {
-		this.gaia = gaia;
+	public ShapeIntersectionRequest(GPUdb gPUdb, String file, List<SetId> set_ids, CharSequence wkt_attr_name, List<Double> x_vector, List<Double> y_vector, CharSequence geometry_type, CharSequence wkt_string) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(ShapeIntersectionRequest.class);
 
-		this.log.debug("gaia:"+gaia.toString());	
+		this.log.debug("gpudb:"+gPUdb.toString());	
 		List<CharSequence> c_set_ids = new ArrayList<CharSequence>();
 		for(SetId si : set_ids) {
 			c_set_ids.add(si.get_id());
 		}
 		
-		shape_intersection_request request = new shape_intersection_request(c_set_ids, wkt_attr_name, x_vector, y_vector, geometry_type, wkt_string, gaia.getUserAuth());	
+		shape_intersection_request request = new shape_intersection_request(c_set_ids, wkt_attr_name, x_vector, y_vector, geometry_type, wkt_string, gPUdb.getUserAuth());	
 
 		this.log.debug("Build request object");
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));

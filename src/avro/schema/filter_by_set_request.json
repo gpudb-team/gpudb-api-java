@@ -1,0 +1,13 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "filter_by_set_request",
+    "fields" : [
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "result_set_id", "type" : "string" },
+        { "name" : "attribute", "type" : "string" },
+        { "name" : "source_set_id", "type" : "string" },
+        { "name" : "source_set_attribute", "type" : "string" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

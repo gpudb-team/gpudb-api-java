@@ -6,16 +6,16 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.get_set_sorted_request;
-import avro.java.gaia.merge_sets_request;
+import avro.java.gpudb.get_set_sorted_request;
+import avro.java.gpudb.merge_sets_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 
 public class MergeSetsRequest extends Request {
-	public MergeSetsRequest(Gaia gaia, String file, Collection<SetId> in_sets, String commonType, SetId resultID) {
-		this.gaia = gaia;
+	public MergeSetsRequest(GPUdb gPUdb, String file, Collection<SetId> in_sets, String commonType, SetId resultID) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(MergeSetsRequest.class);
 		

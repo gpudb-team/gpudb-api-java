@@ -1,22 +1,22 @@
 package com.gisfederal.request;
 
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.AvroUtils;
 import com.gisfederal.SetId;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.add_object_request;
-import avro.java.gaia.filter_by_bounds_request;
+import avro.java.gpudb.add_object_request;
+import avro.java.gpudb.filter_by_bounds_request;
 
 public class FilterByBoundsRequest extends Request {
-	public FilterByBoundsRequest(Gaia gaia, String file, SetId in_set, SetId rs, String attribute, double lower_bounds, double upper_bounds){
-		this.gaia = gaia;
+	public FilterByBoundsRequest(GPUdb gPUdb, String file, SetId in_set, SetId rs, String attribute, double lower_bounds, double upper_bounds){
+		this.gPUdb = gPUdb;
 		this.file = file;		
 		this.log = Logger.getLogger(FilterByBoundsRequest.class);
 		
-		this.log.debug("gaia:"+gaia.toString()+" in_set:"+in_set.get_id());
-		filter_by_bounds_request request = new filter_by_bounds_request(attribute, lower_bounds, rs.get_id(), in_set.get_id(), upper_bounds, this.gaia.getUserAuth());
+		this.log.debug("gpudb:"+gPUdb.toString()+" in_set:"+in_set.get_id());
+		filter_by_bounds_request request = new filter_by_bounds_request(attribute, lower_bounds, rs.get_id(), in_set.get_id(), upper_bounds, this.gPUdb.getUserAuth());
 		this.log.debug("Build request object");
 		//
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));

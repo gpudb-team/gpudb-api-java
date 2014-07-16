@@ -5,16 +5,16 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.get_set_sorted_request;
-import avro.java.gaia.get_sorted_sets_request;
+import avro.java.gpudb.get_set_sorted_request;
+import avro.java.gpudb.get_sorted_sets_request;
 
 import com.gisfederal.AvroUtils;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 
 public class GetSortedSetsRequest extends Request {
-	public GetSortedSetsRequest(Gaia gaia, String file, List<SetId> set_ids, String sort_attribute) {
-		this.gaia = gaia;
+	public GetSortedSetsRequest(GPUdb gPUdb, String file, List<SetId> set_ids, String sort_attribute) {
+		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(GetSortedSetsRequest.class);
 		
@@ -26,7 +26,7 @@ public class GetSortedSetsRequest extends Request {
 			list.add(set_id.get_id());
 		}
 		log.debug("get sorted sets build request object");
-		get_sorted_sets_request request = new get_sorted_sets_request(list, sort_attribute, this.gaia.getUserAuth());
+		get_sorted_sets_request request = new get_sorted_sets_request(list, sort_attribute, this.gPUdb.getUserAuth());
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));
 
 		// Create log msg for audit

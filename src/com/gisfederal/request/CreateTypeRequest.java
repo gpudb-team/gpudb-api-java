@@ -1,7 +1,7 @@
 package com.gisfederal.request;
-import com.gisfederal.Gaia;
+import com.gisfederal.GPUdb;
 import com.gisfederal.AvroUtils;
-import com.gisfederal.GaiaException;
+import com.gisfederal.GPUdbException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -11,16 +11,16 @@ import java.lang.Class;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import avro.java.gaia.convex_hull_request;
-import avro.java.gaia.register_type_request;
+import avro.java.gpudb.convex_hull_request;
+import avro.java.gpudb.register_type_request;
 
 public class CreateTypeRequest extends Request {
 	
 	// This will build a register type request.  The type definition is an avro schema (json) which is built from the fields of the java class that is passed in. 
 	// {"type_definition":"{\\"type\\":\\"record\\",\\"name\\":\\"point\\",\\"fields\\":[{\\"name\\":\\"x\\",\\"type\\":\\"double\\"},{\\"name\\":\\"y\\",\\"type\\":\\"double\\"}]}"}'	
 	// NOTE: the annotation should be some attribute in the class or ""
-	public CreateTypeRequest(Gaia gaia, String file, Class c, String annotation_attr, String label, String semanticType) throws GaiaException{
-		this.gaia = gaia;
+	public CreateTypeRequest(GPUdb gPUdb, String file, Class c, String annotation_attr, String label, String semanticType) throws GPUdbException{
+		this.gPUdb = gPUdb;
 		this.file = "/registertype"; 
 		this.log = Logger.getLogger(CreateTypeRequest.class);		
 
@@ -54,7 +54,7 @@ public class CreateTypeRequest extends Request {
 				json_field.addProperty("type", fieldTypeName);
 			} else {
 				log.error("Unsuported java data type:"+fieldTypeName);
-				throw new GaiaException("Unsuported java data type:"+fieldTypeName);
+				throw new GPUdbException("Unsuported java data type:"+fieldTypeName);
 			}
 			
 			json_fields.add(json_field);
@@ -87,8 +87,8 @@ public class CreateTypeRequest extends Request {
 		createAuditMsg(request);
 	}
 	
-	public CreateTypeRequest(Gaia gaia, String file, String definition, String annotation_attr, String label, String semanticType) throws GaiaException{
-		this.gaia = gaia;
+	public CreateTypeRequest(GPUdb gPUdb, String file, String definition, String annotation_attr, String label, String semanticType) throws GPUdbException{
+		this.gPUdb = gPUdb;
 		this.file = "/registertype"; 
 		this.log = Logger.getLogger(CreateTypeRequest.class);		
 
