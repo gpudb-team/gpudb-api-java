@@ -6,6 +6,7 @@
         { "name" : "list", "type" : { "type" : "array", "items" : "bytes" }},
         { "name" : "list_str", "type" : { "type" : "array", "items" : "string" }},
         { "name" : "type_ids", "type" : { "type" : "array", "items" : "string" }},
-        { "name" : "set_id", "type" : "string" }
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "object_ids", "type" : { "type" : "array", "items" : "string"}}
     ]
 }

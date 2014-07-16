@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class GaiaHeatMapVideoGenRequest {
+public class GpudbHeatMapVideoGenRequest {
 
 	public enum IntervalType {DISJOINT, GROWTH, OVERLAP};
 	
@@ -231,13 +231,13 @@ public class GaiaHeatMapVideoGenRequest {
 		}
 
 
-		public GaiaHeatMapVideoGenRequest build() {
-			return new GaiaHeatMapVideoGenRequest(this);
+		public GpudbHeatMapVideoGenRequest build() {
+			return new GpudbHeatMapVideoGenRequest(this);
 		}
 
 	}
 
-	private GaiaHeatMapVideoGenRequest(Builder builder) {
+	private GpudbHeatMapVideoGenRequest(Builder builder) {
 		min_x = builder.min_x;
 		max_x = builder.max_x;
 		min_y = builder.min_y;
@@ -263,7 +263,7 @@ public class GaiaHeatMapVideoGenRequest {
 
 	@Override
 	public String toString() {
-		return "GaiaHeatMapGenRequest [min_x=" + min_x + ", max_x=" + max_x
+		return "GpudbHeatMapGenRequest [min_x=" + min_x + ", max_x=" + max_x
 				+ ", min_y=" + min_y + ", max_y=" + max_y + ", x_attr_name="
 				+ x_attr_name + ", y_attr_name=" + y_attr_name + ", width="
 				+ width + ", height=" + height + ", projection=" + projection
@@ -277,21 +277,21 @@ public class GaiaHeatMapVideoGenRequest {
 
 	public static void main(String args[]) {
 
-		GaiaHeatMapVideoGenRequest gvgr = new GaiaHeatMapVideoGenRequest.Builder(-180.0,
-				180.0, -90.0, 90.0, "X", "Y", "S1", 0.0, 50.0, 4, GaiaHeatMapVideoGenRequest.IntervalType.DISJOINT)
+		GpudbHeatMapVideoGenRequest gvgr = new GpudbHeatMapVideoGenRequest.Builder(-180.0,
+				180.0, -90.0, 90.0, "X", "Y", "S1", 0.0, 50.0, 4, GpudbHeatMapVideoGenRequest.IntervalType.DISJOINT)
 				.colormap("whatever").blur_radius(3).gradient_start_color(1).gradient_end_color(2)
 				.build();
 
 		System.out.println(" Request is " + gvgr);
 
-		gvgr = new GaiaHeatMapVideoGenRequest.Builder(-180.0,
-				180.0, -90.0, 90.0, "X", "Y", "S1", 0.0, 50.0, 4, GaiaHeatMapVideoGenRequest.IntervalType.GROWTH)
+		gvgr = new GpudbHeatMapVideoGenRequest.Builder(-180.0,
+				180.0, -90.0, 90.0, "X", "Y", "S1", 0.0, 50.0, 4, GpudbHeatMapVideoGenRequest.IntervalType.GROWTH)
 				.build();
 
 		System.out.println(" Request is " + gvgr);
 		
-		gvgr = new GaiaHeatMapVideoGenRequest.Builder(-180.0,
-				180.0, -90.0, 90.0, "X", "Y", "S1", 0.0, 50.0, 4, GaiaHeatMapVideoGenRequest.IntervalType.OVERLAP)
+		gvgr = new GpudbHeatMapVideoGenRequest.Builder(-180.0,
+				180.0, -90.0, 90.0, "X", "Y", "S1", 0.0, 50.0, 4, GpudbHeatMapVideoGenRequest.IntervalType.OVERLAP)
 				.build();
 
 		System.out.println(" Request is " + gvgr);

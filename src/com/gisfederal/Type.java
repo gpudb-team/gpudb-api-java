@@ -152,6 +152,8 @@ public class Type {
 		log.debug("After building binary decoder");
 		// build the object					
 		try {			
+			
+			//toStringMe(bytes.array());
 			Decoder decoder = decoder_factory.binaryDecoder(bytes.array(), null);
 			GenericData.Record record = reader.read(null, decoder);
 
@@ -165,6 +167,23 @@ public class Type {
 		return new Object();
 	}
 
+	public void toStringMe(byte[] bs) { 
+		 StringBuffer sb = new StringBuffer(3*bs.length);
+		 for (int idx = 0; idx < bs.length; idx++) {
+			 // if not the first, put a blank separator in
+		      if (idx != 0) {
+		        sb.append(' ');
+		     }
+		      String num = Integer.toHexString(0xff & bs[idx]);
+		      // if it is only one digit, add a leading 0.
+		      if (num.length() < 2) {
+		        sb.append('0');
+		      }
+		      sb.append(num);
+		    }
+		    System.out.println(" count : " + bs.length + " data :" + sb.toString());
+	}
+	
 	private Object decode(GenericData.Record record)
 			throws InstantiationException, IllegalAccessException {
 		Object instance = type_class.newInstance(); // we will be transfering record into this object

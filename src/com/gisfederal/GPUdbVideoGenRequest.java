@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class GaiaVideoGenRequest {
+public class GPUdbVideoGenRequest {
 
 	public enum IntervalType {DISJOINT, GROWTH, OVERLAP};
 	
@@ -445,13 +445,13 @@ public class GaiaVideoGenRequest {
 			return this;
 		}
 		
-		public GaiaVideoGenRequest build() {
-			return new GaiaVideoGenRequest(this);
+		public GPUdbVideoGenRequest build() {
+			return new GPUdbVideoGenRequest(this);
 		}
 
 	}
 
-	private GaiaVideoGenRequest(Builder builder) {
+	private GPUdbVideoGenRequest(Builder builder) {
 		min_x = builder.min_x;
 		max_x = builder.max_x;
 		min_y = builder.min_y;
@@ -489,7 +489,7 @@ public class GaiaVideoGenRequest {
 
 	@Override
 	public String toString() {
-		return "GaiaVideoGenRequest [min_x=" + min_x + ", max_x=" + max_x
+		return "GpudbVideoGenRequest [min_x=" + min_x + ", max_x=" + max_x
 				+ ", min_y=" + min_y + ", max_y=" + max_y + ", x_attr_name="
 				+ x_attr_name + ", y_attr_name=" + y_attr_name + ", width="
 				+ width + ", height=" + height + ", projection=" + projection
@@ -513,21 +513,21 @@ public class GaiaVideoGenRequest {
 
 	public static void main(String args[]) {
 
-		GaiaVideoGenRequest gvgr = new GaiaVideoGenRequest.Builder(-180.0,
-				180.0, -90.0, 90.0, "X", "Y", "S1", "WS1", 0.0, 50.0, 4, GaiaVideoGenRequest.IntervalType.DISJOINT)
+		GPUdbVideoGenRequest gvgr = new GPUdbVideoGenRequest.Builder(-180.0,
+				180.0, -90.0, 90.0, "X", "Y", "S1", "WS1", 0.0, 50.0, 4, GPUdbVideoGenRequest.IntervalType.DISJOINT)
 				.tracklinewidths("1,2,3")
 				.build();
 
 		System.out.println(" Request is " + gvgr);
 
-		gvgr = new GaiaVideoGenRequest.Builder(-180.0,
-				180.0, -90.0, 90.0, "X", "Y", "S1", "WS1", 0.0, 50.0, 4, GaiaVideoGenRequest.IntervalType.GROWTH)
+		gvgr = new GPUdbVideoGenRequest.Builder(-180.0,
+				180.0, -90.0, 90.0, "X", "Y", "S1", "WS1", 0.0, 50.0, 4, GPUdbVideoGenRequest.IntervalType.GROWTH)
 				.build();
 
 		System.out.println(" Request is " + gvgr);
 		
-		gvgr = new GaiaVideoGenRequest.Builder(-180.0,
-				180.0, -90.0, 90.0, "X", "Y", "S1", "WS1", 0.0, 50.0, 4, GaiaVideoGenRequest.IntervalType.OVERLAP)
+		gvgr = new GPUdbVideoGenRequest.Builder(-180.0,
+				180.0, -90.0, 90.0, "X", "Y", "S1", "WS1", 0.0, 50.0, 4, GPUdbVideoGenRequest.IntervalType.OVERLAP)
 				.build();
 
 		System.out.println(" Request is " + gvgr);
