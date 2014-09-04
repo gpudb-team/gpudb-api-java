@@ -77,6 +77,7 @@ import com.gisfederal.NamedSet;
 import com.gisfederal.PointPair;
 import com.gisfederal.SetId;
 import com.gisfederal.Type;
+import com.gisfederal.semantic.types.AnnotationAttributeEnum;
 import com.gisfederal.semantic.types.Polygon;
 import com.gisfederal.semantic.types.SemanticTypeEnum;
 import com.gisfederal.semantic.types.Track;
@@ -94,7 +95,7 @@ public class TestGpudb {
 		System.out.println("Build gpudb...");
 		//String gaiaURL = System.getProperty("GAIA_URL", "http://172.30.20.106:9191");
 
-		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.88:9191");
+		String gpudbURL = System.getProperty("GPUDB_URL", "http://192.168.56.102:9191");
 
 		String disableTrigger = System.getProperty("GPUDB_DISABLE_TRIGGER", "FALSE");
 
@@ -141,12 +142,12 @@ public class TestGpudb {
 				new HashMap<CharSequence, List<CharSequence>>();
 		List<CharSequence> store = new ArrayList<CharSequence>();
 
-		store.add("store_only");
+		store.add(AnnotationAttributeEnum.STORE_ONLY.attribute());
 		annotation_attributes.put("FD_SO", store);
 		annotation_attributes.put("FF_SO", store);
 
 		List<CharSequence> search = new ArrayList<CharSequence>();
-		search.add("text_search");
+		search.add(AnnotationAttributeEnum.TEXT_SEARCH.attribute());
 		annotation_attributes.put("FS_SO_SEARCH", search);
 
 		// Test type can be created using create_type_with_annotation()
@@ -197,7 +198,7 @@ public class TestGpudb {
 			// Clear previous search attribute, add a valid search attribute
 			annotation_attributes.remove("FS_SO_SEARCH");
 			search = new ArrayList<CharSequence>();
-			search.add("text_search");
+			search.add(AnnotationAttributeEnum.TEXT_SEARCH.attribute());
 			annotation_attributes.put("FS_SO_SEARCH", search);
 
 			Type type = gPUdb.create_type_with_annotations(definition, label,
@@ -335,11 +336,11 @@ public class TestGpudb {
 			// Test type creation with annotations on fields
 			annotation_attributes.clear();
 			store = new ArrayList<CharSequence>();
-			store.add("store_only");
+			store.add(AnnotationAttributeEnum.STORE_ONLY.attribute());
 			annotation_attributes.put("group_id", store);
 
 			search = new ArrayList<CharSequence>();
-			search.add("text_search");
+			search.add(AnnotationAttributeEnum.TEXT_SEARCH.attribute());
 			annotation_attributes.put("msg_id", search);
 			type = gPUdb.create_type_with_annotations(BigPoint.class, label, 
 					semanticType, annotation_attributes);
@@ -3438,7 +3439,6 @@ public class TestGpudb {
 		try {
 			// Appears to block wait indefinitely without returning anything
 			p = (BigPoint)gPUdb.do_listen_for_this_trigger(response.getTriggerId().toString());
-			System.out.print(p.toString());
 		} catch(Exception e) {
 			System.err.println("ERROR while listening to trigger:"+e.toString());
 		}
@@ -3917,4 +3917,48 @@ public class TestGpudb {
 		NamedSet result = ns1.do_filter_by_set("msg_id", ns.get_setid(), "person");
 		assertTrue(result.size() == 3);
 	}
+	
+	@Test
+	public void testCreateManyColumns() {
+		gPUdb.do_clear();
+		// Generate the many fields
+		StringBuffer strBuf = new StringBuffer();
+		int num = 20;
+		for (int i=0; i<num; i++) {
+			if (i == num-1) {
+				String str = "{\"name\":\"Field_" + i + "\",\"type\":\"string\"}";
+				strBuf.append(str);
+			} else {
+				String str = "{\"name\":\"Field_" + i + "\",\"type\":\"string\"},";
+				strBuf.append(str);
+			}
+		}
+		
+		// Field definition
+		String definition = "{\"type\":\"record\",\"name\":\"TestType\",\"fields\":" + 
+				"[{\"name\":\"OBJECT_ID\",\"type\":\"string\"}," + 
+				strBuf.toString() + "]}";
+		
+		// Create type and named set
+		String label = "ManyFieldsTest";
+		SemanticTypeEnum semanticType = SemanticTypeEnum.GENERICOBJECT;
+		Type type = gPUdb.create_type(definition, "", label, semanticType);
+		NamedSet ns = gPUdb.getNamedSet(new SetId("Many Fields Test"), type);
+		
+		// Add the data to the named set
+		int rows = 300;
+		Random rand = new Random(Integer.MAX_VALUE);
+		for (int i=0; i<rows; i++) {
+			GenericObject go = new GenericObject();
+			go.addField("OBJECT_ID", "OBJID" + i);
+			for (int j=0; j<num; j++) {
+				go.addField("Field_" + j, "" + rand.nextInt(num * rows + 1));
+			}
+			ns.add(go);
+		}
+		
+		// Test
+		assertEquals(rows, ns.size());
+	}
+	
 }
