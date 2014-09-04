@@ -94,7 +94,7 @@ public class TestGpudb {
 		System.out.println("Build gpudb...");
 		//String gaiaURL = System.getProperty("GAIA_URL", "http://172.30.20.106:9191");
 
-		String gpudbURL = System.getProperty("GAIA_URL", "http://172.30.20.88:9191");
+		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.88:9191");
 
 		String disableTrigger = System.getProperty("GPUDB_DISABLE_TRIGGER", "FALSE");
 

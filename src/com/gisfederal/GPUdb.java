@@ -68,6 +68,7 @@ import avro.java.gpudb.new_set_response;
 import avro.java.gpudb.plot2d_multiple_response;
 import avro.java.gpudb.populate_full_tracks_response;
 import avro.java.gpudb.predicate_join_response;
+import avro.java.gpudb.register_parent_set_response;
 import avro.java.gpudb.register_trigger_nai_response;
 import avro.java.gpudb.register_trigger_range_response;
 import avro.java.gpudb.register_type_response;
@@ -103,6 +104,7 @@ import com.gisfederal.request.MergeSetsRequest;
 import com.gisfederal.request.NewSetRequest;
 import com.gisfederal.request.PopulateFullTracksRequest;
 import com.gisfederal.request.PredicateJoinRequest;
+import com.gisfederal.request.RegisterParentSetRequest;
 import com.gisfederal.request.Request;
 import com.gisfederal.request.RequestConnection;
 import com.gisfederal.request.RequestFactory;
@@ -220,6 +222,24 @@ public class GPUdb {
 		set_ids.add(set_id);		
 		return this.do_register_trigger(set_ids, attribute, lowest, highest, grouping_attribute);
 	}
+
+	
+	/**
+	 * Allows a parent set to be marked protected
+	 */
+	public register_parent_set_response do_register_parent_set(SetId set_id, boolean allowDuplicateChildren) throws GPUdbException{
+		this.log.debug("Do register trigger");
+
+		// get the request
+		Request request = new RegisterParentSetRequest(this, "/registerparentset", set_id, allowDuplicateChildren);
+
+		/// decode 		
+		register_parent_set_response response = (register_parent_set_response)AvroUtils.convert_to_object_from_gpudb_response(register_parent_set_response.SCHEMA$, request.post_to_gpudb());		
+		log.debug("response:"+response.toString());
+
+		return response;
+	}
+
 
 	/**
 	 * Allows a user to register a range trigger.

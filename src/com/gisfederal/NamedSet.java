@@ -65,6 +65,10 @@ import com.gisfederal.utils.SpatialOperationEnum;
  */
 public class NamedSet{
 		
+	// Red disk specific source key
+	public static final String SOURCEKEY = "SOURCELABEL";
+	
+	
 	/**
 	 * This constant is used to indicate the end of a gpudb set. Used when getting data out of a set.
 	 */
@@ -181,13 +185,13 @@ public class NamedSet{
 	}
 
 	/**
-	 * Get the list of all different "sources" in this set. Relies upon the DATASOURCEKEY being present in the objects.  
+	 * Get the list of all different "sources" in this set. Relies upon the SOURCEKEY being present in the objects.  
 	 * @return List of SourceType objects. Each one has a type and a subtype.
 	 * @throws GPUdbException
 	 */
 	public List<SourceType> listAllSources() throws GPUdbException{
 		List<SourceType> sources = new ArrayList<SourceType>();
-		unique_response response = gPUdb.do_unique(this, "DATASOURCEKEY");
+		unique_response response = gPUdb.do_unique(this, SOURCEKEY);
 		List<CharSequence> values = response.getValuesStr();
 		for(CharSequence composite : values) {
 			// each composite a source type object
@@ -206,7 +210,7 @@ public class NamedSet{
 		List<String> attributes = new ArrayList<String>();
 
 		// NOTE: this assumes the key added by gpudb UCD is there...so not appropriate otherwise
-		attributes.add("DATASOURCEKEY"); //MAGIC KEYWORD!
+		attributes.add(SOURCEKEY); //MAGIC KEYWORD!
 		// do the actual counting
 		group_by_response response = gPUdb.do_group_by(this, attributes);			
 
@@ -1251,27 +1255,6 @@ public class NamedSet{
 		return objectList;
 	}
 
-	/**
-	 * Get all objects of the given source type and subtype. Intended for sets populated by the GpudbUCD adds. 
-	 * @param sourceType The source type.
-	 * @return A NamedSet where all the objects match the given source.
-	 * @throws GPUdbException
-	 */
-	public NamedSet filterByDatasourceType(String sourceType) throws GPUdbException{
-		log.debug("do the filter by datasource type \""+sourceType);
-		return this.do_filter_by_list("DATASOURCE", sourceType);//Horrifying magic attribute key!
-	}
-
-	/**
-	 * Get all objects of the given sub type. Intended for sets populated by the GpudbUCD adds. 
-	 * @param subType The sub type.
-	 * @return A NamedSet where all the objects match the given source.
-	 * @throws GPUdbException
-	 */
-	public NamedSet filterByDatasourceSubType(String subType) throws GPUdbException{
-		log.debug("do the filter by datasource type \""+subType);
-		return this.do_filter_by_list("DATASOURCESUB", subType);//Horrifying magic attribute key!
-	}
 
 	/**
 	 * Get all objects of the given SourceType (i.e. source type and subtype). Intended for sets populated by the GpudbUCD adds. 
@@ -1297,7 +1280,7 @@ public class NamedSet{
 		}
 		Map<CharSequence, List<CharSequence>> attribute_map = new HashMap<CharSequence, List<CharSequence>>();		
 		// NOTE: we should be able to just have two separate attributes one for the type and subtype
-		attribute_map.put("DATASOURCEKEY",sources);	//Horrifying magic attribute key!		
+		attribute_map.put(SOURCEKEY,sources);	//Horrifying magic attribute key!		
 		return this.do_filter_by_list(attribute_map);
 	}
 

@@ -14,6 +14,7 @@ import org.apache.avro.specific.SpecificRecord;
 import avro.java.gpudb.*;
 
 
+
 public class AvroUtils {
 	// this is really just used for debug
 	public static String convert_to_string(SpecificRecord request) {
@@ -183,6 +184,8 @@ public class AvroUtils {
 			reader = new SpecificDatumReader<add_symbol_response>(type_schema);
 		} else if (type_schema == register_type_with_annotations_response.SCHEMA$) {
 			reader = new SpecificDatumReader<register_type_with_annotations_response>(type_schema);
+		} else if (type_schema == register_parent_set_response.SCHEMA$) {
+			reader = new SpecificDatumReader<register_parent_set_response>(type_schema);
 		}
 		else {
 			System.err.println("Unsupported type schema:"+type_schema);
