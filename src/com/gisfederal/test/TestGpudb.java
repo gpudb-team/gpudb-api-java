@@ -55,6 +55,7 @@ import avro.java.gpudb.max_min_response;
 import avro.java.gpudb.merge_sets_response;
 import avro.java.gpudb.plot2d_multiple_response;
 import avro.java.gpudb.predicate_join_response;
+import avro.java.gpudb.register_parent_set_response;
 import avro.java.gpudb.register_trigger_nai_response;
 import avro.java.gpudb.register_trigger_range_response;
 import avro.java.gpudb.register_type_transform_response;
@@ -95,7 +96,7 @@ public class TestGpudb {
 		System.out.println("Build gpudb...");
 		//String gaiaURL = System.getProperty("GAIA_URL", "http://172.30.20.106:9191");
 
-		String gpudbURL = System.getProperty("GPUDB_URL", "http://192.168.56.102:9191");
+		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.88:9191");
 
 		String disableTrigger = System.getProperty("GPUDB_DISABLE_TRIGGER", "FALSE");
 
@@ -3959,6 +3960,62 @@ public class TestGpudb {
 		
 		// Test
 		assertEquals(rows, ns.size());
+	}
+	
+	@Test
+	public void testRegisterParentSet() throws Exception {
+		gPUdb.do_clear();
+		
+		// Test creating parent does not create set in GPUDB
+		NamedSet ns = gPUdb.newParentNamedSet();
+		SetId setId = ns.get_setid();
+		try {
+			status_response status = gPUdb.do_status(ns);
+		} catch (Exception e) {
+			assertTrue(e.getMessage().contains("set doesn't exist"));
+		}
+		
+		// Test that registering parent creates parent in GPUDB (another way is to add child to parent)
+		register_parent_set_response response = gPUdb.do_register_parent_set(setId, false);
+		status_response status = gPUdb.do_status(ns);
+		assertEquals(setId.toString(), status.getSetId().toString());
+		
+		// Test that creating child does create a child under the above parent in GPUDB
+		Type type = gPUdb.create_type(BigPoint.class);
+		NamedSet child = gPUdb.newChildNamedSet(ns, type);
+		SetId childSetId = child.get_setid();
+		assertEquals(child, gPUdb.getNamedSet(childSetId));
+		
+		// Test that creating a second child of same type when duplicate child is false above
+		try {
+			NamedSet childDuplicate = gPUdb.newChildNamedSet(ns, type);
+		} catch (Exception e) {
+			assertTrue(e.getMessage().contains("There is already a child of this type"));
+		}
+		
+		// Test creating a second child of different type is allowed in parent
+		Type type2 = gPUdb.create_type("{\"type\":\"record\",\"name\":\"TestType\",\"fields\":[{\"name\":\"OBJECT_ID\",\"type\":\"string\"},{\"name\":\"person\",\"type\":\"string\"},{\"name\":\"age\",\"type\":\"int\"}]}");
+		NamedSet child2 = gPUdb.newChildNamedSet(ns, type2);
+		SetId childSetId2 = child2.get_setid();
+		assertEquals(child2, gPUdb.getNamedSet(childSetId2));
+		
+		// Clear GPUDB and re-create parent in GPUDB that allows duplicate children of same type
+		gPUdb.do_clear();
+		
+		ns = gPUdb.newParentNamedSet();
+		setId = ns.get_setid();
+		response = gPUdb.do_register_parent_set(setId, true);
+		status = gPUdb.do_status(ns);
+		assertEquals(setId.toString(), status.getSetId().toString());
+		
+		child = gPUdb.newChildNamedSet(ns, type);
+		childSetId = child.get_setid();
+		assertEquals(child, gPUdb.getNamedSet(childSetId));
+		
+		// Test will fail as Java API does not allow duplicate child sets of same type although register has this option
+		//child2 = gPUdb.newChildNamedSet(ns, type);
+		//childSetId2 = child2.get_setid();
+		//assertEquals(child2, gPUdb.getNamedSet(childSetId2));
 	}
 	
 }
