@@ -3,6 +3,7 @@
     "type" : "record",
     "name" : "clear_response",
     "fields" : [
-        { "name" : "status", "type" : "string" }
+        { "name" : "status", "type" : "string" },
+        { "name" : "set_id", "type" : "string"}
     ]
 }

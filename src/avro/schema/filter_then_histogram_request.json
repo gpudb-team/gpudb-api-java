@@ -5,7 +5,7 @@
     "fields" : [
         { "name" : "histogram_attribute", "type" : "string" },
         { "name" : "end", "type" : "double" },
-        { "name" : "interval", "type" : "long" },
+        { "name" : "interval", "type" : "double" },
         { "name" : "set_id", "type" : "string" },
         { "name" : "start", "type" : "double" },
         { "name" : "filter_attribute", "type" : "string" },

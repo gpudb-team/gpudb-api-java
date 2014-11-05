@@ -8,7 +8,6 @@
         { "name" : "x_attribute", "type" : "string" },
         { "name" : "x_vector", "type" : { "type" : "array", "items" : "double" }},
         { "name" : "y_attribute", "type" : "string" },
-        { "name" : "y_vector", "type" : { "type" : "array", "items" : "double" }},
-        { "name" : "id_attr", "type" : "string" }
+        { "name" : "y_vector", "type" : { "type" : "array", "items" : "double" }}
     ]
 }

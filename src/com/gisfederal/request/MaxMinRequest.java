@@ -1,12 +1,11 @@
 package com.gisfederal.request;
-import com.gisfederal.GPUdb;
-import com.gisfederal.AvroUtils;
-import com.gisfederal.SetId;
-
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.get_set_sorted_request;
 import avro.java.gpudb.max_min_request;
+
+import com.gisfederal.AvroUtils;
+import com.gisfederal.GPUdb;
+import com.gisfederal.SetId;
 
 public class MaxMinRequest extends Request {
 	public MaxMinRequest(GPUdb gPUdb, String file, SetId id, String attribute) {

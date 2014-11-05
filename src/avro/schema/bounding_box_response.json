@@ -3,6 +3,6 @@
     "type" : "record",
     "name" : "bounding_box_response",
     "fields" : [
-        { "name" : "count", "type" : "int" }
+        { "name" : "count", "type" : "long" }
     ]
 }

@@ -3,11 +3,12 @@
     "type" : "record",
     "name" : "histogram_request",
     "fields" : [
-        { "name" : "attribute", "type" : "string" },
-        { "name" : "end", "type" : "double" },
-        { "name" : "interval", "type" : "long" },
         { "name" : "set_id", "type" : "string" },
+        { "name" : "attribute", "type" : "string" },
         { "name" : "start", "type" : "double" },
+        { "name" : "end", "type" : "double" },
+        { "name" : "interval", "type" : "double" },
+        { "name" : "params", "type" : { "type" : "map", "values" : "string"} },
         { "name" : "user_auth_string", "type" : "string" }
     ]
 }

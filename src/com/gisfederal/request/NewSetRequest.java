@@ -1,26 +1,12 @@
 package com.gisfederal.request;
-import com.gisfederal.GPUdb;
-import com.gisfederal.AvroUtils;
-import com.gisfederal.SetId;
-import com.gisfederal.NamedSet;
-
-import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Field;
-import java.util.UUID;
-
-import org.apache.avro.Schema;
-import org.apache.avro.io.Encoder;
-import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.specific.SpecificDatumWriter;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.get_set_sorted_request;
 import avro.java.gpudb.new_set_request;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.gisfederal.AvroUtils;
+import com.gisfederal.GPUdb;
+import com.gisfederal.NamedSet;
+import com.gisfederal.SetId;
 
 public class NewSetRequest extends Request {
 

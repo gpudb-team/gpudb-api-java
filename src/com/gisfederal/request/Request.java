@@ -17,15 +17,20 @@ import com.gisfederal.GPUdb;
 import com.gisfederal.GPUdbException;
 
 public abstract class Request {
-	
-	private static final String logParam = "log"; 
-	
+
+	private static final String logParam = "log";
+	private static final String setIdParam = "setid";
+	private static final String mutableParam = "mutable";
+
 	protected RequestData requestData;
 	protected GPUdb gPUdb;
 	protected String file; // ex: /calculate
 	protected Logger log;
-	
+
 	protected String auditMessage;
+	
+	protected boolean mutable;
+	protected String setId;
 
 	public String getAuditMessage() {
 		return auditMessage;
@@ -34,22 +39,26 @@ public abstract class Request {
 	public void setAuditMessage(String auditMessage) {
 		this.auditMessage = auditMessage;
 	}
-	
+
 	protected void getAuditPart(StringBuffer msg) {
 		msg.append("[user=");
 		msg.append(this.gPUdb.getUser_name());
 		msg.append("]");
-		
+
 		msg.append("[auths=");
 		msg.append(this.gPUdb.getUserAuth());
 		msg.append("]");
-		
+
 		msg.append("[endpoint=");
 		msg.append(this.getClass().getSimpleName());
 		msg.append("]");
 	}
 
 	public byte[] post_to_gpudb() throws GPUdbException {
+		return post_to_gpudb(false);
+	}
+
+	public byte[] post_to_gpudb(boolean sendExtraParam) throws GPUdbException {
 		String temp, ret = "";
 
 		ByteArrayBuffer baf = new ByteArrayBuffer(200);
@@ -70,17 +79,26 @@ public abstract class Request {
 			long startTime = System.currentTimeMillis();
 			HttpURLConnection connection = (HttpURLConnection) gpudbUrl
 					.openConnection();
-			
+
 			connection.setRequestMethod("POST");
 			connection.setDoOutput(true); // means we are writing to the URL
 			// key, value (headers)
 			connection.setRequestProperty("Content-type",
 					"application/octet-stream");
 			connection.setRequestProperty("Accept", "application/octet-stream");
-			
+
 			//System.out.println(" AUDITMESSAGE : " + auditMessage);
-			
+
 			connection.setRequestProperty(logParam, auditMessage);
+			
+			if( sendExtraParam ) {
+				connection.setRequestProperty(setIdParam, setId);
+				connection.setRequestProperty(mutableParam, Boolean.toString(mutable));
+				log.info(" Adding params " + setId + " and " + mutable);
+			} else {
+				log.info(" Not adding any setid. mutable params... ");
+			}
+			
 			ByteArrayOutputStream baos = (ByteArrayOutputStream) connection
 					.getOutputStream();
 

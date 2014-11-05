@@ -1,0 +1,9 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "update_set_metadata_request",
+    "fields" : [
+        { "name" : "set_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "metadata_map", "type" : { "type" : "map", "values" : "string" }}
+    ]
+}

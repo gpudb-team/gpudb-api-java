@@ -3,15 +3,13 @@
  */
 package com.gisfederal.request;
 
-import com.gisfederal.GPUdb;
-import com.gisfederal.AvroUtils;
-import com.gisfederal.SetId;
-
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.register_trigger_nai_request;
 import avro.java.gpudb.select_request;
-import avro.java.gpudb.sort_request;
+
+import com.gisfederal.AvroUtils;
+import com.gisfederal.GPUdb;
+import com.gisfederal.SetId;
 
 /**
  * @author pjacobs

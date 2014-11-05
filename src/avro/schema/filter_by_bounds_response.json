@@ -3,6 +3,6 @@
     "type" : "record",
     "name" : "filter_by_bounds_response",
     "fields" : [
-        { "name" : "count", "type" : "int" }
+        { "name" : "count", "type" : "long" }
     ]
 }

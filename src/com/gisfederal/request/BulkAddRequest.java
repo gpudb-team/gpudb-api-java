@@ -31,6 +31,9 @@ public class BulkAddRequest extends Request {
 		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(BulkAddRequest.class);
+		
+		this.mutable = ns.isMutable();
+		this.setId = ns.get_setid().toString();
 
 		List<ByteBuffer> binaryList = new ArrayList<ByteBuffer>();
 
@@ -123,7 +126,7 @@ public class BulkAddRequest extends Request {
 
 
 			} catch(Exception e) {
-				System.err.println(e.toString());
+				e.printStackTrace();
 			}
 			// put the resulting byte array into the bytebuffer 
 			log.debug("baos.toByteArray().length:"+baos.toByteArray().length);

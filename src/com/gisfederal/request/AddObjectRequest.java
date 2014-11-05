@@ -32,6 +32,9 @@ public class AddObjectRequest extends Request{
 		this.file = file;
 		this.log = Logger.getLogger(AddObjectRequest.class);
 		
+		this.mutable = ns.isMutable();
+		this.setId = ns.get_setid().toString();
+		
 		ByteBuffer serialized = encodeObject(gPUdb, file, obj, ns, log);
 
 		// add to avro object

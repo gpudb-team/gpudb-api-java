@@ -4,7 +4,7 @@
     "name" : "random_request",
     "fields" : [
         { "name" : "set_id", "type" : "string" },
-        { "name" : "count", "type" : "int" },
-        { "name" : "param_map", "type" : { "type" : "map", "values" : "string" }}
+        { "name" : "count", "type" : "long" },
+        { "name" : "param_map", "type" : { "type" : "map", "values" : { "type" : "map", "values" : "double" } }}
     ]
 }

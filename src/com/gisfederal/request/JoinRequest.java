@@ -1,13 +1,11 @@
 package com.gisfederal.request;
-import com.gisfederal.GPUdb;
-import com.gisfederal.AvroUtils;
-import com.gisfederal.SetId;
-
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.get_set_sorted_request;
 import avro.java.gpudb.join_request;
-import avro.java.gpudb.store_group_by_request;
+
+import com.gisfederal.AvroUtils;
+import com.gisfederal.GPUdb;
+import com.gisfederal.SetId;
 
 public class JoinRequest extends Request{
 

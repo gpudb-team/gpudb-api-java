@@ -3,7 +3,7 @@
     "type" : "record",
     "name" : "stats_response",
     "fields" : [
-        { "name" : "count_map", "type" : { "type" : "map", "values" : "int" }},
+        { "name" : "count_map", "type" : { "type" : "map", "values" : "long" }},
         { "name" : "set_id", "type" : "string" }
     ]
 }

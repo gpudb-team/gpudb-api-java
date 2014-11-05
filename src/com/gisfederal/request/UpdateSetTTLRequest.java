@@ -2,7 +2,6 @@ package com.gisfederal.request;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.sort_request;
 import avro.java.gpudb.update_set_ttl_request;
 
 import com.gisfederal.AvroUtils;

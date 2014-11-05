@@ -49,13 +49,16 @@ import avro.java.gpudb.generate_heatmap_video_response;
 import avro.java.gpudb.generate_video_response;
 import avro.java.gpudb.get_objects_response;
 import avro.java.gpudb.get_orphans_response;
+import avro.java.gpudb.get_set_objects_response;
 import avro.java.gpudb.get_set_response;
 import avro.java.gpudb.get_sets_by_type_info_response;
+import avro.java.gpudb.get_sorted_set_response;
 import avro.java.gpudb.get_sorted_sets_response;
-import avro.java.gpudb.get_tracks_response;
+import avro.java.gpudb.get_tracks2_response;
 import avro.java.gpudb.get_type_info_response;
 import avro.java.gpudb.group_by_map_page_response;
 import avro.java.gpudb.group_by_response;
+import avro.java.gpudb.group_by_value_response;
 import avro.java.gpudb.histogram_response;
 import avro.java.gpudb.initialize_group_by_map_response;
 import avro.java.gpudb.join_incremental_response;
@@ -75,14 +78,16 @@ import avro.java.gpudb.register_type_response;
 import avro.java.gpudb.register_type_transform_response;
 import avro.java.gpudb.register_type_with_annotations_response;
 import avro.java.gpudb.road_intersection_response;
+import avro.java.gpudb.select_delete_response;
 import avro.java.gpudb.select_response;
+import avro.java.gpudb.select_update_response;
 import avro.java.gpudb.server_status_response;
 import avro.java.gpudb.set_info_response;
 import avro.java.gpudb.shape_intersection_response;
 import avro.java.gpudb.shape_literal_intersection_response;
-import avro.java.gpudb.sort_response;
 import avro.java.gpudb.spatial_query_response;
 import avro.java.gpudb.spatial_set_query_response;
+import avro.java.gpudb.statistics_response;
 import avro.java.gpudb.stats_response;
 import avro.java.gpudb.status_response;
 import avro.java.gpudb.store_group_by_response;
@@ -93,13 +98,17 @@ import avro.java.gpudb.update_object_response;
 import avro.java.gpudb.update_set_ttl_response;
 
 import com.gisfederal.request.AddSymbolRequest;
+import com.gisfederal.request.ClearRequest;
 import com.gisfederal.request.CreateTypeWithAnnotationsRequest;
 import com.gisfederal.request.DeleteObjectRequest;
 import com.gisfederal.request.GenerateHeatMapVideoRequest;
 import com.gisfederal.request.GenerateVideoRequest;
 import com.gisfederal.request.GetObjectsRequest;
 import com.gisfederal.request.GetOrphansRequest;
-import com.gisfederal.request.GetSortedSetsRequest;
+import com.gisfederal.request.GetSortedSetRequest;
+import com.gisfederal.request.HistogramRequest;
+import com.gisfederal.request.ListBasedOnTypeRequest;
+import com.gisfederal.request.ListRequest;
 import com.gisfederal.request.MergeSetsRequest;
 import com.gisfederal.request.NewSetRequest;
 import com.gisfederal.request.PopulateFullTracksRequest;
@@ -108,11 +117,14 @@ import com.gisfederal.request.RegisterParentSetRequest;
 import com.gisfederal.request.Request;
 import com.gisfederal.request.RequestConnection;
 import com.gisfederal.request.RequestFactory;
+import com.gisfederal.request.SelectDeleteRequest;
+import com.gisfederal.request.SelectUpdateRequest;
 import com.gisfederal.request.SpatialQueryRequest;
 import com.gisfederal.request.SpatialSetQueryRequest;
 import com.gisfederal.request.TurnOffRequest;
 import com.gisfederal.semantic.types.SemanticTypeEnum;
 import com.gisfederal.utils.SpatialOperationEnum;
+import com.gisfederal.utils.StatisticsOptionsEnum;
 import com.google.gson.Gson;
 
 /**
@@ -332,12 +344,12 @@ public class GPUdb {
 				System.err.println(e.toString());
 			}
 			///
-			log.debug("response.object_data.size():"+response.getObjectDataStr().toString()+" response.trigger_id:"+response.getTriggerId());			
+			log.debug("response.object_data.size():"+response.getObjectData().toString()+" response.trigger_id:"+response.getTriggerId());			
 
 			if(response.getTriggerId().toString().equals(trigger_id)){
 				log.debug("This trigger id matches");
 				// decode object
-				String buffer_string = response.getObjectDataStr().toString();
+				String buffer_string = response.getObjectData().toString();
 
 				// set up the reader for this object [NOTE: this code is similar to the stuff in NS, proably pull out into some utils]
 				GenericDatumReader<GenericData.Record> generic_reader = new GenericDatumReader<GenericData.Record>(object_schema);							
@@ -428,7 +440,7 @@ public class GPUdb {
 				System.err.println(e.toString());
 			}
 			///
-			log.debug("response.object_data.size():"+response.getObjectDataStr().toString()+" response.trigger_id:"+response.getTriggerId());			
+			log.debug("response.object_data.size():"+ response.getObjectData().array().length   +" response.trigger_id:"+response.getTriggerId());			
 						
 			if(response.getTriggerId().toString().equals(trigger_id)){
 				log.debug("This trigger id matches");
@@ -437,11 +449,14 @@ public class GPUdb {
 				Type type = this.getNamedSet(new SetId(response.getSetId().toString())).getType();
 				Schema object_schema = type.getAvroSchema();
 				
+				/* THIS IS CRAZY CODE !!!
 				if( response.getObjectData().array().length == 0 ) {
-					return type.decodeJson(response.getObjectDataStr(), object_schema);
+					return type.decodeJson(response.getObjectData(), object_schema);
 				} else {
 					return type.decode(response.getObjectData());
 				}
+				*/
+				return type.decode(response.getObjectData());
 			}else {
 				log.debug("This trigger id NOT matching");
 			}
@@ -624,7 +639,7 @@ public class GPUdb {
 	 * Create a type in gpudb based on a java class and an annotation 
 	 * @param c
 	 * @param annotation_attributes
-	 * @return
+	 * @return A type
 	 * @throws GPUdbException
 	 */
 	public Type create_type_with_annotations(Class c, Map<CharSequence, List<CharSequence>> annotation_attributes) throws GPUdbException{
@@ -672,7 +687,7 @@ public class GPUdb {
 	 * @param label
 	 * @param semanticType
 	 * @param annotation_attributes
-	 * @return
+	 * @return A type
 	 * @throws GPUdbException
 	 */
 	public Type create_type_with_annotations(String definition, String label, SemanticTypeEnum semanticType, 
@@ -844,6 +859,25 @@ public class GPUdb {
 	}
 
 	/**
+	 * Objects that matched the select expression will be deleted 
+	 * @param in_set The set to perform the calculation on.
+	 * @param expression The expression string.
+	 * @return The count of affected objects.
+	 */
+	public long do_select_delete(NamedSet in_set, String expression) throws GPUdbException{		
+		this.log.debug("Do select delete");
+
+		// get the request
+		Request request = new SelectDeleteRequest(this, "/selectdelete", in_set, expression);
+
+		/// decode 		
+		select_delete_response response = (select_delete_response)AvroUtils.convert_to_object_from_gpudb_response(select_delete_response.SCHEMA$, request.post_to_gpudb(true));		
+		log.debug("response:"+response.toString());
+
+		return response.getCount();		
+	}
+
+	/**
 	 * Given a set and an attribute, find the min and max values for that attribute for the objects in that set.  
 	 * @param in_set The set to perform the calculation on.
 	 * @param attribute The attribute whose min and max values we are looking for.
@@ -856,26 +890,6 @@ public class GPUdb {
 		/// decode 		
 		max_min_response response = (max_min_response)AvroUtils.convert_to_object_from_gpudb_response(max_min_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());
-
-		return response;
-	}
-
-	/**
-	 * Given a set and an attribute, sort the set on that attribute.  
-	 * @param in_set The set to perform the sort on.
-	 * @param attribute The attribute that we are sorting on.
-	 * @return A sort response object.
-	 */	
-	public sort_response do_sort(NamedSet in_set, String attribute) throws GPUdbException{
-		this.log.debug("Do sort");
-		// set the set as sorted
-		in_set.set_sorted(true);			
-		Request request = this.request_factory.create_request("/sort", in_set.get_setid(), attribute);
-
-		/// decode 		
-		sort_response response = (sort_response)AvroUtils.convert_to_object_from_gpudb_response(sort_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());
-
 
 		return response;
 	}
@@ -922,7 +936,8 @@ public class GPUdb {
 	 * @param interval The size of the bins.
 	 * @return A histogram response object.  Contains the counts for each bin.
 	 */	
-	public histogram_response do_histogram(NamedSet in_set, String attribute, long interval) throws GPUdbException{
+	public histogram_response do_histogram(NamedSet in_set, String attribute, long interval, Map<CharSequence, 
+			CharSequence> params) throws GPUdbException{
 		this.log.debug("Do histogram");
 		// NOTE: the histogram requires a "start" and "end" which are really the min and max; so we find that first
 		max_min_response maxmin_response = do_max_min(in_set, attribute);
@@ -936,14 +951,7 @@ public class GPUdb {
 			log.debug("New end constructed:"+end);
 		}
 
-		// create request
-		Request request = this.request_factory.create_request("/histogram", in_set.get_setid(), attribute, interval, start, end);
-
-		/// decode 		
-		histogram_response response = (histogram_response)AvroUtils.convert_to_object_from_gpudb_response(histogram_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());
-
-		return response;
+		return do_histogram(in_set, attribute, params, interval, start, end);
 	}
 
 	/**
@@ -956,12 +964,13 @@ public class GPUdb {
 	 * @param end The end index. 
 	 * @return A histogram response object.  Contains the counts for each bin.
 	 */	
-	public histogram_response do_histogram(NamedSet in_set, String attribute, long interval, double start, double end) throws GPUdbException{
+	public histogram_response do_histogram(NamedSet in_set, String attribute, Map<CharSequence, CharSequence> params,
+			double interval, double start, double end) throws GPUdbException{
 		this.log.debug("Do histogram");
 		
 		// create request
-		Request request = this.request_factory.create_request("/histogram", in_set.get_setid(), attribute, interval, start, end);
-
+		Request request = new HistogramRequest(this, "/histogram", in_set.get_setid(), attribute, interval, start, end, params);
+		
 		/// decode 		
 		histogram_response response = (histogram_response)AvroUtils.convert_to_object_from_gpudb_response(histogram_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());
@@ -1082,6 +1091,20 @@ public class GPUdb {
 
 		/// decode 		
 		group_by_response response = (group_by_response)AvroUtils.convert_to_object_from_gpudb_response(group_by_response.SCHEMA$, request.post_to_gpudb());		
+		log.debug("response:"+response.toString());
+
+		return response;
+	}
+
+	// Accepts a value_attribute field in computing the sum of the value_attribute field. 
+	// If the value_attribute is "" then it behaves like do_group_by and returns counts of group_by fields
+	public group_by_value_response do_group_by_value(NamedSet namedSet, List<String> attributes, String value_attribute) throws GPUdbException{
+		this.log.debug("Do group by");
+
+		Request request = this.request_factory.create_request("/groupbyvalue", namedSet.get_setid(), attributes, value_attribute);
+
+		/// decode 		
+		group_by_value_response response = (group_by_value_response)AvroUtils.convert_to_object_from_gpudb_response(group_by_value_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());
 
 		return response;
@@ -1301,7 +1324,6 @@ public class GPUdb {
 				SetId rs_id = new SetId(utf_rs_id.toString());
 				NamedSet rs = new NamedSet(rs_id, this, in_set.getType());
 				// since they are going to be sorted sets
-				rs.set_sorted(true);
 				this.ns_store.put(rs_id, rs); // need to be able to retrieve this named set object
 			} catch(Exception e) {
 				System.err.println(e.toString());
@@ -1323,7 +1345,6 @@ public class GPUdb {
 	 * @param in_set The set to perform the calculation on.
 	 * @param result_set_id The set that will contain the resulting objects.  A subset of the in_set.
 	 * @param attribute The attribute to compare.
-	 * @param filter The filter value for this attribute
 	 * @return A filter by list response object. Contains the count of the resulting set.
 	 */
 	public filter_by_list_response do_filter_by_list(NamedSet in_set, SetId result_set_id, String attribute, CharSequence value) throws GPUdbException{
@@ -1720,7 +1741,7 @@ public class GPUdb {
 	public clear_response do_clear() throws GPUdbException {
 		// need to clear all sets on this side; empty out store
 		this.ns_store.clear();
-		Request request = this.request_factory.create_request("/clear","","");
+		Request request = new ClearRequest(this, "/clear", null, null);
 
 		//decode
 		clear_response response = (clear_response)AvroUtils.convert_to_object_from_gpudb_response(clear_response.SCHEMA$, request.post_to_gpudb());		
@@ -1737,10 +1758,10 @@ public class GPUdb {
 	 */
 	public clear_response do_clear_set(NamedSet ns, String pwd) throws GPUdbException{
 		this.ns_store.clear(ns.get_setid());
-		Request request = this.request_factory.create_request("/clear",ns.get_setid().get_id(),pwd);
-
+		Request request = new ClearRequest(this, "/clear", ns, pwd);
+		
 		//decode
-		clear_response response = (clear_response)AvroUtils.convert_to_object_from_gpudb_response(clear_response.SCHEMA$, request.post_to_gpudb());		
+		clear_response response = (clear_response)AvroUtils.convert_to_object_from_gpudb_response(clear_response.SCHEMA$, request.post_to_gpudb(true));		
 		log.debug("response:"+response.toString());
 
 		return response;	
@@ -1755,60 +1776,6 @@ public class GPUdb {
 	public clear_response do_clear_set(NamedSet ns) throws GPUdbException{
 		return do_clear_set(ns, "");	
 	}
-
-	/**
-	 * Clear out a given set. Takes a set id. Also accepts admin pwd.
-	 * @param ns The set to clear.
-	 * @param pwd The admin pwd  
-	 * @return A clear response object.
-	 */
-	public clear_response do_clear_set(SetId set_id, String pwd) throws GPUdbException{
-		Request request = this.request_factory.create_request("/clear",set_id.get_id(),pwd);
-
-		//decode
-		clear_response response = (clear_response)AvroUtils.convert_to_object_from_gpudb_response(clear_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());
-
-		return response;	
-	}
-
-	
-	/**
-	 * Clear out a given set. Takes a set id.
-	 * @param ns The set to clear.  
-	 * @return A clear response object.
-	 */
-	public clear_response do_clear_set(SetId set_id) throws GPUdbException{
-		return do_clear_set(set_id, "");	
-	}
-
-	/** NOT NEEDED ANYMORE
-	 * Build up a mask for this user on this set.
-	 
-	public authenticate_users_response do_authenticate_users(String user_authorization, SetId set_id) {
-		List<String> user_authorizations = new ArrayList<String>();
-		user_authorizations.add(user_authorization);
-		List<SetId> set_ids = new ArrayList<SetId>();
-		set_ids.add(set_id);
-		return this.do_authenticate_users(user_authorizations, set_ids);
-	}
-	*/
-	
-	/** LAME DUCK
-	 * Build up masks for these users on these sets
-	 * @param user_authorizations User authorizations list (ex: ["S","TS",...])
-	 * @param set_ids The SetIds to authenticate on.
-	 
-	public authenticate_users_response do_authenticate_users(List<String> user_authorizations, List<SetId> set_ids) {
-		Request request = this.request_factory.create_request("/authenticateusers", user_authorizations, set_ids);
-
-		//decode
-		authenticate_users_response  response = (authenticate_users_response )AvroUtils.convert_to_object_from_gpudb_response(authenticate_users_response .SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());
-
-		return response;
-	}
-	*/
 	
 	/**
 	 * Mainly used by Admin to get data. Pass in null for the parameter if no specific setid status is required.
@@ -1893,14 +1860,14 @@ public class GPUdb {
 	/**
 	 * Calls the get set on the given set with the given start and end retrieving objects from that set between index start and end.
 	 * NOTE: use the list() functions in named set instead of this.
-	 * @param id The set id of the set we are retrieving objects  
+	 * @param ns The namedset we are retrieving objects from  
 	 * @param start The start index.
 	 * @param end The end index.
 	 * @param semantic_type The semantic type of the set, or of the desired children of the set.
 	 * @return A get set response object.
 	 */
-	public get_set_response do_list(SetId id, int start, int end, String semantic_type) throws GPUdbException{
-		Request request = this.request_factory.create_request("/getset", id, start, end, semantic_type);
+	public get_set_response do_list(NamedSet ns, long start, long end, String semantic_type) throws GPUdbException{
+		Request request = new ListBasedOnTypeRequest(this, ns.get_setid(), start, end, semantic_type);
 
 		//decode
 		get_set_response response = (get_set_response)AvroUtils.convert_to_object_from_gpudb_response(get_set_response.SCHEMA$, request.post_to_gpudb());		
@@ -1909,11 +1876,14 @@ public class GPUdb {
 		return response;
 	}
 
-	/**
-	 * Helper overloaded function that defaults the semantic_type to ""
-	 */
-	public get_set_response do_list(SetId id, int start, int end) throws GPUdbException{
-		return do_list(id, start, end, "");
+	public get_set_objects_response do_list_fast(NamedSet ns, long start, long end) throws GPUdbException{
+		Request request = new ListRequest(this, ns.get_setid(), start, end);
+
+		//decode
+		get_set_objects_response response = (get_set_objects_response)AvroUtils.convert_to_object_from_gpudb_response(get_set_objects_response.SCHEMA$, request.post_to_gpudb());		
+		log.debug("response:"+response.toString());				
+
+		return response;
 	}
 	
 	/**
@@ -1938,26 +1908,6 @@ public class GPUdb {
 	// NOTE: add the double one too
 	
 	/**
-	 * Calls the get set (sorted) on the given set with the given start and end retrieving objects from that set between index start and end.
-	 * NOTE: use the list() functions in named set instead of this.
-	 * @param id The set id of the set we are retrieving objects from.  
-	 * @param start The start index.
-	 * @param end The end index.
-	 * @return A get set response object.
-	 */
-	public get_set_response do_list_sorted(SetId id, int start, int end) throws GPUdbException{
-		log.debug("Get set sorted. id "+id.get_id()+" start "+start+" end "+end);
-		Request request = this.request_factory.create_request("/getsetsorted", id, start, end);
-
-		//decode
-		get_set_response response = (get_set_response)AvroUtils.convert_to_object_from_gpudb_response(get_set_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());				
-		
-		return response;
-	}
-
-
-	/**
 	 * Add a java object to a gpudb set.  NOTE: should do it from the NamedSet.
 	 * @param obj The object we are going to add.  
 	 * @param ns The named set of the set we are going to add to.
@@ -1967,7 +1917,7 @@ public class GPUdb {
 		Request request = this.request_factory.create_request("/add", obj, ns);		
 
 		//decode
-		add_object_response response = (add_object_response)AvroUtils.convert_to_object_from_gpudb_response(add_object_response.SCHEMA$, request.post_to_gpudb());		
+		add_object_response response = (add_object_response)AvroUtils.convert_to_object_from_gpudb_response(add_object_response.SCHEMA$, request.post_to_gpudb(true));		
 		log.debug("response:"+response.toString());			
 
 		return response;
@@ -1978,8 +1928,8 @@ public class GPUdb {
 	 * @param symbol_id
 	 * @param symbol_format
 	 * @param obj - this is svg data 
-	 * @return
-	 * @throws GaiaException
+	 * @return response from add symbol call
+	 * @throws GPUdbException
 	 */
 	public add_symbol_response do_add_symbol(String symbol_id, String symbol_format, Object obj) throws GPUdbException{		
 		this.log.debug("Do add symbol");
@@ -2014,6 +1964,24 @@ public class GPUdb {
 		return response;
 	}
 
+	/**
+	 * Update an object based on a select statement
+	 * @param obj The object we are going to add.  
+	 * @param ns The named set of the set we are going to update.
+	 * @return An update object response. Tells the user the object id of the added object.
+	 */
+	public long do_select_update(NamedSet ns, Map<CharSequence, CharSequence> data, String expression) throws GPUdbException{		
+		
+		Request request = new SelectUpdateRequest(this, "/selectupdate", ns, expression, data);		
+
+		//decode
+		select_update_response response = (select_update_response)AvroUtils.convert_to_object_from_gpudb_response(select_update_response.SCHEMA$, request.post_to_gpudb(true));		
+		log.debug("response:"+response.toString());			
+
+		return response.getCount();
+	}
+
+
 	
 	/**
 	 * Delete an object from a gpudb set.  NOTE: should do it from the NamedSet.
@@ -2043,7 +2011,7 @@ public class GPUdb {
 		Request request = this.request_factory.create_request("/bulkadd", list_obj, ns);		
 
 		//decode
-		bulk_add_response response = (bulk_add_response)AvroUtils.convert_to_object_from_gpudb_response(bulk_add_response.SCHEMA$, request.post_to_gpudb());		
+		bulk_add_response response = (bulk_add_response)AvroUtils.convert_to_object_from_gpudb_response(bulk_add_response.SCHEMA$, request.post_to_gpudb(true));		
 		log.debug("response:"+response.toString());						
 
 		return response;
@@ -2135,29 +2103,22 @@ public class GPUdb {
 	}
 
 	/**
-	 * Do a get sorted sets request.  Return a list of lists of objects.  All the objects must be of the same type 	
-	 * @param set_ids The list of set ids.
+	 * Do a get sorted sets request.  	
+	 * @param ns the Named set
 	 * @param sort_attribute The attribute to do the sorting on.
-	 * @param type The Type of all the sets.
+	 * @param start the number of starting object
+	 * @param end the number of ending object
 	 */
-	public List<List> do_get_sorted_sets(List<SetId> set_ids, String sort_attribute, Type type) throws GPUdbException{
-		get_sorted_sets_response response = do_get_sorted_sets(set_ids, sort_attribute);
+	public get_sorted_set_response do_get_sorted_set(NamedSet ns, String sort_attribute, long start, long end) throws GPUdbException{
+		
+		log.debug("initialize do_get_sorted for set_id: " + ns.get_setid());		
+		Request request = new GetSortedSetRequest(this, "/getsortedset", ns, sort_attribute, start, end);
 
-		// convert the encoded objects
-		java.util.List<java.util.List<java.nio.ByteBuffer>> list_of_lists_encoded = response.getLists();
+		// decode
+		get_sorted_set_response response = (get_sorted_set_response)AvroUtils.convert_to_object_from_gpudb_response(get_sorted_set_response.SCHEMA$, request.post_to_gpudb());		
+		log.debug("response:"+response.toString());						
 
-		// go through and convert objects using the type object
-		List<List> list_of_lists_decoded = new ArrayList<List>();
-		for(List<ByteBuffer> list_encoded : list_of_lists_encoded) {
-			List list_decoded = new ArrayList<Object>();
-			// go through decoding each encoded object and adding it
-			for(ByteBuffer bytes : list_encoded) {
-				list_decoded.add(type.decode(bytes));
-			}
-			list_of_lists_decoded.add(list_decoded);			
-		}
-
-		return list_of_lists_decoded;
+		return response;
 	}
 	
 	/**
@@ -2168,14 +2129,7 @@ public class GPUdb {
 	 * @throws GPUdbException
 	 */
 	public get_sorted_sets_response do_get_sorted_sets(List<SetId> set_ids, String sort_attribute) throws GPUdbException{
-		log.debug("get sorted sets; set_ids.size():"+set_ids.size()+" sort_attribute:"+sort_attribute+" go to request factory");				
-		Request request = new GetSortedSetsRequest(this, "/getsortedsets", set_ids, sort_attribute);
-
-		// decode
-		get_sorted_sets_response response = (get_sorted_sets_response)AvroUtils.convert_to_object_from_gpudb_response(get_sorted_sets_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());						
-
-		return response;
+		throw new GPUdbException("Discontinued function...use do_get_sorted_set() instead");
 	}
 
 	/**
@@ -2458,8 +2412,6 @@ public class GPUdb {
 				new_set_response response = (new_set_response)AvroUtils.convert_to_object_from_gpudb_response(new_set_response.SCHEMA$, request.post_to_gpudb());		
 				log.debug("response:"+response.toString());	
 
-				// check if sorted
-				ns.set_sorted(response.getSorted());
 			} else {
 				// if its just a parent set then we don't need to inform the server; but we do need the children
 				// get the children
@@ -2514,7 +2466,7 @@ public class GPUdb {
 					// build a named set object
 					ns = new NamedSet(id, this, type);						
 				} catch(Exception e){
-					log.error(e.toString());
+					log.error(" Error:", e);
 					throw new GPUdbException("Error building the type object; schema:"+typeSchema);
 				}
 				this.ns_store.put(id, ns); // need to be able to retrieve this named set object				
@@ -2660,9 +2612,6 @@ public class GPUdb {
 		new_set_response response = (new_set_response)AvroUtils.convert_to_object_from_gpudb_response(new_set_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());	
 
-		// check if sorted [NOTE: this means that we are going to except that set could already exist; probably throw instead]
-		ns.set_sorted(response.getSorted());
-		
 		// NOTE: only add to the store if we didn't throw
 		this.ns_store.put(id, ns);
 		
@@ -2786,27 +2735,59 @@ public class GPUdb {
 			return new SetId(id);
 		}
 	}
-	
-	public  get_tracks_response do_get_tracks(NamedSet namedSet, NamedSet world, int start, int end, 
-			double min_x, double min_y, double max_x, double max_y) {
 		
-		return do_get_tracks(namedSet, world, start, end, min_x, min_y, max_x, max_y, true);
-	}
-
-	public  get_tracks_response do_get_tracks(NamedSet namedSet, NamedSet world, int start, int end, 
+	public get_tracks2_response do_get_tracks(NamedSet namedSet, NamedSet world, int start, int end, 
 			double min_x, double min_y, double max_x, double max_y, boolean doExtent) {
 		
-		this.log.debug("Do get tracks");
+		this.log.debug("Do get tracks2");
 
 		// get the request
 		log.debug("Build the request");
-		Request request = this.request_factory.create_request("/gettracks", namedSet.get_setid(), world.get_setid(), 
+		Request request = this.request_factory.create_request("/gettracks2", namedSet.get_setid(), world.get_setid(), 
 				start, end, min_x, min_y, max_x, max_y, doExtent);
 
 		/// decode 		
-		get_tracks_response response = (get_tracks_response)AvroUtils.convert_to_object_from_gpudb_response(get_tracks_response.SCHEMA$, request.post_to_gpudb());		
+		get_tracks2_response response = (get_tracks2_response)AvroUtils.convert_to_object_from_gpudb_response(get_tracks2_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());
 
 		return response;
 	}
+	
+	public statistics_response do_statistics (NamedSet namedSet, List<StatisticsOptionsEnum> stats, String attribute) {
+		
+		this.log.debug("Do get do_statistics");
+		
+		// Parameters for requested stats. Currently not available to user
+		Map<String, String> params = new HashMap<String, String>();
+		
+		// Convert stats to a comma separated string
+		StringBuffer comma_separated_stats = new StringBuffer();
+		for (int i=0; i< stats.size(); i++) {
+			if (i < stats.size() - 1) {
+				comma_separated_stats.append(stats.get(i).value() + ",");
+			} else {
+				comma_separated_stats.append(stats.get(i).value());
+			}
+		}
+
+		// get the request
+		log.debug("Build the request");
+		Request request = this.request_factory.create_request("/statistics", comma_separated_stats.toString(), 
+				params, attribute, namedSet.get_setid());
+
+		/// decode 		
+		statistics_response response = (statistics_response)AvroUtils.convert_to_object_from_gpudb_response(statistics_response.SCHEMA$, 
+				request.post_to_gpudb());		
+		log.debug("response:"+response.toString());
+
+		return response;
+	}
+	
+	public get_set_objects_response do_list_fast(NamedSet ns, int start, int end, String semantic_type) throws GPUdbException{
+		Request request = new ListRequest(this, ns.get_setid(), start, end);
+		get_set_objects_response response = (get_set_objects_response)AvroUtils.convert_to_object_from_gpudb_response(get_set_objects_response.SCHEMA$, request.post_to_gpudb());		
+		log.debug("response:"+response.toString());				
+		return response;
+	}
+
 }

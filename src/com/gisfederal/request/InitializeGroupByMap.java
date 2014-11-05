@@ -1,14 +1,5 @@
 package com.gisfederal.request;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
-import avro.java.gpudb.initialize_group_by_map_request;
-import avro.java.gpudb.sort_request;
-
-import com.gisfederal.AvroUtils;
 import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
 

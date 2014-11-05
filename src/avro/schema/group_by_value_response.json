@@ -1,0 +1,11 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "group_by_value_response",
+    "fields" : [
+    	{ "name" : "set_id", "type" : "string" },
+        { "name" : "attributes", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "value_attribute", "type" : "string"},
+        { "name" : "count_map", "type" : { "type" : "map", "values" : "double"}}
+    ]
+}

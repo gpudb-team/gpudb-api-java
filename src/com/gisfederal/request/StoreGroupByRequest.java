@@ -2,18 +2,16 @@
  * 
  */
 package com.gisfederal.request;
-import com.gisfederal.GPUdb;
-import com.gisfederal.AvroUtils;
-import com.gisfederal.SetId;
-import com.gisfederal.NamedSet;
-
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.sort_request;
 import avro.java.gpudb.store_group_by_request;
+
+import com.gisfederal.AvroUtils;
+import com.gisfederal.GPUdb;
+import com.gisfederal.SetId;
 
 /**
  * @author pjacobs

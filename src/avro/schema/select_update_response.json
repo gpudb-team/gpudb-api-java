@@ -1,8 +1,8 @@
 {
     "namespace" : "avro.java.gpudb",
     "type" : "record",
-    "name" : "sort_response",
+    "name" : "select_update_response",
     "fields" : [
-        { "name" : "status", "type" : "string" }
+        { "name" : "count", "type" : "long" }
     ]
 }

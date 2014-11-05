@@ -27,7 +27,8 @@ public class RegisterTriggerRange extends Request {
 			list.add(set_id.get_id());
 		}
 		
-		register_trigger_range_request request = new register_trigger_range_request(UUID.randomUUID().toString(),list, attribute, lowest, highest, grouping_attribute);
+		// TODO - FIX
+		register_trigger_range_request request = null; //new register_trigger_range_request(UUID.randomUUID().toString(),list, attribute, lowest, highest, grouping_attribute);
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));
 	
 		// Create log msg for audit

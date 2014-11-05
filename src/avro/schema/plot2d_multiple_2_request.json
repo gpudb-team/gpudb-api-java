@@ -19,6 +19,7 @@
         { "name" : "do_points", "type" : { "type" : "array", "items" : "boolean" }},
         { "name" : "do_shapes", "type" : { "type" : "array", "items" : "boolean" }},
         { "name" : "do_tracks", "type" : { "type" : "array", "items" : "boolean" }},
+        { "name" : "do_symbology", "type" : { "type" : "array", "items" : "boolean" }},
         { "name" : "pointcolors", "type" : { "type" : "array", "items" : "long" }},
         { "name" : "pointsizes", "type" : { "type" : "array", "items" : "int" }},
         { "name" : "pointshapes", "type" : { "type" : "array", "items" : "string" }},

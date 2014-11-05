@@ -3,8 +3,8 @@
     "type" : "record",
     "name" : "get_set_request",
     "fields" : [
-        { "name" : "start", "type" : "int" },
-        { "name" : "end", "type" : "int" },
+        { "name" : "start", "type" : "long" },
+        { "name" : "end", "type" : "long" },
         { "name" : "set_id", "type" : "string" },
         { "name" : "semantic_type", "type" : "string" },
         { "name" : "user_auth_string", "type" : "string" }

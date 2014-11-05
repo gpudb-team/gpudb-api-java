@@ -1,7 +1,7 @@
 package com.gisfederal.semantic.types;
 
 public enum SemanticTypeEnum {
-		TRACK("TRACK"), POLYGON2D("POLYGON2D"),POLYGON3D("POLYGON3D"), LINE("LINE"), TIME("TIME"), 
+		TRACK("TRACK"), POLYGON("POLYGON"), POLYGON2D("POLYGON2D"),POLYGON3D("POLYGON3D"), LINE("LINE"), TIME("TIME"), 
 		GENERICOBJECT("GENERICOBJECT"), POINT("POINT"), SHAPE("SHAPE"), EMPTY("");	
 		
 		private final String name;

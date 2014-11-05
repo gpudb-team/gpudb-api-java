@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.get_set_sorted_request;
 import avro.java.gpudb.merge_sets_request;
 
 import com.gisfederal.AvroUtils;

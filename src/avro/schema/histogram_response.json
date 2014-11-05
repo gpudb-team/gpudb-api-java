@@ -3,7 +3,7 @@
     "type" : "record",
     "name" : "histogram_response",
     "fields" : [
-        { "name" : "counts", "type" : { "type" : "array", "items" : "int" }},
+        { "name" : "counts", "type" : { "type" : "array", "items" : "double" }},
         { "name" : "end", "type" : "double" },
         { "name" : "start", "type" : "double" }
     ]

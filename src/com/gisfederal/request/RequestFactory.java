@@ -88,8 +88,6 @@ public class RequestFactory {
 	}
 	
 	public Request create_request(String file, Object obj, Object param2) { 
-		if(file.equals("/clear"))
-			return new ClearRequest(this.gPUdb, file, (String)obj, (String)param2);
 		if(file.equals("/newset"))
 			return new NewSetRequest(this.gPUdb, file, (NamedSet)obj, (SetId)param2);
 		else
@@ -153,27 +151,11 @@ public class RequestFactory {
 			return null;
 	}
 	
-	public Request create_request(String file, SetId id, int start, int end) {
-		if(file.equals("/getsetsorted"))
-			return new GetSetSortedRequest(this.gPUdb, id, start, end);		
-		else
-			return null;
-	}
-	
-	public Request create_request(String file, SetId id, int start, int end, String semantic_type) {
-		if(file.equals("/getset"))
-			return new ListRequest(this.gPUdb, id, start, end, semantic_type);
-		else
-			return null;
-	}
-
 	public Request create_request(String file, SetId id, String attr_name) {
 		if(file.equals("/maxmin"))
 			return new MaxMinRequest(this.gPUdb, file, id, attr_name);		
 		if(file.equals("/makebloom"))
 			return new MakeBloomRequest(this.gPUdb, file, id, attr_name);
-		if(file.equals("/sort"))
-			return new SortRequest(this.gPUdb, file, id, attr_name);
 		if(file.equals("/unique"))
 			return new UniqueRequest(this.gPUdb, file, id, attr_name);
 		else
@@ -208,13 +190,13 @@ public class RequestFactory {
 			return null;
 	}
 	
-	public Request create_request(String file, SetId id, String attribute, long interval, double start, double end) {
-		if(file.equals("/histogram"))
-			return new HistogramRequest(this.gPUdb, file, id, attribute, interval, start, end);
+	public Request create_request(String file, SetId id, List<String> attributes, String value_attribute) {
+		if(file.equals("/groupbyvalue"))
+			return new GroupByValueRequest(this.gPUdb, file, id, attributes, value_attribute);		
 		else
 			return null;
 	}
-	
+		
 	public Request create_request(String file, SetId id, String filter_attribute, List<CharSequence> filter, String histogram_attribute, long interval, double start, double end) {
 		if(file.equals("/filterthenhistogram"))
 			return new FilterThenHistogramRequest(this.gPUdb, file, id, filter_attribute, filter, histogram_attribute, interval, start, end);
@@ -332,6 +314,15 @@ public class RequestFactory {
 			double min_x, double min_y, double max_x, double max_y, boolean doExtent) {
 		if(file.equals("/gettracks"))
 			return new GetTracksRequest(this.gPUdb, file, world_id, subworld_id, start, end, min_x, min_y, max_x, max_y, doExtent);
+		else if (file.equals("/gettracks2"))
+			return new GetTracks2Request(this.gPUdb, file, world_id, subworld_id, start, end, min_x, min_y, max_x, max_y, doExtent);
+		else
+			return null;
+	}
+	
+	public Request create_request(String file, String stats, Map<String, String> params, String attribute, SetId set_id) {
+		if(file.equals("/statistics"))
+			return new StatisticsRequest(this.gPUdb, file, stats, params, attribute, set_id);
 		else
 			return null;
 	}

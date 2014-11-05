@@ -27,7 +27,8 @@ public class RegisterTriggerNAI extends Request {
 			list.add(set_id.get_id());
 		}
 		
-		register_trigger_nai_request request = new register_trigger_nai_request(UUID.randomUUID().toString(),list, x_attribute, x_vector, y_attribute, y_vector, grouping_attribute);
+		//TODO - FIX
+		register_trigger_nai_request request = null; //new register_trigger_nai_request(UUID.randomUUID().toString(),list, x_attribute, x_vector, y_attribute, y_vector, grouping_attribute);
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));
 	
 		// Create log msg for audit

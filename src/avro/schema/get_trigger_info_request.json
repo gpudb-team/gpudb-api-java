@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "get_trigger_info_request",
+    "fields" : [
+        { "name" : "trigger_ids", "type" : { "type" : "array", "items" : "string" }}
+    ]
+}

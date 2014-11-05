@@ -1,11 +1,11 @@
 {
     "namespace" : "avro.java.gpudb",
     "type" : "record",
-    "name" : "get_set_sorted_request",
+    "name" : "group_by_value_request",
     "fields" : [
-        { "name" : "start", "type" : "int" },
-        { "name" : "end", "type" : "int" },
         { "name" : "set_id", "type" : "string" },
+        { "name" : "attributes", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "value_attribute", "type" : "string"},
         { "name" : "user_auth_string", "type" : "string" }
     ]
 }

@@ -8,7 +8,7 @@ import java.util.NoSuchElementException;
 
 public class NamedSetIterator implements Iterator {	
 	private NamedSet ns;	   // set we are iterating over
-	private int size;          // size of set
+	private long size;          // size of set
 	private int pageSize;      // page size (i.e. length; start to end for list requests)
 	
 	private List<Object> list; // internal list of objects; the objects we've gotten from the server so far [NOTE: use arraylist for O(1) get]
@@ -18,8 +18,8 @@ public class NamedSetIterator implements Iterator {
 	private List<NamedSet> allNamedSets = new ArrayList<NamedSet>(); 
 	
 	// sent to the server to get the list of objects; exclusive [start, end] with a zero start index
-	private int startIndex;    
-	private int endIndex;
+	private long startIndex;    
+	private long endIndex;
 	
 	private void updateInternalList() {	
 		
@@ -56,12 +56,14 @@ public class NamedSetIterator implements Iterator {
 
 	}
 	
-	private void getDataFromGpudb(List<Object> list2, int startIndex,
-			int endIndex) {
+	private void getDataFromGpudb(List<Object> list2, long startIndex,
+			long endIndex) {
 		
 		//System.out.println(" ## Fetch data from GPUDB for set " + ns.get_setid() + "  SI and EI are " + startIndex + " $$ " + endIndex);
 		
-		list = (List<Object>)ns.list(startIndex, endIndex);		
+		//TODO - Horrible casting here....
+		
+		list = (List<Object>)ns.list((int)startIndex, (int)endIndex);		
 	}
 
 	public NamedSetIterator(NamedSet _ns, int _pageSize) {		

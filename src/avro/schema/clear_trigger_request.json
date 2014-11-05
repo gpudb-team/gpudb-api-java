@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "clear_trigger_request",
+    "fields" : [
+        { "name" : "trigger_id", "type" : "string" }
+    ]
+}

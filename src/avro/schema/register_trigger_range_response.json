@@ -3,7 +3,6 @@
     "type" : "record",
     "name" : "register_trigger_range_response",
     "fields" : [
-        { "name" : "trigger_id", "type" : "string" },
-        { "name" : "termination_trigger_id", "type" : "string" }
+        { "name" : "trigger_id", "type" : "string" }
     ]
 }

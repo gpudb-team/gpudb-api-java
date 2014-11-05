@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.gisfederal.request;
 
 import java.net.MalformedURLException;
@@ -12,19 +9,19 @@ import com.gisfederal.GPUdbException;
 public class RequestConnection {
 	// either use "ip:port" :
 	protected String ip;
-	protected int port;	
+	protected int port;
 	// or (reverse proxy)  "host/baseFile":
 	protected String host;
 	protected String baseFile;
 	// tells us which (this is for the first)
 	protected boolean usingIP;
-	private String protocol; 
-	
+	private String protocol;
+
 	/**
 	 * Build the request connection with just the IP and port. Specify the protocol.
 	 * @param protocol The protocol (HTTP or HTTPS)
 	 * @param ip The IP address (ex: 127.0.0.1)
-	 * @param port The port (ex: 9191)	 
+	 * @param port The port (ex: 9191)
 	 * @throws GPUdbException
 	 */
 	public RequestConnection(String protocol, String ip, int port) throws GPUdbException{
@@ -32,13 +29,13 @@ public class RequestConnection {
 		this.port = port;
 		this.protocol = protocol;
 		usingIP = true;
-		
+
 		// test that the URL is OK
 		try {
-			buildURL("test");		
+			buildURL("test");
 		} catch (MalformedURLException e) {
 			throw new GPUdbException("Malformed url; "+e.toString());
-		}		
+		}
 	}
 
 	public RequestConnection(String protocol, String host, String baseFile) {
@@ -47,25 +44,25 @@ public class RequestConnection {
 		usingIP = false;
 		this.protocol = protocol;
 	}
-	
+
 	public RequestConnection(String protocol, String ip) throws GPUdbException{
 		// We dont have a port. If HTTPS - try 443, otherwise try 80
 		this(protocol, ip, protocol.equalsIgnoreCase("https") ? 443 : 80);
 	}
-	
+
 	/**
 	 * Construct a URL object.  Used by Request.
-	 * @throws MalformedURLException 
+	 * @throws MalformedURLException
 	 */
-	public URL buildURL(String file) throws MalformedURLException {		
-		if(usingIP) {	
+	public URL buildURL(String file) throws MalformedURLException {
+		if(usingIP) {
 			return new URL(protocol, ip, port, file);
 		} else {
 			// NOTE: "file" already has a "/" infront
 			return new URL(protocol, host, baseFile+file);
 		}
 	}
-	
+
 	public String toString() {
 		if(usingIP){
 			return String.format("(ip, port) = (%s, %d)\n", ip, port);
@@ -73,7 +70,7 @@ public class RequestConnection {
 			return String.format("(host, baseFile) = (%s, %s)\n", host, baseFile);
 		}
 	}
-	
+
 	/**
 	 * The objects are equal if the URL connections are equal.
 	 * @param other The object we are comparing against.
@@ -90,6 +87,6 @@ public class RequestConnection {
 			else return false;
 		}catch (MalformedURLException e) {
 			return false;
-		}		
+		}
 	}
 }

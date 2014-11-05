@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "get_trigger_info_response",
+    "fields" : [
+        { "name" : "trigger_map", "type" : { "type" : "map", "values" : { "type" : "map", "values" : "string" }}}
+    ]
+}

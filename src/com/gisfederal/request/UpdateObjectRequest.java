@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.sort_request;
 import avro.java.gpudb.update_object_request;
 
 import com.gisfederal.AvroUtils;
