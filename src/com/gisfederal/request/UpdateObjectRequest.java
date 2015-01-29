@@ -19,7 +19,7 @@ public class UpdateObjectRequest extends Request{
 	public UpdateObjectRequest(GPUdb gPUdb, String file, Object obj, String objectId, NamedSet ns) throws GPUdbException{
 		this.gPUdb = gPUdb;
 		this.file = file;
-		this.log = Logger.getLogger(AddObjectRequest.class);
+		this.log = Logger.getLogger(UpdateObjectRequest.class);
 		
 		ByteBuffer serialized = AddObjectRequest.encodeObject(gPUdb, file, obj, ns, log);
 

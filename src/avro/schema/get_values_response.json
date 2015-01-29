@@ -1,0 +1,13 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "get_values_response",
+    "fields" : [
+        { "name" : "int_attrs", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "int" }}},
+        { "name" : "long_attrs", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "long" }}},
+        { "name" : "float_attrs", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "float" }}},
+        { "name" : "double_attrs", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "double" }}},
+        { "name" : "string_attrs", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "string" }}},
+        { "name" : "set_id", "type" : "string" }
+    ]
+}

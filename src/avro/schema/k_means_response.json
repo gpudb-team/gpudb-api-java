@@ -1,0 +1,14 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "k_means_response",
+    "fields" : [
+        { "name" : "means", "type" : { "type" : "array", "items" : { "type": "array", "items" : "double" }}},
+        { "name" : "counts", "type" : { "type" : "array", "items" : "long" }},
+        { "name" : "rms_dists", "type" : { "type" : "array", "items" : "double" }},
+        { "name" : "count", "type" : "long"},
+        { "name" : "rms_dist", "type" : "double"},
+        { "name" : "tolerance", "type" : "double"},
+        { "name" : "num_iters", "type" : "int"}
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "filter_by_track_values_request",
+    "fields" : [
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "x_vals", "type" : { "type" : "array", "items" : "double"}},
+        { "name" : "y_vals", "type" : { "type" : "array", "items" : "double"}},
+        { "name" : "t_vals", "type" : { "type" : "array", "items" : "long"}},
+        { "name" : "track_ids_to_ignore", "type" : { "type" : "array", "items" : "string"}},
+        { "name" : "target_track_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "params", "type" : { "type" : "map", "values" : "string"} },
+        { "name" : "result_set_id", "type" : "string" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

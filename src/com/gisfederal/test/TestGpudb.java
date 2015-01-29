@@ -7,12 +7,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.awt.geom.Rectangle2D;
-import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -29,8 +28,11 @@ import org.junit.rules.ExpectedException;
 
 import avro.java.gpudb.add_object_response;
 import avro.java.gpudb.bounding_box_response;
+import avro.java.gpudb.bulk_add_response;
+import avro.java.gpudb.bulk_delete_response;
+import avro.java.gpudb.bulk_select_response;
+import avro.java.gpudb.bulk_update_response;
 import avro.java.gpudb.clear_response;
-import avro.java.gpudb.cluster_response;
 import avro.java.gpudb.convex_hull_response;
 import avro.java.gpudb.copy_set_response;
 import avro.java.gpudb.filter_by_bounds_response;
@@ -52,7 +54,6 @@ import avro.java.gpudb.join_setup_response;
 import avro.java.gpudb.make_bloom_response;
 import avro.java.gpudb.max_min_response;
 import avro.java.gpudb.merge_sets_response;
-import avro.java.gpudb.plot2d_multiple_response;
 import avro.java.gpudb.predicate_join_response;
 import avro.java.gpudb.register_parent_set_response;
 import avro.java.gpudb.register_trigger_nai_response;
@@ -65,7 +66,6 @@ import avro.java.gpudb.set_info_response;
 import avro.java.gpudb.stats_response;
 import avro.java.gpudb.status_response;
 import avro.java.gpudb.store_group_by_response;
-import avro.java.gpudb.turn_off_response;
 import avro.java.gpudb.unique_response;
 import avro.java.gpudb.update_object_response;
 
@@ -73,13 +73,14 @@ import com.gisfederal.GPUdb;
 import com.gisfederal.GPUdbException;
 import com.gisfederal.GenericObject;
 import com.gisfederal.NamedSet;
-import com.gisfederal.PointPair;
 import com.gisfederal.SetId;
 import com.gisfederal.Type;
 import com.gisfederal.semantic.types.AnnotationAttributeEnum;
 import com.gisfederal.semantic.types.Polygon;
 import com.gisfederal.semantic.types.SemanticTypeEnum;
 import com.gisfederal.semantic.types.Track;
+import com.gisfederal.utils.GPUdbApiUtil;
+import com.gisfederal.utils.NullObject;
 import com.gisfederal.utils.SpatialOperationEnum;
 import com.gisfederal.utils.StatisticsOptionsEnum;
 
@@ -93,24 +94,43 @@ public class TestGpudb {
 	public static void setUpClass() throws Exception {
 		// Code executed before the first test method
 		System.out.println("Build gpudb...");
-		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.212:9191");
+		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.177:9191");
+		
+		//String gpudbURL = System.getProperty("GPUDB_URL", "https://172.30.20.27:9191");
 
+		
 		//String gpudbURL = System.getProperty("GPUDB_URL", "http://192.168.56.101:9191");
 
-		String disableTrigger = System.getProperty("GPUDB_DISABLE_TRIGGER", "FALSE");
+		String disableTrigger = System.getProperty("GPUDB_DISABLE_TRIGGER", "TRUE");
 
 		if( Boolean.parseBoolean(disableTrigger) ) {
-			gPUdb = new GPUdb(gpudbURL);
+			System.out.println("XXXXXXXXXXXXXXXXXXXXX");
+			gPUdb = new GPUdb(gpudbURL, "", "admin_user", "admin_user_password");
 		} else {
 			URL myURL = new URL(gpudbURL);
 			String host = myURL.getHost();
 			int port = myURL.getPort();
 			System.out.println(" Trigger host is " + host);
-			gPUdb = GPUdb.newGpudbTrigger(host, port, "tcp://"+ host +":9001", "");
+			gPUdb = GPUdb.newGpudbTrigger(host, port, "tcp://"+ host +":9001", "", "admin_user", "admin_user_password");
 		}
 		gPUdb.setCollectForReplay(true);
 		System.out.println("Built gpudb");
 	}
+	
+	@Test
+	public void testUniqueHATest() {
+		NamedSet left_set = gPUdb.getNamedSet(new SetId("Twitter"));
+		
+		List<StatisticsOptionsEnum> stats = new ArrayList<StatisticsOptionsEnum>();
+		stats.add(StatisticsOptionsEnum.CARDINALITY);		
+		Map<String, Double> result = left_set.statistics(stats, "URL");
+		System.out.println("URL unique " + result);
+		result = left_set.statistics(stats, "y");
+		System.out.println("y unique " + result);
+		result = left_set.statistics(stats, "TIMESTAMP");
+		System.out.println("timestamp unique " + result);
+	}
+
 
 	@Test
 	public void testTypeCreation() {
@@ -120,6 +140,145 @@ public class TestGpudb {
 		Type type = gPUdb.create_type(BigPoint.class);
 		System.out.println("Type id:"+type.getID());
 		assertNotNull(type.getID());
+	}
+	
+	@Test
+	public void testUniqueConstraint() {
+
+		// Clear previous data in gaia
+		gPUdb.do_clear();
+		
+		String definition = "{\"type\":\"record\",\"name\":\"TestType\",\"fields\":" +
+				"[{\"name\":\"FL\",\"type\":\"long\"}," +
+				"{\"name\":\"FL2\",\"type\":\"long\"}, " +
+				"{\"name\":\"FS\",\"type\":\"string\"} " +
+				"]}";
+		
+		String label = "label1";
+		SemanticTypeEnum semanticType = SemanticTypeEnum.EMPTY;
+
+		Map<CharSequence, List<CharSequence>> annotation_attributes =
+				new HashMap<CharSequence, List<CharSequence>>();
+
+		
+		List<CharSequence> store = new ArrayList<CharSequence>();
+		store.add(AnnotationAttributeEnum.STORE_ONLY.attribute());
+		annotation_attributes.put("FL", store);
+		
+		
+		List<CharSequence> pk_list = new ArrayList<CharSequence>();
+		pk_list.add("FL");
+		annotation_attributes.put(AnnotationAttributeEnum.PRIMARY_KEY.attribute(), pk_list);
+		
+
+		// Test type can be created using create_type_with_annotation()
+		{
+			try {
+				Type type = gPUdb.create_type_with_annotations(definition, label,
+						semanticType, annotation_attributes);
+			} catch (GPUdbException ge) {
+				assertTrue(ge.getMessage().contains("primary key may not include store_only"));
+			}
+		}
+		
+		{
+			// Mark FL_SO as PK
+			annotation_attributes.clear();
+			pk_list = new ArrayList<CharSequence>();
+			pk_list.add("FL");
+			annotation_attributes.put(AnnotationAttributeEnum.PRIMARY_KEY.attribute(), pk_list);
+			
+			Type type = gPUdb.create_type_with_annotations(definition, label,
+					semanticType, annotation_attributes);
+			NamedSet ns = gPUdb.newSingleNamedSet(type);
+
+			GenericObject go = new GenericObject();
+			go.addField("FL", "1");
+			go.addField("FL2", "1");
+			go.addField("FS", "AAA");
+			ns.add(go);
+
+			go = new GenericObject();
+			go.addField("FL", "2");
+			go.addField("FL2", "2");
+			go.addField("FS", "BBB");
+			ns.add(go);
+			
+			assertTrue(ns.list(0, 10).size() == 2);
+
+			go = new GenericObject();
+			go.addField("FL", "2");
+			go.addField("FL2", "22");
+			go.addField("FS", "CCC");
+			ns.add(go);
+			
+			assertTrue(ns.list(0, 10).size() == 2);
+
+			List gos = ns.list(0, 10);
+			for( Object obj : gos ) {
+				if( obj instanceof GenericObject ) {
+					GenericObject go1 = (GenericObject)obj;
+					long l1 = Long.parseLong(go1.getField("FL"));
+					if( l1 == 1 ) {
+						assertTrue(go1.getField("FS").equals("AAA"));
+					} else {
+						assertTrue(go1.getField("FS").equals("CCC"));
+					}
+				}
+			}
+			System.out.println(ns.list(0,10));
+		}
+		
+		{
+			// Mark FL and FL2 as PKs
+			annotation_attributes.clear();
+			pk_list = new ArrayList<CharSequence>();
+			pk_list.add("FL");
+			pk_list.add("FL2");
+			
+			annotation_attributes.put(AnnotationAttributeEnum.PRIMARY_KEY.attribute(), pk_list);
+			
+			Type type = gPUdb.create_type_with_annotations(definition, label,
+					semanticType, annotation_attributes);
+			NamedSet ns = gPUdb.newSingleNamedSet(type);
+
+			GenericObject go = new GenericObject();
+			go.addField("FL", "1");
+			go.addField("FL2", "1");
+			go.addField("FS", "AAA");
+			ns.add(go);
+
+			go = new GenericObject();
+			go.addField("FL", "2");
+			go.addField("FL2", "2");
+			go.addField("FS", "BBB");
+			ns.add(go);
+			
+			assertTrue(ns.list(0, 10).size() == 2);
+
+			go = new GenericObject();
+			go.addField("FL", "2");
+			go.addField("FL2", "2");
+			go.addField("FS", "CCC");
+			ns.add(go);
+			
+			assertTrue(ns.list(0, 10).size() == 2);
+
+			List gos = ns.list(0, 10);
+			for( Object obj : gos ) {
+				if( obj instanceof GenericObject ) {
+					GenericObject go1 = (GenericObject)obj;
+					long l1 = Long.parseLong(go1.getField("FL"));
+					if( l1 == 1 ) {
+						assertTrue(go1.getField("FS").equals("AAA"));
+					} else {
+						assertTrue(go1.getField("FS").equals("CCC"));
+					}
+				}
+			}
+			System.out.println(ns.list(0,10));
+		}
+		
 	}
 
 	@Test
@@ -223,7 +382,7 @@ public class TestGpudb {
 			}
 
 			SetId result_set_id = gPUdb.new_setid();
-			bounding_box_response response = gPUdb.do_bounding_box(ns, result_set_id, "FD", "FD", 10.0, 20.0, 12.0, 30.0);
+			bounding_box_response response = gPUdb.do_bounding_box(ns, result_set_id, "FD", "FF", 10.0, 20.0, 12.0, 30.0);
 			assertTrue(response.getCount() == 8);
 		}
 
@@ -390,7 +549,7 @@ public class TestGpudb {
 		exception.expectMessage("connection");
 
 		// gPUdb throws exception when object not created
-		GPUdb bad_gpudb = new GPUdb("GARBAGE", 9191);
+		GPUdb bad_gpudb = new GPUdb("GARBAGE", 9191, "xx", "yy");
 		Type type = bad_gpudb.create_type(BigPoint.class);
 	}
 
@@ -454,7 +613,7 @@ public class TestGpudb {
 		// do the actual 2 server test
 		try {
 			// build a new connection to separate gpudb instances
-			GPUdb gpudb2 = new GPUdb("127.0.0.1", 9192);
+			GPUdb gpudb2 = new GPUdb("127.0.0.1", 9192, "xx", "yy");
 			gpudb2.do_clear();
 			response = gpudb2.do_stats();
 			System.out.println(response.toString());
@@ -852,17 +1011,17 @@ public class TestGpudb {
 
 	@Test
 	public void testBytesAddObject() {
-		gPUdb.do_clear();
+		//gPUdb.do_clear();
 		Type type = gPUdb.create_type(BytesPoint.class);
 		NamedSet ns = gPUdb.newSingleNamedSet(type);
 
 		BytesPoint point = new BytesPoint(UUID.randomUUID().toString(), "MSGID1",1.01, 2.01,1,"SRC1", "GROUP1", ByteBuffer.wrap("Binary Test Data1".getBytes()));
 		add_object_response response = ns.add(point);
-		assertNotNull(response.getSetId());
+		assertNotNull(response.getCountInserted() == 1);
 
 		point = new BytesPoint(UUID.randomUUID().toString(), "MSGID2",1.01, 3.01,1,"SRC2", "GROUP2", ByteBuffer.wrap("Binary Test Data2".getBytes()));
 		response = ns.add(point);
-		assertNotNull(response.getSetId());
+		assertNotNull(response.getCountInserted() == 1);
 	}
 
 	@Test
@@ -961,6 +1120,19 @@ public class TestGpudb {
 		assertTrue(A.size() == 0);
 
 	}
+	
+	
+	
+	@Test
+	public void testSelectDeleteObjectTwitter() {	
+				
+		NamedSet twitter = gPUdb.getNamedSet(new SetId("Twitter"));
+		
+		long count = gPUdb.do_select_delete(twitter, "TIMESTAMP < 1393822800000");
+		
+		System.out.println(" Select Delete Done...." + count);
+		
+	}
 
 	@Test
 	public void testSelectDeleteObject() {	
@@ -968,8 +1140,6 @@ public class TestGpudb {
 		Type type = gPUdb.create_type(BigPoint.class);
 		NamedSet A = gPUdb.newNamedSet(type);
 		
-		A.setMutable(true);
-
 		// Create some points and add them
 		BigPoint p = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 10.0, 20.0, 0, "SRC1", "GROUP1");
 		add_object_response response = A.add(p);
@@ -997,8 +1167,6 @@ public class TestGpudb {
 		Type type = gPUdb.create_type(BigPoint.class);
 		NamedSet A = gPUdb.newNamedSet(type);
 		
-		A.setMutable(true);
-
 		// Create some points and add them
 		BigPoint p = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 1.01, 2.01, 0, "SRC1", "GROUP1");
 		add_object_response response = A.add(p);
@@ -1030,8 +1198,6 @@ public class TestGpudb {
 		Type type = gPUdb.create_type(BigPoint.class);
 		NamedSet A = gPUdb.newNamedSet(type);
 		
-		A.setMutable(true);
-
 		// Create some points and add them
 		BigPoint p = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 1.01, 2.01, 0, "SRC1", "GROUP1");
 		add_object_response response = A.add(p);
@@ -1053,6 +1219,228 @@ public class TestGpudb {
 		// Test GaiaUCD will do more attribute level checking of updates.
 		assertTrue(count == 1);
 		assertTrue(A.size() == 1);
+		
+	}
+
+	@Test
+	public void testUpsertSemantics() {	
+		
+		gPUdb.do_clear();
+		
+		String definition = "{\"type\":\"record\",\"name\":\"TestType\",\"fields\":" +
+				"[{\"name\":\"FL\",\"type\":\"long\"}," +
+				"{\"name\":\"FL2\",\"type\":\"long\"}, " +
+				"{\"name\":\"FS\",\"type\":\"string\"} " +
+				"]}";
+		
+		String label = "label1";
+		SemanticTypeEnum semanticType = SemanticTypeEnum.EMPTY;
+
+		Map<CharSequence, List<CharSequence>> annotation_attributes =
+				new HashMap<CharSequence, List<CharSequence>>();
+
+		
+		List<CharSequence> store = new ArrayList<CharSequence>();
+		store.add(AnnotationAttributeEnum.STORE_ONLY.attribute());
+		annotation_attributes.put("FL", store);
+		
+		
+		List<CharSequence> pk_list = new ArrayList<CharSequence>();
+		pk_list.add("FL");
+		annotation_attributes.put(AnnotationAttributeEnum.PRIMARY_KEY.attribute(), pk_list);
+		
+		{
+			// Mark FL_SO as PK
+			annotation_attributes.clear();
+			pk_list = new ArrayList<CharSequence>();
+			pk_list.add("FL");
+			annotation_attributes.put(AnnotationAttributeEnum.PRIMARY_KEY.attribute(), pk_list);
+			
+			Type type = gPUdb.create_type_with_annotations(definition, label,
+					semanticType, annotation_attributes);
+			NamedSet ns = gPUdb.newSingleNamedSet(type);
+
+			GenericObject go = new GenericObject();
+			go.addField("FL", "1");
+			go.addField("FL2", "1");
+			go.addField("FS", "AAA");
+			add_object_response aor = ns.add(go);
+			assertTrue(aor.getCountInserted() == 1);
+
+			go = new GenericObject();
+			go.addField("FL", "2");
+			go.addField("FL2", "2");
+			go.addField("FS", "BBB");
+			aor = ns.add(go);
+			assertTrue(aor.getCountInserted() == 1);
+			
+			assertTrue(ns.list(0, 10).size() == 2);
+
+			go = new GenericObject();
+			go.addField("FL", "2");
+			go.addField("FL2", "22");
+			go.addField("FS", "CCC");
+			aor = ns.add(go, GPUdbApiUtil.getSilentonexistingpk());
+			assertTrue(aor.getCountInserted() == 0);
+			
+			go = new GenericObject();
+			go.addField("FL", "2");
+			go.addField("FL2", "22");
+			go.addField("FS", "CCC");
+			aor = ns.add(go, GPUdbApiUtil.getUpdateonexistingpk());
+			assertTrue(aor.getCountInserted() == 0);
+			assertTrue(aor.getCountUpdated() == 1);
+			
+			assertTrue(ns.list(0, 10).size() == 2);
+		}
+	}
+	
+	@Test
+	public void testBulkUpdate() {	
+		
+		gPUdb.do_clear();
+		
+		Type type = gPUdb.create_type(BigPoint.class);
+		NamedSet A = gPUdb.newNamedSet(type);
+		
+		// Create some points and add them
+		BigPoint p1 = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 1.0, 2.0, 1, "SRC1", "GROUP1");
+		BigPoint p2 = new BigPoint(UUID.randomUUID().toString(),  "MSGID2", 1.1, 2.1, 2, "SRC1", "GROUP1");
+		BigPoint p3 = new BigPoint(UUID.randomUUID().toString(),  "MSGID3", 1.2, 2.2, 3, "SRC1", "GROUP1");
+		BigPoint p4 = new BigPoint(UUID.randomUUID().toString(),  "MSGID4", 1.3, 2.3, 4, "SRC1", "GROUP1");
+		BigPoint p5 = new BigPoint(UUID.randomUUID().toString(),  "MSGID5", 1.4, 2.4, 5, "SRC1", "GROUP1");
+		BigPoint p11 = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 1.0, 2.0, 1, "SRC2", "GROUP1");
+		BigPoint p21 = new BigPoint(UUID.randomUUID().toString(),  "MSGID2", 1.1, 2.1, 2, "SRC2", "GROUP1");
+		BigPoint p31 = new BigPoint(UUID.randomUUID().toString(),  "MSGID3", 1.2, 2.2, 3, "SRC2", "GROUP1");
+		BigPoint p41 = new BigPoint(UUID.randomUUID().toString(),  "MSGID4", 1.3, 2.3, 4, "SRC2", "GROUP1");
+		BigPoint p51 = new BigPoint(UUID.randomUUID().toString(),  "MSGID5", 1.4, 2.4, 5, "SRC2", "GROUP1");
+
+		List<Object> list = new ArrayList<Object>();
+		list.add(p1);list.add(p2);list.add(p3);list.add(p4);list.add(p5);
+		list.add(p11);list.add(p21);list.add(p31);list.add(p41);list.add(p51);
+		
+		bulk_add_response response = A.add_list(list);
+		assertTrue(response.getOBJECTIDs().size() == 10);
+
+		String global_expression = "(source == 'SRC1')";
+		
+		List<CharSequence> expressions = new ArrayList<CharSequence>();
+		List<Map<java.lang.CharSequence, java.lang.CharSequence>> updateMaps = 
+				new ArrayList<Map<java.lang.CharSequence, java.lang.CharSequence>>();
+
+		List<Object> insertMaps = new ArrayList<Object>();
+		
+		
+		expressions.add("x == 1.1");
+		Map<CharSequence,CharSequence> data1 = new HashMap<CharSequence,CharSequence>();
+		data1.put("x", "11.1");
+		updateMaps.add(data1);
+		insertMaps.add(new NullObject() {});
+		
+		expressions.add("x == 1.2");
+		Map<CharSequence,CharSequence> data2 = new HashMap<CharSequence,CharSequence>();
+		data2.put("x", "21.1");
+		updateMaps.add(data2);
+		insertMaps.add(new NullObject() {});
+		
+		expressions.add("x == 3.2"); // will not match anything
+		Map<CharSequence,CharSequence> data3 = new HashMap<CharSequence,CharSequence>();
+		data3.put("x", "4.1");
+		updateMaps.add(data3);
+		BigPoint newPoint = new BigPoint(UUID.randomUUID().toString(),  "MSGIDNEW", 111.4, 2222.4, 5, "SRCNEW", "GROUPNEW");
+		insertMaps.add(newPoint);
+
+		
+		bulk_update_response bur = gPUdb.do_bulk_updates(A, global_expression, expressions, updateMaps, insertMaps, new HashMap());
+		
+		
+		System.out.println("xxxx " + A.list(0, 100));
+		
+	}
+	
+	@Test
+	public void testBulkDelete() {	
+		
+		gPUdb.do_clear();
+		
+		Type type = gPUdb.create_type(BigPoint.class);
+		NamedSet A = gPUdb.newNamedSet(type);
+		
+		// Create some points and add them
+		BigPoint p1 = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 1.0, 2.0, 1, "SRC1", "GROUP1");
+		BigPoint p2 = new BigPoint(UUID.randomUUID().toString(),  "MSGID2", 1.1, 2.1, 2, "SRC1", "GROUP1");
+		BigPoint p3 = new BigPoint(UUID.randomUUID().toString(),  "MSGID3", 1.2, 2.2, 3, "SRC1", "GROUP1");
+		BigPoint p4 = new BigPoint(UUID.randomUUID().toString(),  "MSGID4", 1.3, 2.3, 4, "SRC1", "GROUP1");
+		BigPoint p5 = new BigPoint(UUID.randomUUID().toString(),  "MSGID5", 1.4, 2.4, 5, "SRC1", "GROUP1");
+		
+		BigPoint p11 = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 1.0, 2.0, 1, "SRC2", "GROUP1");
+		BigPoint p21 = new BigPoint(UUID.randomUUID().toString(),  "MSGID2", 1.1, 2.1, 2, "SRC2", "GROUP1");
+		BigPoint p31 = new BigPoint(UUID.randomUUID().toString(),  "MSGID3", 1.2, 2.2, 3, "SRC2", "GROUP1");
+		BigPoint p41 = new BigPoint(UUID.randomUUID().toString(),  "MSGID4", 1.3, 2.3, 4, "SRC2", "GROUP1");
+		BigPoint p51 = new BigPoint(UUID.randomUUID().toString(),  "MSGID5", 1.4, 2.4, 5, "SRC2", "GROUP1");
+
+		List<Object> list = new ArrayList<Object>();
+		list.add(p1);list.add(p2);list.add(p3);list.add(p4);list.add(p5);
+		list.add(p11);list.add(p21);list.add(p31);list.add(p41);list.add(p51);
+		
+		bulk_add_response response = A.add_list(list);
+		assertTrue(response.getOBJECTIDs().size() == 10);
+
+		String global_expression = "(source == 'SRC1')";
+		
+		List<CharSequence> expressions = new ArrayList<CharSequence>();
+		expressions.add("x > 1.2");
+		expressions.add("x > 1.0");
+		
+		bulk_delete_response bdr = gPUdb.do_bulk_deletes(A, global_expression, expressions, new HashMap());
+		assertTrue(A.list(0, 100).size() == 6);
+	}
+	
+	@Test
+	public void testBulkSelect() {	
+		
+		gPUdb.do_clear();
+		
+		Type type = gPUdb.create_type(BigPoint.class);
+		NamedSet A = gPUdb.newNamedSet(type);
+		
+		// Create some points and add them
+		BigPoint p1 = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 1.0, 2.0, 1, "SRC1", "GROUP1");
+		BigPoint p2 = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 1.1, 2.1, 2, "SRC1", "GROUP1");
+		BigPoint p3 = new BigPoint(UUID.randomUUID().toString(),  "MSGID2", 1.2, 2.2, 3, "SRC1", "GROUP1");
+		BigPoint p4 = new BigPoint(UUID.randomUUID().toString(),  "MSGID2", 1.3, 2.3, 4, "SRC1", "GROUP1");
+		BigPoint p5 = new BigPoint(UUID.randomUUID().toString(),  "MSGID5", 1.4, 2.4, 5, "SRC1", "GROUP1");
+		BigPoint p11 = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 1.0, 2.0, 1, "SRC2", "GROUP1");
+		BigPoint p21 = new BigPoint(UUID.randomUUID().toString(),  "MSGID2", 1.1, 2.1, 2, "SRC2", "GROUP1");
+		BigPoint p31 = new BigPoint(UUID.randomUUID().toString(),  "MSGID3", 1.2, 2.2, 3, "SRC2", "GROUP1");
+		BigPoint p41 = new BigPoint(UUID.randomUUID().toString(),  "MSGID4", 1.3, 2.3, 4, "SRC2", "GROUP1");
+		BigPoint p51 = new BigPoint(UUID.randomUUID().toString(),  "MSGID5", 1.4, 2.4, 5, "SRC2", "GROUP1");
+
+		List<Object> list = new ArrayList<Object>();
+		list.add(p1);list.add(p2);list.add(p3);list.add(p4);list.add(p5);
+		list.add(p11);list.add(p21);list.add(p31);list.add(p41);list.add(p51);
+		
+		bulk_add_response response = A.add_list(list);
+		assertTrue(response.getOBJECTIDs().size() == 10);
+
+		String global_expression = "(source == 'SRC1')";
+		
+		List<CharSequence> expressions = new ArrayList<CharSequence>();
+		
+		expressions.add("x == 1.1");
+		expressions.add("x == 1.2");
+		expressions.add("x == + @# (()(( 3.2"); // will not match anything
+		
+		bulk_select_response bsr = gPUdb.do_bulk_selects(A, global_expression, expressions, new HashMap());
+		System.out.println("xxxx " + bsr.getCountFound());
+		System.out.println("xxxx " + bsr.getCountsFound());
+		
+		List<List> objects = A.bulkSelectObjects(global_expression, expressions, new HashMap());
+		
+		for( List loj : objects ) {
+			System.out.println(" Objects for predicates are : " + loj);
+		}
+		
 		
 	}
 
@@ -1425,13 +1813,11 @@ public class TestGpudb {
 		GenericObject go = new GenericObject();
 		go.addField("person", "Alice");
 		go.addField("age", "21");
-		go.addField(Type.PROP_OBJECT_ID, UUID.randomUUID().toString());
 		ns.add(go);
 
 		go = new GenericObject();
 		go.addField("person", "Bob");
 		go.addField("age", "25");
-		go.addField(Type.PROP_OBJECT_ID, UUID.randomUUID().toString());
 		ns.add(go);
 
 		// Requested semantic type is POINT but added was GenericObject so exception
@@ -1448,28 +1834,33 @@ public class TestGpudb {
 
 	@Test
 	public void testBulkAdd() {
-		gPUdb.do_clear();
+		//gPUdb.do_clear();
 
+		gPUdb.setSnappyCompress(true);
+		
 		Type type = gPUdb.create_type(BigPoint.class);
+		
 		NamedSet ns = gPUdb.newNamedSet(type);
-
+		
+		ns.setBulkAddLimit(1000000);
 		// Create some points and add them
 		List<Object> list = new ArrayList<Object>();
-		BigPoint p = new BigPoint(UUID.randomUUID().toString(),  "MSGID1", 1.01, 2.01, 0, "SRC1", "GROUP1");
-		list.add(p);
+		
+		for( int ii = 0; ii < 10; ii++ ) {
+			BigPoint p = new BigPoint(UUID.randomUUID().toString(),  "MSGIDTeams should be able to access OWF on WL1 now ."+ii, 
+					1.01+ii, 2.01+ii, 0, "SRC"+ii, "GROUP1");
+			list.add(p);
+		}
 
-		p = new BigPoint(UUID.randomUUID().toString(),  "MSGID2", 2.01, 2.01, 1, "SRC2", "GROUP2");
-		list.add(p);
+		System.out.println(" 0000000000000 " + new Date());
 
-		p = new BigPoint(UUID.randomUUID().toString(),  "MSGID3", 3.01, 3.01, 2, "SRC3", "GROUP3");
-		list.add(p);
-
+		
 		ns.add_list(list);
 
 		// list
-		ArrayList<BigPoint> points = (ArrayList<BigPoint>) ns.list(0,2);
-		assertTrue(points.size() == 3);
-		Assert.assertArrayEquals(list.toArray(), points.toArray());
+		//ArrayList<BigPoint> points = (ArrayList<BigPoint>) ns.list(0,2);
+		//assertTrue(points.size() == 5000);
+		//Assert.assertArrayEquals(list.toArray(), points.toArray());
 	}
 
 	@Test
@@ -1529,69 +1920,6 @@ public class TestGpudb {
 		make_bloom_response response = gPUdb.do_make_bloom(ns, "x");
 		System.out.println("make bloom status:"+response.getStatus());
 		assertTrue(response.getStatus().toString().equals("CREATED"));
-	}
-
-	@Ignore
-	public void testTurnOff() {
-		gPUdb.do_clear();
-
-		Type type = gPUdb.create_type(BigPoint.class);
-		NamedSet ns = gPUdb.newSingleNamedSet(type);
-
-		List<Object> points = new ArrayList<Object>();
-		// do_add_big_point(self, set_id, msg_id, x, y, timestamp, source, group_id)
-	    // Track 1, no points over the threshold
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_001", 2.0, 9.0, 1, "SRC_ID_001", "GROUP_001"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_002", 2.0, 8.0, 2, "SRC_ID_002", "GROUP_001"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_003", 1.0, 6.0, 3, "SRC_ID_003", "GROUP_001"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_004", 1.0, 4.0, 4, "SRC_ID_004", "GROUP_001"));
-
-		// Track 2, one pair of points that go over the threshold
-		// we expect for this track (x,y,t) = ((8,6,3),(7,7,8))
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_005",10.0, 8.0, 1, "SRC_ID_001", "GROUP_002"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_006", 9.0, 7.0, 2, "SRC_ID_002", "GROUP_002"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_007", 8.0, 6.0, 3, "SRC_ID_003", "GROUP_002"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_008", 7.0, 7.0, 8, "SRC_ID_004", "GROUP_002"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_009", 6.0, 7.0, 10, "SRC_ID_004", "GROUP_002"));
-
-		// Track 3 two pairs and mixed up order
-		// we expect for this track (x,y,t) = ((2,5,1),(4,4,8)),((6,4,16),(7,3,23))
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_010", 2.0, 5.0, 1, "SRC_ID_001", "GROUP_003"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_011", 3.0, 4.0, 12, "SRC_ID_002", "GROUP_003"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_012", 4.0, 4.0, 8, "SRC_ID_003", "GROUP_003"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_013", 5.0, 4.0, 14, "SRC_ID_004", "GROUP_003"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_014", 6.0, 4.0, 16, "SRC_ID_004", "GROUP_003"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_015", 7.0, 3.0, 23, "SRC_ID_004", "GROUP_003"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_016", 8.0, 3.0, 0, "SRC_ID_004", "GROUP_003"));
-
-	    //Track 4: Not in bounding box
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_017", -1, 8.0, 1, "SRC_ID_001", "GROUP_004"));
-		points.add(new BigPoint(UUID.randomUUID().toString(),  "MSG_ID_018", 1, 20, 2, "SRC_ID_002", "GROUP_004"));
-
-		// add the pints
-		ns.add_list(points);
-
-		SetId result_set_id = gPUdb.new_setid();
-		bounding_box_response response = gPUdb.do_bounding_box(ns, result_set_id, "x", "y", 0, 11, 0, 10);
-		assertTrue(response.getCount() == 16);
-
-		turn_off_response toresp = gPUdb.do_turn_off(result_set_id, "group_id", "timestamp", "x", "y", 5);
-		System.out.println(toresp.getMap());
-
-		try {
-			Map<String,List<PointPair>> track_map = ns.do_turn_off(5);
-			System.out.println(track_map);
-			assertTrue(track_map.get("GROUP_001").size() == 0); // NOTE: might just not add this key
-			assertTrue(track_map.get("GROUP_002").size() == 1);
-
-			PointPair pp = track_map.get("GROUP_002").get(0);
-			assertTrue(pp.firstPoint.x == 6 && pp.firstPoint.y == 7 && pp.firstPoint.timestamp == 10);
-			assertTrue(pp.secondPoint.x == 7 && pp.secondPoint.y == 7 && pp.secondPoint.timestamp == 8);
-
-			assertTrue(track_map.get("GROUP_003").size() == 2);
-		} catch(GPUdbException e) {
-			System.err.println("error:"+e.toString());
-		}
 	}
 
 	@Test
@@ -1907,7 +2235,7 @@ public class TestGpudb {
 
 	@Test
 	public void testGroupBy() {
-		gPUdb.do_clear();
+		//gPUdb.do_clear();
 		Type type = gPUdb.create_type(BigPoint.class);
 		NamedSet ns = gPUdb.newNamedSet(type);
 
@@ -2796,83 +3124,6 @@ public class TestGpudb {
 		}
 	}
 
-	@Ignore
-	public void testCluster() {
-		gPUdb.do_clear();
-
-		Type type = gPUdb.create_type(BigPoint.class);
-		NamedSet ns = gPUdb.newNamedSet(type);
-
-		// add points (for the subworld) [fake mgrs in source field]
-		BigPoint p = new BigPoint(UUID.randomUUID().toString(), "MSGID1", 1.01, 2.01, 0, "40R", "IN");
-		ns.add(p);
-
-		p = new BigPoint(UUID.randomUUID().toString(), "MSGID2", 2.01, 2.01, 1, "32S", "IN");
-		ns.add(p);
-
-		// not in subworld (box) but matching msgid so in cluster
-		p = new BigPoint(UUID.randomUUID().toString(), "MSGID1", 13.01, 3.01, 2, "32S", "IN_WORLD");
-		ns.add(p);
-
-		p = new BigPoint(UUID.randomUUID().toString(), "MSGID2", 13.01, 3.01, 2, "32S", "IN_WORLD");
-		ns.add(p);
-
-		p = new BigPoint(UUID.randomUUID().toString(), "MSGID2", 13.01, 3.01, 2, "50P", "IN_WORLD");
-		ns.add(p);
-
-		// outside box and without a matching msgid
-		p = new BigPoint(UUID.randomUUID().toString(), "MSGID3", 11.01, 20.01, 0, "SRC1", "OUT");
-		ns.add(p);
-
-		p = new BigPoint(UUID.randomUUID().toString(), "MSGID4", 12.01, 20.01, 0, "SRC1", "OUT");
-		ns.add(p);
-
-		p = new BigPoint(UUID.randomUUID().toString(), "MSGID5", 20.01, 20.01, 1, "SRC2", "OUT");
-		ns.add(p);
-
-		p = new BigPoint(UUID.randomUUID().toString(), "MSGID6", 30.01, 3.01, 2, "SRC3", "OUT");
-		ns.add(p);
-
-		p = new BigPoint(UUID.randomUUID().toString(), "MSGID7", 35.01, 3.01, 2, "SRC3", "OUT");
-		ns.add(p);
-
-		// Result from Bounding box will be used to cluster by source
-		SetId bb_result_set_id = gPUdb.new_setid();
-		bounding_box_response response = gPUdb.do_bounding_box(ns, bb_result_set_id, "x", "y", 0, 10, 0, 10);
-		NamedSet bb_ns = gPUdb.getNamedSet(bb_result_set_id, type);
-		assertTrue(response.getCount() == 2);
-
-		// Cluster is larger group. For unique msg_id in bounding box, give me all data in entire set grouped by source
-		SetId f_result_set_id = gPUdb.new_setid();
-		cluster_response c_response = gPUdb.do_cluster(ns, bb_ns, f_result_set_id, "msg_id", "source");
-
-		Map<CharSequence, List<CharSequence>> count_map = c_response.getCountMap();
-
-		// Convert org.apache.avro.util.Utf8 key-value map to String key-value map
-		Map<String, List<String>> str_count_map = new HashMap<String, List<String>>();
-		Iterator<CharSequence> iter = count_map.keySet().iterator();
-		while(iter.hasNext()) {
-			try {
-				org.apache.avro.util.Utf8 key = (org.apache.avro.util.Utf8)iter.next();
-				String str_key = key.toString();
-				List utf8_list = count_map.get(key);
-				List<String> str_list = new ArrayList<String>();
-				for(int i=0; i<utf8_list.size(); i++) {
-					org.apache.avro.util.Utf8 value = (org.apache.avro.util.Utf8)utf8_list.get(i);
-					str_list.add(value.toString());
-				}
-				str_count_map.put(str_key, str_list);
-			} catch(Exception e) {
-				System.err.println(e.toString());
-			}
-		}
-
-		// Test the return counts
-		assertTrue(str_count_map.get("40R").get(0).equals("1") &&
-				str_count_map.get("50P").get(0).equals("1") &&
-				str_count_map.get("32S").get(0).equals("3"));
-	}
-
 	@Test
 	public void testStats() {
 		gPUdb.do_clear();
@@ -2914,8 +3165,10 @@ public class TestGpudb {
 
 	@Test
 	public void testStatus() {
+		
+		/*
 		gPUdb.do_clear();
-
+	
 		Type type = gPUdb.create_type(BigPoint.class);
 		NamedSet ns = gPUdb.newNamedSet(type);
 
@@ -2937,12 +3190,17 @@ public class TestGpudb {
 
 		p = new BigPoint(UUID.randomUUID().toString(), "MSGID2", 2.01, 2.01, 1, "SRC2", "GROUP2");
 		ns2.add(p);
-
+		*/
 		// Get status
-		status_response response = gPUdb.do_status(ns);
+		status_response response = gPUdb.do_status(null);
+		System.out.println(" XXXX " + response.total_size);
+		System.out.println(" XXXX " + response.total_full_size);
+		
+		/*
 		assertTrue(response.getSizes().get(0) == 3);
 		response = gPUdb.do_status(ns2);
 		assertTrue(response.getSizes().get(0) == 2);
+		*/
 	}
 
 	@Test
@@ -3080,79 +3338,6 @@ public class TestGpudb {
 		for(BigPoint point : points) {
 			assertTrue(in_points.contains(point));
 		}
-	}
-
-	@Ignore
-	public void testPlot2DMultiple() throws IOException {
-		gPUdb.do_clear();
-
-		Type type = gPUdb.create_type(BytesPoint.class);
-
-		List<NamedSet> namedSets = new ArrayList<NamedSet>();
-		List<Long> colors = new ArrayList<Long>();
-		List<Integer> sizes = new ArrayList<Integer>();
-
-		//Set 1
-		NamedSet ns1 = gPUdb.newNamedSet(type);
-		BytesPoint point = new BytesPoint(UUID.randomUUID().toString(), "MSGID1",10.0, 10.0,1,"SRC1", "GROUP1",ByteBuffer.wrap("b1".getBytes()));
-		ns1.add(point);
-
-		point = new BytesPoint(UUID.randomUUID().toString(), "MSGID2",15.0, 15.0,1,"SRC2", "GROUP2", ByteBuffer.wrap("Binary".getBytes()));
-		ns1.add(point);
-
-		point = new BytesPoint(UUID.randomUUID().toString(), "MSGID3",20.0, 20.0,1,"SRC3", "GROUP3", ByteBuffer.wrap("Binary Test Data3".getBytes()));
-		ns1.add(point);
-
-		namedSets.add(ns1);
-		colors.add(new Long(0xFFFF0000));
-		sizes.add(new Integer(1));
-
-		//Set 2
-		NamedSet ns2 = gPUdb.newNamedSet(type);
-		point = new BytesPoint(UUID.randomUUID().toString(), "MSGID1",10.0, 20.0,1,"SRC1", "GROUP1",ByteBuffer.wrap("b1".getBytes()));
-		ns2.add(point);
-
-		point = new BytesPoint(UUID.randomUUID().toString(), "MSGID2",12.0, 18.0,1,"SRC2", "GROUP2", ByteBuffer.wrap("Binary".getBytes()));
-		ns2.add(point);
-
-		point = new BytesPoint(UUID.randomUUID().toString(), "MSGID3",14.0, 18.0,1,"SRC3", "GROUP3", ByteBuffer.wrap("Binary Test Data3".getBytes()));
-		ns2.add(point);
-
-		namedSets.add(ns2);
-		colors.add(new Long(0xFF00FF00));
-		sizes.add(new Integer(1));
-
-		//Set 3
-		NamedSet ns3 = gPUdb.newNamedSet(type);
-		point = new BytesPoint(UUID.randomUUID().toString(), "MSGID1",20.0, 10.0,1,"SRC1", "GROUP1",ByteBuffer.wrap("b1".getBytes()));
-		ns3.add(point);
-
-		point = new BytesPoint(UUID.randomUUID().toString(), "MSGID2",18.0, 11.0,1,"SRC2", "GROUP2", ByteBuffer.wrap("Binary".getBytes()));
-		ns3.add(point);
-
-		point = new BytesPoint(UUID.randomUUID().toString(), "MSGID3",17.0, 13.0,1,"SRC3", "GROUP3", ByteBuffer.wrap("Binary Test Data3".getBytes()));
-		ns3.add(point);
-
-		namedSets.add(ns3);
-		colors.add(new Long(0xFF0000FF));
-		sizes.add(new Integer(1));
-
-		// run the plot2dmultiple calculation
-		plot2d_multiple_response response = gPUdb.do_plot2d_multiple(namedSets, colors, sizes, "x", "y", 0.0, 30.0, 0.0, 30.0, 500, 500, "web_mercator", 0);
-
-		// what to check this against?
-		ByteBuffer image_byte_buffer = response.getImageData();
-		assertNotNull(image_byte_buffer);
-
-		//write resulting image to a file
-
-		// FileOutputStream fos = new FileOutputStream("/home/eli/test_java_api_multiple.png");
-		// FileChannel channel = fos.getChannel();
-
-		// channel.write(image_byte_buffer);
-
-		// fos.close();
-
 	}
 
 	@Ignore
@@ -4049,7 +4234,7 @@ public class TestGpudb {
 	
 	@Test
 	public void testStatistics() throws Exception {
-		gPUdb.do_clear();
+		//gPUdb.do_clear();
 		
 		Type type = gPUdb.create_type(BigPoint.class);
 		SetId si = gPUdb.new_setid();
@@ -4057,29 +4242,50 @@ public class TestGpudb {
 
 		// Create some points and add them
 		BigPoint p;
-		p = new BigPoint(UUID.randomUUID().toString(), "MSG", 1, 2, 0, "SRC1", "GROUP1");
+		p = new BigPoint(UUID.randomUUID().toString(), "MSG", 1, -3, 0, "SRC1", "GROUP1");
 		ns.add(p);
-		p = new BigPoint(UUID.randomUUID().toString(),  "MSG", 2, 2, 1, "SRC1", "GROUP1");
+		p = new BigPoint(UUID.randomUUID().toString(),  "MSG", 2, -2, 1, "SRC1", "GROUP1");
 		ns.add(p);
-		p = new BigPoint(UUID.randomUUID().toString(), "MSG", 3, 4, 0, "SRC1", "GROUP1");
+		p = new BigPoint(UUID.randomUUID().toString(), "MSG", 3, -1, 0, "SRC1", "GROUP1");
 		ns.add(p);
-		p = new BigPoint(UUID.randomUUID().toString(),  "MSG", 4, 6, 1, "SRC1", "GROUP1");
+		p = new BigPoint(UUID.randomUUID().toString(),  "MSG", 4, 0, 1, "SRC1", "GROUP1");
 		ns.add(p);
-		p = new BigPoint(UUID.randomUUID().toString(), "MSG", 5, 6, 0, "SRC1", "GROUP1");
+		p = new BigPoint(UUID.randomUUID().toString(), "MSG", 5, 1, 0, "SRC1", "GROUP1");
 		ns.add(p);
-		p = new BigPoint(UUID.randomUUID().toString(),  "MSG", 6, 7, 1, "SRC1", "GROUP1");
+		p = new BigPoint(UUID.randomUUID().toString(),  "MSG", 6, 2, 1, "SRC1", "GROUP1");
+		ns.add(p);
+		p = new BigPoint(UUID.randomUUID().toString(),  "MSG", 6, 3, 1, "SRC1", "GROUP1");
 		ns.add(p);
 		
 		// Test statistics
 		List<StatisticsOptionsEnum> stats = new ArrayList<StatisticsOptionsEnum>();
 		stats.add(StatisticsOptionsEnum.MEAN);
 		stats.add(StatisticsOptionsEnum.STDV);
+		stats.add(StatisticsOptionsEnum.CARDINALITY);
 		stats.add(StatisticsOptionsEnum.ESTIMATED_CARDINALITY);
+		stats.add(StatisticsOptionsEnum.VARIANCE);
+		stats.add(StatisticsOptionsEnum.SKEW);
+		stats.add(StatisticsOptionsEnum.KURTOSIS);
+		//stats.add(StatisticsOptionsEnum.SUM);
+		stats.add(StatisticsOptionsEnum.COUNT);
+		
 		Map<String, Double> result = ns.statistics(stats, "y");
-		assertTrue(result.get("mean") == 4.5);
+		assertTrue(result.get("mean") == 0.0);
 		double std = result.get(StatisticsOptionsEnum.STDV.value());
 		assertTrue(std > 2.1 && std < 2.2);
 		assertNotNull(result.get(StatisticsOptionsEnum.ESTIMATED_CARDINALITY.value()));
+		
+		/*
+		System.out.println(result.get(StatisticsOptionsEnum.CARDINALITY.value()));
+		System.out.println(result.get(StatisticsOptionsEnum.COUNT.value()));
+		System.out.println(result.get(StatisticsOptionsEnum.MEAN.value()));
+		System.out.println(result.get(StatisticsOptionsEnum.STDV.value()));
+		System.out.println(result.get(StatisticsOptionsEnum.ESTIMATED_CARDINALITY.value()));
+		System.out.println(result.get(StatisticsOptionsEnum.VARIANCE.value()));
+		System.out.println(result.get(StatisticsOptionsEnum.SKEW.value()));
+		System.out.println(result.get(StatisticsOptionsEnum.KURTOSIS.value()));
+		//System.out.println(result.get(StatisticsOptionsEnum.SUM.value()));
+		*/
 	}
 	
 	@Test

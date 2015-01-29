@@ -1,6 +1,7 @@
 package com.gisfederal.request;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -15,7 +16,6 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.log4j.Logger;
 
 import avro.java.gpudb.add_object_request;
-import avro.java.gpudb.bounding_box_request;
 
 import com.gisfederal.AvroUtils;
 import com.gisfederal.GPUdb;
@@ -23,22 +23,23 @@ import com.gisfederal.GPUdbException;
 import com.gisfederal.GenericObject;
 import com.gisfederal.NamedSet;
 import com.gisfederal.Type;
+import com.gisfederal.utils.IgnoreOnIngest;
 
 public class AddObjectRequest extends Request{
 
 	// Given the object to add and the set id of named set to add it too
-	public AddObjectRequest(GPUdb gPUdb, String file, Object obj, NamedSet ns) throws GPUdbException{
+	public AddObjectRequest(GPUdb gPUdb, String file, Object obj, NamedSet ns, Map<java.lang.CharSequence,java.lang.CharSequence> params) 
+			throws GPUdbException{
 		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(AddObjectRequest.class);
 		
-		this.mutable = ns.isMutable();
 		this.setId = ns.get_setid().toString();
 		
 		ByteBuffer serialized = encodeObject(gPUdb, file, obj, ns, log);
 
 		// add to avro object
-		add_object_request request = new add_object_request(serialized, "", "BINARY", ns.get_setid().get_id());	
+		add_object_request request = new add_object_request(ns.get_setid().get_id(), serialized, "", "BINARY", params);	
 		log.debug(request.getObjectData().toString());
 
 		log.debug("Add object request created");	
@@ -117,6 +118,14 @@ public class AddObjectRequest extends Request{
 				for(Field field : fields){
 					String fieldType = field.getType().getSimpleName().toLowerCase();
 					String fieldName = field.getName();
+					
+					Annotation annotation = field.getAnnotation(IgnoreOnIngest.class);
+				    logger.debug("Annotation for field : " + fieldName + " is : " + annotation);
+					if( annotation instanceof IgnoreOnIngest ) {
+						// If the field is annotated IgnoreOnIngest, skip it
+						continue;
+					}
+					
 					logger.debug("fieldName:"+fieldName+" fieldType:"+fieldType);
 					if(fieldType.equals("double")){
 						// field.getDouble(obj) will get, as a double, the field for this object; then we put it into the record with this name

@@ -4,6 +4,8 @@
     "name" : "get_sorted_set_response",
     "fields" : [
         { "name" : "list", "type" : { "type" : "array", "items" : "bytes" }},
+        { "name" : "list_str", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "type_id", "type" : "string"},
         { "name" : "set_id", "type" : "string"}
     ]
 }

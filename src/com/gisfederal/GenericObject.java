@@ -28,10 +28,6 @@ public class GenericObject {
 		return dataMap.get(fieldName);
 	}
 	
-	public String getObjectId() {
-		return dataMap.get(Type.PROP_OBJECT_ID);
-	}
-			
 	@Override
 	public String toString() {
 		String str = "";

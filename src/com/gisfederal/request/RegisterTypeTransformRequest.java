@@ -1,18 +1,13 @@
 package com.gisfederal.request;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.register_trigger_nai_request;
 import avro.java.gpudb.register_type_transform_request;
-import avro.java.gpudb.shape_intersection_request;
 
 import com.gisfederal.AvroUtils;
 import com.gisfederal.GPUdb;
-import com.gisfederal.SetId;
 
 public class RegisterTypeTransformRequest extends Request {
 	public RegisterTypeTransformRequest(GPUdb gPUdb, String file, CharSequence type_id, CharSequence new_type_id, Map<CharSequence,CharSequence> transform_map) {

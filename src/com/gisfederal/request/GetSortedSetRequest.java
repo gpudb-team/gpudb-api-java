@@ -19,7 +19,7 @@ public class GetSortedSetRequest extends Request {
 		log.debug("get sorted set request");
 		
 		get_sorted_set_request request = new get_sorted_set_request(ns.get_setid().get_id(), sort_attribute, 
-				start, end, new HashMap<CharSequence, CharSequence>(), this.gPUdb.getUserAuth());
+				start, end, "BINARY", new HashMap<CharSequence, CharSequence>(), this.gPUdb.getUserAuth());
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));
 
 		// Create log msg for audit

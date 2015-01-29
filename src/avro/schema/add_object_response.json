@@ -4,13 +4,7 @@
     "name" : "add_object_response",
     "fields" : [
         { "name" : "OBJECT_ID", "type" : "string" },
-        { "name" : "object_data", "type" : "bytes" },
-        { "name" : "object_data_str", "type" : "string" },
-        { "name" : "object_encoding", "type" : "string" },
-        { "name" : "set_id", "type" : "string" },
-        { "name" : "matching_triggers", "type" : { "type" : "array", "items" : "string" }},
-        { "name" : "matching_qualifiers", "type" : { "type" : "array", "items" : "double" }},
-        { "name" : "nonmatching_triggers", "type" : { "type" : "array", "items" : "string" }},
-        { "name" : "nonmatching_qualifiers", "type" : { "type" : "array", "items" : "double" }}
+        { "name" : "count_inserted", "type" : "int" },
+        { "name" : "count_updated", "type" : "int" }
     ]
 }

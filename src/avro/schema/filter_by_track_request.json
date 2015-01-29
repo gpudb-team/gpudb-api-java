@@ -5,9 +5,8 @@
     "fields" : [
         { "name" : "set_id", "type" : "string" },
         { "name" : "track_id", "type" : "string" },
-        { "name" : "spatial_radius", "type" : "double"},
-        { "name" : "time_radius", "type" : "double"},
         { "name" : "target_track_ids", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "params", "type" : { "type" : "map", "values" : "string"} },
         { "name" : "result_set_id", "type" : "string" },
         { "name" : "user_auth_string", "type" : "string" }
     ]

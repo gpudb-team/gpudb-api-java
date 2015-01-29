@@ -1,0 +1,10 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "bulk_select_response",
+    "fields" : [
+        { "name" : "count_found", "type" : "long" },
+        { "name" : "counts_found", "type" : { "type" : "array", "items" : "long" }},
+        { "name" : "objects", "type" : { "type" : "array", "items" : { "type" : "array", "items" : "bytes" }}}
+    ]
+}

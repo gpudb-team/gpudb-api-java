@@ -19,7 +19,6 @@ public class SelectDeleteRequest extends Request {
 		this.file = file;
 		this.log = Logger.getLogger(SelectDeleteRequest.class);
 		
-		this.mutable = ns.isMutable();
 		this.setId = ns.get_setid().toString();
 		
 		// construct avro object and then convert to bytes

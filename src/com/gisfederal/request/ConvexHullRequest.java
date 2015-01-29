@@ -4,7 +4,6 @@
 package com.gisfederal.request;
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.cluster_request;
 import avro.java.gpudb.convex_hull_request;
 
 import com.gisfederal.AvroUtils;

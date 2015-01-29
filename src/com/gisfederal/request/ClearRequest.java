@@ -20,11 +20,9 @@ public class ClearRequest extends Request {
 		
 		clear_request request = null;
 		if( ns != null ) {
-			this.mutable = ns.isMutable();
 			this.setId = ns.get_setid().toString();
 			request = new clear_request(ns.get_setid().get_id(), pwd);
 		} else {
-			this.mutable = false;
 			this.setId = "";
 			request = new clear_request("", "");
 		}

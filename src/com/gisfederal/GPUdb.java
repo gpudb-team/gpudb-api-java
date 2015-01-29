@@ -32,8 +32,10 @@ import avro.java.gpudb.add_object_response;
 import avro.java.gpudb.add_symbol_response;
 import avro.java.gpudb.bounding_box_response;
 import avro.java.gpudb.bulk_add_response;
+import avro.java.gpudb.bulk_delete_response;
+import avro.java.gpudb.bulk_select_response;
+import avro.java.gpudb.bulk_update_response;
 import avro.java.gpudb.clear_response;
-import avro.java.gpudb.cluster_response;
 import avro.java.gpudb.convex_hull_response;
 import avro.java.gpudb.copy_set_response;
 import avro.java.gpudb.delete_object_response;
@@ -56,11 +58,9 @@ import avro.java.gpudb.get_sorted_set_response;
 import avro.java.gpudb.get_sorted_sets_response;
 import avro.java.gpudb.get_tracks2_response;
 import avro.java.gpudb.get_type_info_response;
-import avro.java.gpudb.group_by_map_page_response;
 import avro.java.gpudb.group_by_response;
 import avro.java.gpudb.group_by_value_response;
 import avro.java.gpudb.histogram_response;
-import avro.java.gpudb.initialize_group_by_map_response;
 import avro.java.gpudb.join_incremental_response;
 import avro.java.gpudb.join_response;
 import avro.java.gpudb.join_setup_response;
@@ -68,7 +68,6 @@ import avro.java.gpudb.make_bloom_response;
 import avro.java.gpudb.max_min_response;
 import avro.java.gpudb.merge_sets_response;
 import avro.java.gpudb.new_set_response;
-import avro.java.gpudb.plot2d_multiple_response;
 import avro.java.gpudb.populate_full_tracks_response;
 import avro.java.gpudb.predicate_join_response;
 import avro.java.gpudb.register_parent_set_response;
@@ -83,8 +82,6 @@ import avro.java.gpudb.select_response;
 import avro.java.gpudb.select_update_response;
 import avro.java.gpudb.server_status_response;
 import avro.java.gpudb.set_info_response;
-import avro.java.gpudb.shape_intersection_response;
-import avro.java.gpudb.shape_literal_intersection_response;
 import avro.java.gpudb.spatial_query_response;
 import avro.java.gpudb.spatial_set_query_response;
 import avro.java.gpudb.statistics_response;
@@ -92,12 +89,15 @@ import avro.java.gpudb.stats_response;
 import avro.java.gpudb.status_response;
 import avro.java.gpudb.store_group_by_response;
 import avro.java.gpudb.trigger_notification;
-import avro.java.gpudb.turn_off_response;
 import avro.java.gpudb.unique_response;
 import avro.java.gpudb.update_object_response;
 import avro.java.gpudb.update_set_ttl_response;
 
-import com.gisfederal.request.AddSymbolRequest;
+import com.gisfederal.request.AddObjectRequest;
+import com.gisfederal.request.BulkAddRequest;
+import com.gisfederal.request.BulkDeleteRequest;
+import com.gisfederal.request.BulkSelectRequest;
+import com.gisfederal.request.BulkUpdateRequest;
 import com.gisfederal.request.ClearRequest;
 import com.gisfederal.request.CreateTypeWithAnnotationsRequest;
 import com.gisfederal.request.DeleteObjectRequest;
@@ -121,7 +121,7 @@ import com.gisfederal.request.SelectDeleteRequest;
 import com.gisfederal.request.SelectUpdateRequest;
 import com.gisfederal.request.SpatialQueryRequest;
 import com.gisfederal.request.SpatialSetQueryRequest;
-import com.gisfederal.request.TurnOffRequest;
+import com.gisfederal.request.UpdateObjectRequest;
 import com.gisfederal.semantic.types.SemanticTypeEnum;
 import com.gisfederal.utils.SpatialOperationEnum;
 import com.gisfederal.utils.StatisticsOptionsEnum;
@@ -151,10 +151,26 @@ public class GPUdb {
 
 	// the user authorization string; defaults to empty
 	private String user_auth = "";
+	
+	
 	private String user_name = "";
+	private String user_pwd = "";
+	
+	// We will now snappy compress the bulk add packets if requested
+	private boolean snappyCompress = false;
 	
 	// call to generate a replay file
 	private boolean collectForReplay = false;
+	
+	public boolean isSnappyCompress() {
+		return snappyCompress;
+	}
+
+	public void setSnappyCompress(boolean snappyCompress) {
+		
+		//TODO - No compress for now till we figure what the issue with xerial is
+		//this.snappyCompress = snappyCompress;
+	}
 
 	/**
 	 * Get the user authorization.
@@ -172,6 +188,14 @@ public class GPUdb {
 
 	public void setUser_name(String user_name) {
 		this.user_name = user_name;
+	}
+
+	public String getUser_pwd() {
+		return user_pwd;
+	}
+
+	public void setUser_pwd(String user_pwd) {
+		this.user_pwd = user_pwd;
 	}
 
 	public void setInStore(SetId setId, NamedSet ns) {
@@ -212,15 +236,15 @@ public class GPUdb {
 		return this.requestConnection;
 	}
 
-	public static GPUdb newGpudbTrigger(String ip, int port, String triggerIP, String namespace){
-		GPUdb gPUdb = new GPUdb(ip, port, namespace);		
+	public static GPUdb newGpudbTrigger(String ip, int port, String triggerIP, String namespace, String userId, String pwd){
+		GPUdb gPUdb = new GPUdb(ip, port, namespace, userId, pwd);		
 		gPUdb.setTriggerIP(triggerIP);
 
 		return gPUdb;
 	}
 
-	public static GPUdb newGpudbTrigger(String ip, String triggerIP, String namespace){
-		GPUdb gPUdb = new GPUdb(ip, namespace);		
+	public static GPUdb newGpudbTrigger(String ip, String triggerIP, String namespace, String userId, String pwd){
+		GPUdb gPUdb = new GPUdb(ip, namespace, userId, pwd);		
 		gPUdb.setTriggerIP(triggerIP);
 
 		return gPUdb;
@@ -440,7 +464,7 @@ public class GPUdb {
 				System.err.println(e.toString());
 			}
 			///
-			log.debug("response.object_data.size():"+ response.getObjectData().array().length   +" response.trigger_id:"+response.getTriggerId());			
+			log.debug("response.object_data.size():"+response.getObjectData().toString()+" response.trigger_id:"+response.getTriggerId());			
 						
 			if(response.getTriggerId().toString().equals(trigger_id)){
 				log.debug("This trigger id matches");
@@ -449,14 +473,11 @@ public class GPUdb {
 				Type type = this.getNamedSet(new SetId(response.getSetId().toString())).getType();
 				Schema object_schema = type.getAvroSchema();
 				
-				/* THIS IS CRAZY CODE !!!
 				if( response.getObjectData().array().length == 0 ) {
-					return type.decodeJson(response.getObjectData(), object_schema);
+					return type.decodeJson(response.getObjectData().toString(), object_schema);
 				} else {
 					return type.decode(response.getObjectData());
 				}
-				*/
-				return type.decode(response.getObjectData());
 			}else {
 				log.debug("This trigger id NOT matching");
 			}
@@ -500,8 +521,8 @@ public class GPUdb {
 	 * @param ip The String IP address.
 	 * @param port The port value.
 	 */
-	public GPUdb(String ip, int port) {
-		this(ip, port, "");
+	public GPUdb(String ip, int port, String userId, String pwd) {
+		this(ip, port, "", userId, pwd);
 	}
 
 	/**
@@ -510,14 +531,17 @@ public class GPUdb {
 	 * @param port The port value.
 	 * @param namespace The user namespace.
 	 */
-	public GPUdb(String ip, int port, String namespace) throws GPUdbException{		
-		this("http", ip, port, namespace);
+	public GPUdb(String ip, int port, String namespace, String userId, String pwd) throws GPUdbException{		
+		this("http", ip, port, namespace, userId, pwd);
 	}
 	
-	public GPUdb(String protocol, String ip, int port, String namespace) throws GPUdbException{		
+	public GPUdb(String protocol, String ip, int port, String namespace, String userId, String pwd) throws GPUdbException{		
 
 		// build the connection to gpudb			
 		this.requestConnection = new RequestConnection(protocol, ip,port);
+		
+		setUser_name(userId == null ? "" : pwd);
+		setUser_pwd(pwd == null ? "" : pwd);
 
 		// set the namespace if it's been set
 		if(!namespace.equals("")){
@@ -529,24 +553,17 @@ public class GPUdb {
 		this.log.debug(String.format("Starting up gpudb with namespace:%s and connection:%s", this.namespace, this.requestConnection.toString()));		
 	}
 
-	//if given "http://192.168.1.101:9191" split into 192.168.1.101 and 9191
-	/**
-	 * Constructor, builds a Gpudb object from the given full address (IP and port). ex: Gpudb("http://192.168.1.101:9191")
-	 * @param full_address The protocol://ip:port address.
-	 */
-	public GPUdb(String full_address) {
-		this(full_address, "");
-	}
-	
-
 	/**
 	 * Constructor, builds a Gpudb object from the given full address (IP and port). ex: Gpudb("http://192.168.1.101:9191")
 	 * @param full_address The protocol://ip:port address.
 	 * @param namespace The user namespace to use.
 	 */
-	public GPUdb(String full_address, String namespace) throws GPUdbException{		
+	public GPUdb(String full_address, String namespace, String userId, String pwd) throws GPUdbException{		
 		try {
 			this.log = Logger.getLogger(GPUdb.class); // need the logger
+			
+			setUser_name(userId == null ? "" : pwd);
+			setUser_pwd(pwd == null ? "" : pwd);
 			
 			full_address.trim();
 			URL myURL = new URL(full_address);
@@ -581,31 +598,6 @@ public class GPUdb {
 		} catch(Exception e) {
 			System.err.println(e.toString());
 			throw new GPUdbException("Error building gpudb object; "+e.toString());			
-		}
-	}
-
-	/**
-	 * Constructor, builds a Gpudb object given the host, baseFile, and some namespace.  Example Gpudb("gpudb.gisfederal.com", "gpudb2", "") or
-	 * Gpudb("gpudb.gisfederal.com", "gpudb2", "MyNameSpace") 
-	 * @param host The host.
-	 * @param baseFile The base file.
-	 * @param namespace The user namespace to use.
-	 */
-	public GPUdb(String host, String baseFile, String namespace) {
-		try {
-			this.log = Logger.getLogger(GPUdb.class);
-			// Old code - protocol is http
-			this.requestConnection =  new RequestConnection("http", host, baseFile);
-
-			// set the namespace if it's been set
-			if(!namespace.equals("")){
-				this.namespace = namespace;
-				this.hasNamespace = true;
-			}
-			initialize();
-			this.log.debug(String.format("Starting up gpudb with namespace:%s and connection:%s", this.namespace, this.requestConnection.toString()));
-		} catch(Exception e) {
-			System.err.println(e.toString());
 		}
 	}
 
@@ -665,6 +657,11 @@ public class GPUdb {
 	 */
 	public Type create_type(String definition, String annotation_attr, String label, SemanticTypeEnum semanticType) throws GPUdbException{
 		this.log.debug("Create a type");
+		
+		// verify and build the avro schema
+		Schema.Parser parser = new Schema.Parser();
+		parser.parse(definition);
+		
 		Request request = this.request_factory.create_request("/registertype", definition, 
 					annotation_attr, label, semanticType.toString());
 
@@ -672,10 +669,8 @@ public class GPUdb {
 		register_type_response response = (register_type_response)AvroUtils.convert_to_object_from_gpudb_response(register_type_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());	
 
-		// build the avro schema
-		Schema.Parser parser = new Schema.Parser();
-
 		// create the type and return it
+		parser = new Schema.Parser();
 		return new Type(response.getTypeId().toString(), GenericObject.class, parser.parse(response.getTypeDefinition().toString()), 
 				label, semanticType.toString());
 	}
@@ -694,6 +689,11 @@ public class GPUdb {
 			Map<CharSequence, List<CharSequence>> annotation_attributes) throws GPUdbException{
 		this.log.debug("Create a type with annotations");
 		
+		// verify and build the avro schema
+		Schema.Parser parser = new Schema.Parser();
+		parser.parse(definition);
+
+		
 		Request request = new CreateTypeWithAnnotationsRequest(this, "/registertypewithannotations", definition, label, 
 				semanticType.toString(), annotation_attributes);
 
@@ -702,10 +702,8 @@ public class GPUdb {
 				register_type_with_annotations_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());	
 
-		// build the avro schema
-		Schema.Parser parser = new Schema.Parser();
-
 		// create the type and return it
+		parser = new Schema.Parser();
 		return new Type(response.getTypeId().toString(), GenericObject.class, parser.parse(response.getTypeDefinition().toString()), 
 				label, semanticType.toString());
 	}
@@ -756,43 +754,6 @@ public class GPUdb {
 
 
 	/**
-	 * Build an image from the points in multiple sets 
-	 * @param in_sets The sets to generate the image from
-	 * @param colors The color for each set
-	 * @param x_attribute The name of the "x" attribute.
-	 * @param y_attribute The name of the "y" attribute.
-	 * @param min_x The min value of the the "x" attribute.
-	 * @param max_x The max value of the the "x" attribute.
-	 * @param min_y The min value of the the "y" attribute.
-	 * @param max_y The max value of the the "y" attribute.
-	 * @param width The width.
-	 * @param height The height.
-	 * @param projection The map projection (mercator, etc.)
-	 * @param bg_color The background color.
-	 * @return A plot2d_multiple_response object. Contains a PNG-encoded image as a byte string.
-	 */
-	public plot2d_multiple_response do_plot2d_multiple(List<NamedSet> in_sets, List<Long> colors, List<Integer> sizes, String x_attribute, String y_attribute, double min_x, double max_x, double min_y, double max_y, double width, double height, String projection, long bg_color) throws GPUdbException{		
-		this.log.debug("Do Plot2DMultiple");
-		
-		List<CharSequence> in_set_names = new ArrayList<CharSequence>();
-		for (int i=0;i<in_sets.size();i++)
-		{
-			in_set_names.add(in_sets.get(i).get_setid().get_id());
-		}
-
-		// get the request
-		Request request = this.request_factory.create_request("/plot2dmultiple", in_set_names, colors, sizes, x_attribute, y_attribute, min_x, max_x, min_y, max_y, width, height, projection, 
-				bg_color);
-
-		/// decode 		
-		plot2d_multiple_response response = (plot2d_multiple_response)AvroUtils.convert_to_object_from_gpudb_response(plot2d_multiple_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());	
-
-
-		return response;		
-	}
-
-	/**
 	 * Calculate what objects are within a bounding box.  Objects who are within bounds min_x <= x <= max_x AND min_y <= y <= max_y. 
 	 * @param in_set The set to perform the calculation on.
 	 * @param result_set_id The set that will contain the resulting objects -- i.e. those that are within the box.
@@ -838,6 +799,8 @@ public class GPUdb {
 	public select_response do_select(NamedSet in_set, SetId result_set_id, String expression) throws GPUdbException{		
 		this.log.debug("Do select");
 
+		stopVacuosPredicates(expression);
+		
 		// create a named set object over here and store it
 		NamedSet rs = new NamedSet(result_set_id, this, in_set.getType());
 		this.ns_store.put(result_set_id, rs); // need to be able to retrieve this named set object
@@ -866,7 +829,9 @@ public class GPUdb {
 	 */
 	public long do_select_delete(NamedSet in_set, String expression) throws GPUdbException{		
 		this.log.debug("Do select delete");
-
+		
+		stopVacuosPredicates(expression);
+		
 		// get the request
 		Request request = new SelectDeleteRequest(this, "/selectdelete", in_set, expression);
 
@@ -1083,6 +1048,7 @@ public class GPUdb {
 	 * @param attributes A list of attribute names.
 	 * @return A group by response object.  Contains a map where each key is a unique combination of the attributes and the value is a list of the 
 	 * count of the number of objects who had that combination and the second value is a result set id.
+	 * @deprecated use do_group_by_value instead
 	 */
 	public group_by_response do_group_by(NamedSet in_set, List<String> attributes) throws GPUdbException{
 		this.log.debug("Do group by");
@@ -1211,6 +1177,8 @@ public class GPUdb {
 	 */
 	public filter_by_string_response do_filter_by_string(NamedSet in_set, SetId result_set_id, String expression, String mode, List<CharSequence> options, List<CharSequence> attributes) {
 		this.log.debug("Do Filter By String");
+		
+		stopVacuosPredicates(expression);
 		
 		// create a named set object and store it
 		NamedSet rs = new NamedSet(result_set_id, this, in_set.getType());
@@ -1700,41 +1668,6 @@ public class GPUdb {
 	}
 
 	/**
-	 * Figure out the clustering.  Basically, we unique on the shared_attribute of the subworld set, then do a filter by list using that 
-	 * unique list across the world set. And then do a group by on the cluster attribute on the world set.  
-	 * @param world_set The set of the world.
-	 * @param subworld_set A set that is a subset of the world.
-	 * @param shared_attribute The attribute that is shared between the world and subworld that we want to unique and filter with.
-	 * @param cluster_attribute The attribute in the world set that we are going to cluster on.
-	 * @return A cluster response object.
-	 */
-	public cluster_response do_cluster(NamedSet world_set, NamedSet subworld_set, SetId result_set_id, String shared_attribute, String cluster_attribute) throws GPUdbException{
-		this.log.debug("Do cluster set; world_set:"+world_set.get_setid().get_id()+" subworld_id:"+subworld_set.get_setid().get_id()+" rs:"+result_set_id.get_id()+" shared_attribute:"+shared_attribute+" cluster_attribute:"+cluster_attribute);
-
-		// create a named set object over here
-		NamedSet rs = new NamedSet(result_set_id, this, world_set.getType());
-		this.ns_store.put(result_set_id, rs); // need to be able to retrieve this named set object
-
-		// get the request
-		log.debug("Build the request");
-		Request request = this.request_factory.create_request("/cluster", world_set.get_setid(), subworld_set.get_setid(), result_set_id, shared_attribute, cluster_attribute);
-
-		//decode
-		cluster_response response = (cluster_response)AvroUtils.convert_to_object_from_gpudb_response(cluster_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());
-
-		// get children of the result set if it's a parent
-		if(rs.getType().isParent()) {
-			rs.getChildrenFromServer();
-			log.debug("got children from rs:"+rs.getNumberOfChildren());
-		}
-
-
-		return response;
-	}
-
-
-	/**
 	 * Clear out all the sets in gpudb.  
 	 * @return A clear response object.
 	 */
@@ -1906,16 +1839,18 @@ public class GPUdb {
 		return response;
 	}
 	// NOTE: add the double one too
-	
-	/**
-	 * Add a java object to a gpudb set.  NOTE: should do it from the NamedSet.
-	 * @param obj The object we are going to add.  
-	 * @param ns The named set of the set we are going to add to.
-	 * @return An add object response. Tells the user the object id of the added object.
-	 */
-	public add_object_response do_add_object(NamedSet ns, Object obj) throws GPUdbException{		
-		Request request = this.request_factory.create_request("/add", obj, ns);		
 
+	/**
+	 * Add a java object to a gpudb set.
+	 * @param ns - The named set
+	 * @param obj - The object to be added
+	 * @param params - The params map.
+	 * @return - Add_object_response
+	 * @throws GPUdbException
+	 */
+	public add_object_response do_add_object(NamedSet ns, Object obj, Map<java.lang.CharSequence,java.lang.CharSequence> params) 
+			throws GPUdbException{		
+		Request request = new AddObjectRequest(this, "/add", obj, ns, params);
 		//decode
 		add_object_response response = (add_object_response)AvroUtils.convert_to_object_from_gpudb_response(add_object_response.SCHEMA$, request.post_to_gpudb(true));		
 		log.debug("response:"+response.toString());			
@@ -1932,19 +1867,8 @@ public class GPUdb {
 	 * @throws GPUdbException
 	 */
 	public add_symbol_response do_add_symbol(String symbol_id, String symbol_format, Object obj) throws GPUdbException{		
-		this.log.debug("Do add symbol");
-
-		// get the request
-		log.debug("Build the request");
-
-		// Assume object is string for now....
-		Request request = new AddSymbolRequest(this, "/addsymbol", symbol_id, symbol_format, (String)obj);
-
-		//decode
-		add_symbol_response response = (add_symbol_response)AvroUtils.convert_to_object_from_gpudb_response(add_symbol_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());
 		
-		return response;
+		throw new GPUdbException("This operation is not supported....");
 	}
 
 	/**
@@ -1955,7 +1879,7 @@ public class GPUdb {
 	 * @return An update object response. Tells the user the object id of the added object.
 	 */
 	public update_object_response do_update_object(NamedSet ns, Object obj, String objectId) throws GPUdbException{		
-		Request request = this.request_factory.create_request("/updateobject", obj, ns, objectId);		
+		Request request = new UpdateObjectRequest(this, "/updateobject", obj, objectId, ns);
 
 		//decode
 		update_object_response response = (update_object_response)AvroUtils.convert_to_object_from_gpudb_response(update_object_response.SCHEMA$, request.post_to_gpudb());		
@@ -1971,6 +1895,8 @@ public class GPUdb {
 	 * @return An update object response. Tells the user the object id of the added object.
 	 */
 	public long do_select_update(NamedSet ns, Map<CharSequence, CharSequence> data, String expression) throws GPUdbException{		
+		
+		stopVacuosPredicates(expression);
 		
 		Request request = new SelectUpdateRequest(this, "/selectupdate", ns, expression, data);		
 
@@ -2006,15 +1932,94 @@ public class GPUdb {
 	 * @param ns The named set of the set we are going to add to.
 	 * @return A bulk add response. Tells the user the object ids of the added objects.
 	 */
-	protected bulk_add_response do_add_object_list(List<Object> list_obj, NamedSet ns) throws GPUdbException{
+	protected bulk_add_response do_add_object_list(List<Object> list_obj, NamedSet ns, Map<java.lang.CharSequence,java.lang.CharSequence> params) 
+			throws GPUdbException{
 		log.debug("bulk add object; list size:"+list_obj.size());
-		Request request = this.request_factory.create_request("/bulkadd", list_obj, ns);		
-
+		Request request = new BulkAddRequest(this, "/bulkadd", list_obj, ns, params); 
+		
+		this.request_factory.create_request("/bulkadd", list_obj, ns);		
 		//decode
 		bulk_add_response response = (bulk_add_response)AvroUtils.convert_to_object_from_gpudb_response(bulk_add_response.SCHEMA$, request.post_to_gpudb(true));		
 		log.debug("response:"+response.toString());						
 
 		return response;
+	}
+	
+	/**
+	 * Bulk delete request. Global expression acts as an initial filter. 
+	 * @param in_set - Set to work in
+	 * @param global_expression - the primary global filter
+	 * @param expressions - first list - expressions
+	 * @param params - ignored for now. pass and empty map.
+	 * @return - bulk_delete_response is returned. 
+	 * @throws GPUdbException
+	 */
+	public bulk_delete_response do_bulk_deletes(NamedSet in_set, String global_expression, 
+			List<java.lang.CharSequence> expressions, Map<java.lang.CharSequence,java.lang.CharSequence> params) throws GPUdbException{		
+		this.log.debug("Do bulk deletes");
+				
+		// create the request
+		Request request = new BulkDeleteRequest(this, "/bulkdelete", in_set, global_expression, expressions, params);
+
+		/// decode 		
+		bulk_delete_response response = (bulk_delete_response)AvroUtils.convert_to_object_from_gpudb_response(bulk_delete_response.SCHEMA$, request.post_to_gpudb(true));		
+		log.debug("response:"+response.toString());
+
+		return response;		
+	}
+	
+	/**
+	 * Bulk update request. Global expression acts as an initial filter. There are 3 tandem list. First is the list of
+	 * expressions which are matched against set data. For each match, the corresponding newValueObject is used (from the
+	 * second tandem list) to update the objects. If no match is found for an expression, and if a corresponding non-empty
+	 * insertObject is found, then that is used to insert a record.
+	 * @param in_set - Set to work in
+	 * @param global_expression - the primary global filter
+	 * @param expressions - first list - expressions
+	 * @param newValueMaps - second list - maps of values
+	 * @param insertObjects - third list - insert objects (maybe empty)
+	 * @param params - ignored for now. pass and empty map.
+	 * @return - bulk_update_response is returned. 
+	 * @throws GPUdbException
+	 */
+	public bulk_update_response do_bulk_updates(NamedSet in_set, String global_expression, 
+			List<java.lang.CharSequence> expressions, List<Map<java.lang.CharSequence, java.lang.CharSequence>> newValueMaps, 
+			List<Object> insertObjects, Map<java.lang.CharSequence,java.lang.CharSequence> params) throws GPUdbException{		
+		this.log.debug("Do bulk updates");
+				
+		// get the request
+		Request request = new BulkUpdateRequest(this, "/bulkupdate", in_set, global_expression, expressions, newValueMaps,
+				insertObjects, params);
+
+		/// decode 		
+		bulk_update_response response = (bulk_update_response)AvroUtils.convert_to_object_from_gpudb_response(bulk_update_response.SCHEMA$, request.post_to_gpudb(true));		
+		log.debug("response:"+response.toString());
+
+		return response;		
+	}
+	
+	/**
+	 * Bulk select request. Global expression acts as an initial filter. The list of expression are 
+	 * matched against set data. For each match, a list of results are returned.
+	 * @param in_set - Set to work in
+	 * @param global_expression - the primary global filter
+	 * @param expressions - first list - expressions
+	 * @param params - ignored for now. pass and empty map.
+	 * @return - bulk_select_response is returned. 
+	 * @throws GPUdbException
+	 */
+	public bulk_select_response do_bulk_selects(NamedSet in_set, String global_expression, 
+			List<java.lang.CharSequence> expressions, Map<java.lang.CharSequence,java.lang.CharSequence> params) throws GPUdbException{		
+		this.log.debug("Do bulk selects");
+				
+		// get the request
+		Request request = new BulkSelectRequest(this, "/bulkselect", in_set, global_expression, expressions, params);
+
+		/// decode 		
+		bulk_select_response response = (bulk_select_response)AvroUtils.convert_to_object_from_gpudb_response(bulk_select_response.SCHEMA$, request.post_to_gpudb(true));		
+		log.debug("response:"+response.toString());
+
+		return response;		
 	}
 
 	/**
@@ -2064,42 +2069,6 @@ public class GPUdb {
 			do_update_ttl(setId, ttl);
 		}
 		return;
-	}
-
-	
-
-	/**
-	 * Do an initialize group by map.  Used in get tracks.  Do before paging. 
-	 * @param set_id The set_id we want to group across.
-	 * @param map_id The map id. Use a UUID, something unique.
-	 * @param attribute The attribute we group on. 
-	 * @param page_size The size of each page. The number of keys in each page submap.
-	 */
-	public initialize_group_by_map_response do_initialize_group_by_map(SetId set_id, String map_id, String attribute, int page_size) throws GPUdbException{
-		log.debug("initialize group by map; set_id:"+set_id.get_id()+" attribute:"+attribute);		
-		Request request = this.request_factory.create_request("/initializegroupbymap", set_id, map_id, attribute, page_size);
-
-		// decode
-		initialize_group_by_map_response response = (initialize_group_by_map_response)AvroUtils.convert_to_object_from_gpudb_response(initialize_group_by_map_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());						
-
-		return response;
-	}
-
-	/**
-	 * Grab a group by map page.  Used in get tracks.  Do after initialize group by map. 	
-	 * @param map_id The map id. Use a UUID, something unique. 
-	 * @param page_number The page to return.  Starts at 0.
-	 */
-	public group_by_map_page_response do_group_by_map_page(String map_id, int page_number) throws GPUdbException{
-		log.debug("group by map paging; map_id:"+map_id+" page_number:"+page_number);		
-		Request request = this.request_factory.create_request("/groupbymappage", map_id, page_number);
-
-		// decode
-		group_by_map_page_response response = (group_by_map_page_response)AvroUtils.convert_to_object_from_gpudb_response(group_by_map_page_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());						
-
-		return response;
 	}
 
 	/**
@@ -2197,73 +2166,8 @@ public class GPUdb {
 	 * @return road_intersection_response
 	 */
 	public road_intersection_response do_road_intersection(SetId in_set, String x_attribute, String y_attribute, java.util.List<java.lang.Double> road_x_vector, java.util.List<java.lang.Double> road_y_vector, String output_attribute) {
-		log.debug("road intersection; set_id:"+in_set.get_id());		
-		Request request = this.request_factory.create_request("/roadintersection", in_set, x_attribute, y_attribute, road_x_vector, road_y_vector, output_attribute);
-
-		// decode
-		road_intersection_response response = (road_intersection_response)AvroUtils.convert_to_object_from_gpudb_response(road_intersection_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());						
-
-		return response;
+		throw new GPUdbException("This operation is not supported...");
 	}
-	
-	/**
-	 * Return true if the two given shapes intersect, false if not.  
-	 * @param x_vector_1 x-coordinates of the first shape
-	 * @param y_vector_1 y-coordinates of the first shape
-	 * @param geometry_type_1 geometry type of the first shape (POLYGON and LINESTRING supported).
-	 * @param x_vector_2 x-coordinates of the first shape
-	 * @param y_vector_2 y-coordinates of the first shape
-	 * @param geometry_type_2 geometry type of the first shape (POLYGON and LINESTRING supported).
-	 * @return shape_literal_intersection_response
-	 */
-	public shape_literal_intersection_response do_shape_literal_intersection(List<Double> x_vector_1, List<Double> y_vector_1, CharSequence geometry_type_1, CharSequence wkt_string_1, List<Double> x_vector_2, List<Double> y_vector_2, CharSequence geometry_type_2, CharSequence wkt_string_2) {
-		log.debug("shape literal intersection");		
-		Request request = this.request_factory.create_request("/shapeliteralintersection", x_vector_1, y_vector_1, geometry_type_1, wkt_string_1, x_vector_2, y_vector_2, geometry_type_2, wkt_string_2);
-
-		// decode
-		shape_literal_intersection_response response = (shape_literal_intersection_response)AvroUtils.convert_to_object_from_gpudb_response(shape_literal_intersection_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());						
-		
-		return response;
-	}
-
-	/**
-	 * Return true if the two given shapes intersect, false if not.  
-	 * @param wkt_string_1 The WKT representation of the first shape (POLYGON and LINESTRING supported).
-	 * @param wkt_string_2 The WKT representation of the second shape (POLYGON and LINESTRING supported).
-	 * @return shape_literal_intersection_response
-	 */
-	public shape_literal_intersection_response do_shape_literal_intersection(String wkt_string_1, String wkt_string_2) {
-		log.debug("shape literal intersection: " + wkt_string_1 + " , " + wkt_string_2);
-		List<Double> null_list = new ArrayList<Double>();
-
-		return this.do_shape_literal_intersection(null_list, null_list, "", wkt_string_1, null_list, null_list, "", wkt_string_2);
-	}
-	
-	/**
-	 * Run a shape intersection query on the sets passed in. 
-	 * @param set_ids The sets to perform the operation on. 
-	 * @param wkt_attr_name The name of the wkt attribute that will be looked for in the sets.
-	 * @param x_vector x-coordinates of the target shape (alternative to the wkt_string below)
-	 * @param y_vector y-coordinates of the target shape (alternative to the wkt_string below)
-	 * @param geometry_type either "polygon" or "linestring" (alternative to the wkt_string below)
-	 * @param wkt_string The wkt string. If this is empty then we are doing all shapes vs. all. If it has a wkt string then we are doing all the
-	 * shapes in the set vs. the wkt string passed in. 
-	 * @param operation The operation to perform.
-	 * @return response object that contains the result.
-	 */
-	public shape_intersection_response do_shape_intersection(List<SetId> set_ids, CharSequence wkt_attr_name, List<Double> x_vector, List<Double> y_vector, CharSequence geometry_type, CharSequence wkt_string) {
-		log.debug("shape intersection");		
-		Request request = this.request_factory.create_request("/shapeintersection", set_ids, wkt_attr_name, x_vector, y_vector, geometry_type, wkt_string);
-
-		// decode
-		shape_intersection_response response = (shape_intersection_response)AvroUtils.convert_to_object_from_gpudb_response(shape_intersection_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());						
-		
-		return response;
-	}
-	
 	
 	
 	/**
@@ -2288,29 +2192,6 @@ public class GPUdb {
 		log.debug("response:"+response.toString());						
 
 		return response;
-	}
-	
-	/**
-	 * Turn off analytic.  This analytic is designed to be perform on a set with tracks/groups in them.  These tracks are specified by the group
-	 * attribute.  The tracks have an ordering to them, usually time, specified by the sort_attribute.  We are looking for consecutive points in
-	 * each track who differ by "threshold" or more in the sort attribute.  
-	 * @param set_id The set to perform the analytic on.
-	 * @param group_attribute The attribute that defines if two objects are apart of the same group/track.
-	 * @param sort_attribute The attribute we sort by, that we use to apply the threshold.
-	 * @param x_attribute One of the attributes returned.
-	 * @param y_attribute One of the attributes returned.
-	 * @param threshold This is applied to the sorted attribute.  
-	 * @return a turn_off_response object.
-	 */
-	public turn_off_response do_turn_off(SetId set_id, String group_attribute, String sort_attribute, String x_attribute, String y_attribute, double threshold){
-		log.debug("turn off");
-		Request request = new TurnOffRequest(this, "/turnoff", set_id.get_id(), group_attribute, sort_attribute, x_attribute, y_attribute, threshold);
-		
-		// decode
-		turn_off_response response = (turn_off_response)AvroUtils.convert_to_object_from_gpudb_response(turn_off_response.SCHEMA$, request.post_to_gpudb());		
-		log.debug("response:"+response.toString());						
-		
-		return response;		
 	}
 	
 	/**
@@ -2788,6 +2669,28 @@ public class GPUdb {
 		get_set_objects_response response = (get_set_objects_response)AvroUtils.convert_to_object_from_gpudb_response(get_set_objects_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());				
 		return response;
+	}
+	
+	private void stopVacuosPredicates(String expression) {
+		// Do some rudimentary checking
+		String test = expression.replace('(', ' ');
+		test = test.replace(')', ' ');
+		if( test.trim().length() == 0 ) {
+			throw new GPUdbException(" Expression is invalid " + expression);
+		}
+	}
+
+	
+	public static void main(String[] args) {
+		
+		// Folks sending empty predicate
+		String pred = "(((    )))";
+		String test = pred.replace('(', ' ');
+		test = test.replace(')', ' ');
+		if( test.trim().length() == 0 ) {
+			System.out.println("@@Boo@@ " + pred );
+		}
+		
 	}
 
 }

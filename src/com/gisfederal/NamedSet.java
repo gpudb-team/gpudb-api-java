@@ -21,6 +21,7 @@ import org.apache.log4j.Logger;
 import avro.java.gpudb.add_object_response;
 import avro.java.gpudb.bounding_box_response;
 import avro.java.gpudb.bulk_add_response;
+import avro.java.gpudb.bulk_select_response;
 import avro.java.gpudb.delete_object_response;
 import avro.java.gpudb.filter_by_bounds_response;
 import avro.java.gpudb.filter_by_list_response;
@@ -44,7 +45,6 @@ import avro.java.gpudb.set_info_response;
 import avro.java.gpudb.spatial_set_query_response;
 import avro.java.gpudb.statistics_response;
 import avro.java.gpudb.status_response;
-import avro.java.gpudb.turn_off_response;
 import avro.java.gpudb.unique_response;
 import avro.java.gpudb.update_object_response;
 
@@ -86,17 +86,6 @@ public class NamedSet{
 	private int bulkAddLimit = 1000;
 	private int pageSize = 1000; // for the iterator
 	
-	
-	private boolean mutable = false; // If this set is mutable, we need this to decide parallel work on the HA side.
-
-	public boolean isMutable() {
-		return mutable;
-	}
-
-	public void setMutable(boolean mutable) {
-		this.mutable = mutable;
-	}
-
 	/**
 	 * Provide basically a wrapper that returns a child set of this type from this parent set; creates a new one if it doesn't exist.
 	 * Coordinates with the server.
@@ -880,6 +869,22 @@ public class NamedSet{
 	 * @param type
 	 */
 	public void setType(Type type) {
+		
+		/* Make sure that the type is not being changed badly */
+		Class c = type.getTypeClass();
+		if( (c != null) && (c != GenericObject.class) ) {
+			String str_json_type_def = Type.classToTypeDefinition(c);
+			Type currentType = this.type;
+			Schema currentSchema = currentType.getAvroSchema();
+			if( currentSchema != null ) {
+				Schema.Parser parser = new Schema.Parser();
+				Schema newSchema = parser.parse(str_json_type_def);
+				if( !newSchema.equals(currentSchema) ) {
+					throw new GPUdbException("Attempting to change schema invalid...current = " + 
+								currentSchema + " and new = " + newSchema);
+				}
+			}
+		}
 		this.type = type;
 	}
 	
@@ -898,15 +903,27 @@ public class NamedSet{
 	/**
 	 * Add an object to this set. Throws if you use on a parent set.
 	 * @param obj The java object to add to the gpudb set.
+	 * @param params - params which decide behavior of the add call
 	 * @return An add object response which has the object id for this object.
 	 * @throws GPUdbException
 	 */
-	public add_object_response add(Object obj) {
+	public add_object_response add(Object obj, Map<java.lang.CharSequence,java.lang.CharSequence> params) {
 		if(type.isParent()){
 			log.error("Can't add an object directly to a parent set");
 			throw new GPUdbException("Can't add an object directly to a parent set");
 		}
-		return gPUdb.do_add_object(this, obj);
+		return gPUdb.do_add_object(this, obj, params);
+	}
+	
+	/**
+	 * Add an object to this set. Throws if you use on a parent set. This is a passthru helper
+	 * which calls add() with an empty param map.
+	 * @param obj The java object to add to the gpudb set.
+	 * @return An add object response which has the object id for this object.
+	 * @throws GPUdbException
+	 */
+	public add_object_response add(Object obj) {
+		return gPUdb.do_add_object(this, obj, new HashMap());
 	}
 
 	/**
@@ -916,7 +933,7 @@ public class NamedSet{
 	 * @return A bulk add response object that has the object ids for each of the added objects.
 	 */
 	// NOTE: throw if a parent
-	public bulk_add_response add_list(List<Object> list_obj) {
+	public bulk_add_response add_list(List<Object> list_obj, Map<java.lang.CharSequence,java.lang.CharSequence> params) {
 		if(list_obj.size() > this.bulkAddLimit){
 			log.debug("Bulk add list greater than limit; limit:"+this.bulkAddLimit+" size:"+list_obj.size());
 			int listSize = list_obj.size();
@@ -927,7 +944,7 @@ public class NamedSet{
 			List<Object> sublist;			
 			do {
 				sublist = list_obj.subList(startIndex, endIndex); // a list of length bulk add limit [or less if this is the last loop]
-				response = gPUdb.do_add_object_list(sublist, this);
+				response = gPUdb.do_add_object_list(sublist, this, params);
 
 				// update the indices
 				startIndex = endIndex;
@@ -943,10 +960,14 @@ public class NamedSet{
 				throw new GPUdbException( "List of objects to add is empty !!");
 			}
 
-			return gPUdb.do_add_object_list(list_obj, this);
+			return gPUdb.do_add_object_list(list_obj, this, params);
 		}
 	}
 
+	
+	public bulk_add_response add_list(List<Object> list_obj) {
+		return add_list(list_obj, new HashMap<CharSequence, CharSequence>());
+	}
 
 	/**
 	 * Get objects whose attribute matches one of the values.
@@ -960,16 +981,7 @@ public class NamedSet{
 			throw new GPUdbException("Can't call this function on a parent set; id:"+this.id.get_id());
 		
 		get_objects_response response = gPUdb.do_get_objects(this.id, attribute, values);
-		List objectList = new ArrayList();
-
-		List<ByteBuffer> bytesList = response.getList();
-		for(ByteBuffer bytes : bytesList){
-			// binary decode
-			objectList.add(this.type.decode(bytes));
-			log.debug("Added object to the list");			
-		}
-
-		return objectList;
+		return createObjectList(response.getList());
 	}
 
 	/**
@@ -1012,6 +1024,30 @@ public class NamedSet{
 			log.debug("Added object to the list");			
 		}
 		return objectList;
+	}
+	
+	
+	/**
+	 * This is a helper routine returns a list of list of objects for bulk select call.
+	 * @param global_expression
+	 * @param expressions
+	 * @param params
+	 * @return A list of list of objects
+	 */
+	public List<List> bulkSelectObjects(String global_expression, 
+			List<java.lang.CharSequence> expressions, Map<java.lang.CharSequence,java.lang.CharSequence> params) {
+		
+		bulk_select_response bsr = gPUdb.do_bulk_selects(this, global_expression, expressions, params);
+		
+		List<List> listOfList = new ArrayList<List>();
+		
+		List<List<ByteBuffer>> llbb = bsr.getObjects();
+		for( List<ByteBuffer> lbb : llbb ) {
+			
+			List rows = createObjectList(lbb);
+			listOfList.add(rows);
+		}
+		return listOfList;
 	}
 
 	/**
@@ -1301,6 +1337,7 @@ public class NamedSet{
 	 * @param attribute The attribute to group on.
 	 * @return Map contains a map of the values to counts.
 	 * @throws GPUdbException
+	 * @deprecated use do_group_by_value instead
 	 */
 	public Map<String, Integer> do_group_by(String attribute) throws GPUdbException {
 		group_by_response response =  gPUdb.do_group_by(this, Arrays.asList(attribute));
@@ -1467,55 +1504,6 @@ public class NamedSet{
 		unique_response tr = this.gPUdb.do_unique(this, Track.groupingFieldName);
 		return tr.getValuesStr();
 	}
-
-
-
-	/**
-	 * Turn off analytic.  This analytic is designed to be perform on a set with tracks/groups in them.  These tracks are specified by the track id.
-	 * The tracks are ordered from time.  We are looking for consecutive points in each track who differ by "threshold" or more in time. The first
-	 * point in the pair is the "turn off" and the second is the turn back on moment.
-	 * @param threshold 
-	 * @return Map<String, List<PointPair>>
-	 */	
-	public Map<String, List<PointPair>> do_turn_off(double threshold) throws GPUdbException {		
-		Map<String, List<PointPair>> track_map = new HashMap<String, List<PointPair>>();		
-
-		// NOTE: check that this is of type track!
-		turn_off_response response = this.gPUdb.do_turn_off(this.id, "TRACKID", "TIMESTAMP", "x", "y", threshold);
-		//turn_off_response response = this.gpudb.do_turn_off(this.id, "group_id", "timestamp", "x", "y", threshold);
-		log.debug("Got the turn off response:"+response.toString());
-
-		// convert the map
-		Map<CharSequence, List<Double>> encoded_track_map = response.getMap();
-		Iterator it = encoded_track_map.entrySet().iterator();
-		log.debug("Begin iteration; hasNext():"+it.hasNext());
-		while(it.hasNext()) {
-			// go through the value vector
-			Map.Entry pairs = (Map.Entry<CharSequence,List<Double>>)it.next();
-			String track_id = pairs.getKey().toString();
-			log.debug("track_id:"+track_id);
-
-			List<Double> values = (List<Double>)pairs.getValue();
-			List<PointPair> pointPairs = new ArrayList<PointPair>();
-
-			// the values are encoded in blocks of six (x_1,y_1,t_1,x_2,y_2,t_2)
-			// NOTE: probably going to remove any zero length key-value pairs server side
-			log.debug("the length of the values:"+values.size()+" for key:"+track_id);
-			for(int i=0; i<values.size(); i+=6) {								
-				try {
-					pointPairs.add(new PointPair
-							(new PointWithTime(values.get(i),values.get(i+1), values.get(i+2)), new PointWithTime(values.get(i+3),values.get(i+4), values.get(i+5))));
-
-				} catch (Exception e) {
-					throw new GPUdbException("Error parsing the turn off response map");
-				}
-			}
-
-			track_map.put(track_id, pointPairs);
-		}
-
-		return track_map;
-	}	
 
 	/**
 	 * Return back a set of joined duos of tracks.  Find pairs of tracks that are in the same area (defined by the distance) at the same time 

@@ -22,7 +22,7 @@ public class TestReplayGpudb {
 		System.out.println("Build gpudb...");
 		String gpudbURL = System
 				.getProperty("GPUDB_URL", "http://127.0.0.1:9191");
-		gPUdb = new GPUdb(gpudbURL);
+		gPUdb = new GPUdb(gpudbURL, "", "admin", "changeme");
 		System.out.println("Built gpudb");
 	}
 

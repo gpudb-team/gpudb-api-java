@@ -16,12 +16,10 @@ public class SelectUpdateRequest extends Request{
 	public SelectUpdateRequest(GPUdb gpudb, String file, NamedSet ns, String expression, Map<CharSequence, CharSequence> data) throws GPUdbException{
 		this.gPUdb = gpudb;
 		this.file = file;
-		this.log = Logger.getLogger(AddObjectRequest.class);
+		this.log = Logger.getLogger(SelectUpdateRequest.class);
 		
-		this.mutable = ns.isMutable();
 		this.setId = ns.get_setid().toString();
 
-		
 		select_update_request request = new select_update_request(ns.get_setid().get_id(), expression, data, gPUdb.getUserAuth());	
 
 		log.debug("Select update request created");	

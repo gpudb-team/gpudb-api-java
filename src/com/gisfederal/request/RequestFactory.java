@@ -21,33 +21,10 @@ public class RequestFactory {
 		else
 			return null;
 	}	
-
-	public Request create_request(String file, Object obj, NamedSet ns) {
-		if(file.equals("/add"))
-			return new AddObjectRequest(this.gPUdb, file, obj, ns);
-		else
-			return null;
-	}	
-
-	/* LAME DUCK
-	public Request create_request(String file, List<String> user_authorizations, List<SetId> set_ids) {
-		if(file.equals("/authenticateusers"))
-			return new AuthenticateUsersRequest(this.gpudb, file, user_authorizations, set_ids);
-		else
-			return null;
-	}
-	*/
 	
 	public Request create_request(String file, SetId set_id, int ttl) {
 		if(file.equals("/updatesetttl"))
 			return new UpdateSetTTLRequest(this.gPUdb, file, set_id, ttl);
-		else
-			return null;
-	}
-	
-	public Request create_request(String file, List<Object> list_obj, NamedSet ns) {
-		if(file.equals("/bulkadd"))
-			return new BulkAddRequest(this.gPUdb, file, list_obj, ns);
 		else
 			return null;
 	}

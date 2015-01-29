@@ -1,10 +1,5 @@
 package com.gisfederal.request;
 
-import org.apache.log4j.Logger;
-
-import avro.java.gpudb.group_by_map_page_request;
-
-import com.gisfederal.AvroUtils;
 import com.gisfederal.GPUdb;
 
 public class GroupByMapPage extends Request {

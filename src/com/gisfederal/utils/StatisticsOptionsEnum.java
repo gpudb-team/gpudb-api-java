@@ -4,7 +4,13 @@ public enum StatisticsOptionsEnum {
 	
 	MEAN("mean"),
 	STDV("stdv"),
-	ESTIMATED_CARDINALITY("estimated_cardinality");
+	ESTIMATED_CARDINALITY("estimated_cardinality"),
+	VARIANCE("variance"),
+	SKEW("skew"),
+	KURTOSIS("kurtosis"),
+	SUM("sum"),
+	CARDINALITY("cardinality"),
+	COUNT("count");
 	
 	private String value;
 	

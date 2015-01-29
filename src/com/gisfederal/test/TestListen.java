@@ -17,7 +17,7 @@ public class TestListen {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		GPUdb gPUdb = GPUdb.newGpudbTrigger("127.0.0.1", 9191, "tcp://127.0.0.1:9001", "");
+		GPUdb gPUdb = GPUdb.newGpudbTrigger("127.0.0.1", 9191, "tcp://127.0.0.1:9001", "", "admin", "changeme");
 		Type type = gPUdb.create_type(BigPoint.class);
 		
 		//Gpudb gpudb2 = Gpudb.newGpudbTrigger("127.0.0.1", 9191, "tcp://127.0.0.1:9001", "");

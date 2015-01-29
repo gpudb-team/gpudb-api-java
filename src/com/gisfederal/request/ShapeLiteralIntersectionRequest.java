@@ -2,11 +2,6 @@ package com.gisfederal.request;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
-import avro.java.gpudb.shape_literal_intersection_request;
-
-import com.gisfederal.AvroUtils;
 import com.gisfederal.GPUdb;
 
 public class ShapeLiteralIntersectionRequest extends Request {

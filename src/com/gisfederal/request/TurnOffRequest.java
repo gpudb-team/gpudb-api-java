@@ -1,14 +1,5 @@
 package com.gisfederal.request;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
-import avro.java.gpudb.turn_off_request;
-
-import com.gisfederal.AvroUtils;
 import com.gisfederal.GPUdb;
 
 public class TurnOffRequest extends Request {

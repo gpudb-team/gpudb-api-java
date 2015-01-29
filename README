@@ -1,6 +1,46 @@
 javadoc ../src/com/gisfederal/*.java  ### NOTE: don't do this; use eclipse's javadoc generator instead -- much better
 
 
-java -cp "target/gaia2-client-1.11-jar-with-dependencies.jar:lib/:." com.gisfederal.test.TestNonJunit
-java -cp "target/gaia2-client-1.11-jar-with-dependencies.jar:." com.gisfederal.test.TestNonJunit testSort
-java -cp "target/gaia2-client-1.11-jar-with-dependencies.jar:lib/:." com.gisfederal.test.TestNonJunit testSort
+java -cp "target/gpudb2-client-1.11-jar-with-dependencies.jar:lib/:." com.gisfederal.test.TestNonJunit
+java -cp "target/gpudb2-client-1.11-jar-with-dependencies.jar:." com.gisfederal.test.TestNonJunit testSort
+java -cp "target/gpudb2-client-1.11-jar-with-dependencies.jar:lib/:." com.gisfederal.test.TestNonJunit testSort
+
+
+===============================================================================================================
+Release Notes :
+
+12/5/2014 - 4.0.7
+Now requiring userid, pwd for constructing a GPUdb object.
+Avro utils nasty if-then-else code cleaned up.
+Some info log msgs moved to debug
+
+12/12/2014 - 4.0.8
+Added snappy compression for bulk add if requested
+
+12/19/2014 - 4.0.9
+Multiple cleanup activities.
+
+1/7/2015 - 4.0.11
+Separated the 3 vars - http userid, http user_pwd and accumulo type user_auth. Not sharing vars anymore.
+
+1/11/2015 - 4.0.12
+Added support for bulk update endpoint. A few cleanups.
+
+1/20/2015 - 4.0.13
+For null uid/pwd, setting them to empty strings
+Deprecated group by and steering users towards group by value (gpudb will make change too)
+Instead of returning bulk select raw response, now returning a list of list of objects
+When a 400 is returned from GPUDB, now reading errorstream and returning proper error msgs to clients
+Sending setid as a request property
+
+1/27/2015 - 4.0.14
+Trying to parse schema on the client to catch errors before it hits GPUdb
+Added new add/bulkadd methods in named set which takes params. Old methods still available
+Changed the snappy library from jarnbjo to xerial
+Now get_sorted_set can specify encoding
+RequestFactory cleanup - slowly moving calls off of this passthru class
+Some cleanups e.g., fixed wrong getLogger class names
+Added support for bulk_delete
+Added $primary_key in Annotation attributes
+
+

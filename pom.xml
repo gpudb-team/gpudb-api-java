@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.gisfederal.gpudb</groupId>
   <artifactId>gpudb-client</artifactId>
-  <version>4.0.5</version>
+  <version>4.0.14</version>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -12,20 +12,21 @@
   
   <repositories>
 
-		<repository>
-			<id>central</id>
-			<name>Maven Repository Switchboard</name>
-			<url>http://repo1.maven.org/maven2</url>
-		</repository>
+        <repository>
+            <id>central</id>
+            <name>Maven Repository Switchboard</name>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
 
-		<repository>
-			<id>clojars.org</id>
-			<url>http://clojars.org/repo</url>
-		</repository>
+        <repository>
+            <id>clojars.org</id>
+            <url>http://clojars.org/repo</url>
+        </repository>
 
   </repositories>
   
   <dependencies>
+  
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
@@ -87,7 +88,7 @@
       <artifactId>httpcore</artifactId>
       <version>4.2.4</version>
     </dependency>
-    	
+
   </dependencies>
   
   <build> 
@@ -95,52 +96,52 @@
     <plugins>
     
     <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-shade-plugin</artifactId>
-			<version>2.1</version>
-			<executions>
-				<execution>
-					<phase>package</phase>
-					<goals>
-						<goal>shade</goal>
-					</goals>
-					<configuration>
-						<artifactSet>
-							<includes>
-			                    <include>avro/**</include>
-			                    <include>com/gisfederal/**</include>
-			                    <include>org.apache.avro:*</include>
- 			                    <include>avro.java.gpudb:*</include>
-							</includes>
-              			</artifactSet>
-						<relocations>
-							<relocation>
-								<pattern>org.apache.avro</pattern>
-								<shadedPattern>com.gisfederal.avro</shadedPattern>
-							</relocation>
-						</relocations>
-						<shadedArtifactAttached>false</shadedArtifactAttached>
-					</configuration>
-				</execution>
-			</executions>
-	</plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>2.1</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <artifactSet>
+                            <includes>
+                                <include>avro/**</include>
+                                <include>com/gisfederal/**</include>
+                                <include>org.apache.avro:*</include>
+                                <include>avro.java.gpudb:*</include>
+                            </includes>
+                        </artifactSet>
+                        <relocations>
+                            <relocation>
+                                <pattern>org.apache.avro</pattern>
+                                <shadedPattern>com.gisfederal.avro</shadedPattern>
+                            </relocation>
+                        </relocations>
+                        <shadedArtifactAttached>false</shadedArtifactAttached>
+                    </configuration>
+                </execution>
+            </executions>
+    </plugin>
     
-      <plugin>
-	<groupId>org.codehaus.mojo</groupId>
-	<artifactId>build-helper-maven-plugin</artifactId>
-	<executions>
-	  <execution>           
+    <plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>build-helper-maven-plugin</artifactId>
+    <executions>
+      <execution>           
             <phase>generate-sources</phase>
             <goals><goal>add-source</goal></goals>
             <configuration>
-	      <sources>
-		<source>src/com/gisfederal</source>
-		<source>src/avro</source>
-	      </sources>
+          <sources>
+        <source>src/com/gisfederal</source>
+        <source>src/avro</source>
+          </sources>
             </configuration>
-	  </execution>
-	</executions>
-	</plugin>
+      </execution>
+    </executions>
+    </plugin>
       
       
       <plugin>
@@ -154,39 +155,39 @@
       </plugin>
       
       <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-javadoc-plugin</artifactId>
-	    <executions>
-	      <execution>
-	        <id>attach-javadocs</id>
-	        <goals>
-	          <goal>jar</goal>
-	        </goals>
-	      </execution>
-	    </executions>
-	  </plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
-	<plugin>
-	<artifactId>maven-assembly-plugin</artifactId>
-	<configuration>
-	  <descriptorRefs>
-	    <descriptorRef>jar-with-dependencies</descriptorRef>
-	  </descriptorRefs>
-	  <archive>
-	    <manifest>
-	      <mainClass></mainClass>
-	    </manifest>
-	  </archive>
-	</configuration>
-	<executions>
-	  <execution>
-	    <id>make-assembly</id>
-	    <phase>package</phase>
-	    <goals>
-	      <goal>single</goal>
-	    </goals>
-	  </execution>
-	</executions>
+    <plugin>
+    <artifactId>maven-assembly-plugin</artifactId>
+    <configuration>
+      <descriptorRefs>
+        <descriptorRef>jar-with-dependencies</descriptorRef>
+      </descriptorRefs>
+      <archive>
+        <manifest>
+          <mainClass></mainClass>
+        </manifest>
+      </archive>
+    </configuration>
+    <executions>
+      <execution>
+        <id>make-assembly</id>
+        <phase>package</phase>
+        <goals>
+          <goal>single</goal>
+        </goals>
+      </execution>
+    </executions>
       </plugin>      
     </plugins>
 <!--    </pluginManagement> -->

@@ -1,0 +1,10 @@
+{
+    "namespace" : "avro.java.gpudb",
+   "type" : "record",
+   "name" : "server_timing_response",
+   "fields" : [
+        { "name" : "endpoints", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "time_in_ms", "type" : { "type" : "array", "items" : "float"}},
+        { "name" : "jobIds", "type" : { "type" : "array", "items" : "string"}}
+    ]
+}

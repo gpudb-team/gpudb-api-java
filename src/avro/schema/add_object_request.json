@@ -3,9 +3,10 @@
     "type" : "record",
     "name" : "add_object_request",
     "fields" : [
+    	{ "name" : "set_id", "type" : "string" },
         { "name" : "object_data", "type" : "bytes" },
         { "name" : "object_data_str", "type" : "string" },
         { "name" : "object_encoding", "type" : "string" },
-        { "name" : "set_id", "type" : "string" }
+        { "name" : "params", "type" : { "type" : "map", "values" : "string"}}   
     ]
 }

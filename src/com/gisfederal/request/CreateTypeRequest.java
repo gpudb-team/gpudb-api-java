@@ -1,18 +1,12 @@
 package com.gisfederal.request;
-import com.gisfederal.GPUdb;
-import com.gisfederal.AvroUtils;
-import com.gisfederal.GPUdbException;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
-import java.lang.reflect.Field;
-import java.lang.Class;
-
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.convex_hull_request;
 import avro.java.gpudb.register_type_request;
+
+import com.gisfederal.AvroUtils;
+import com.gisfederal.GPUdb;
+import com.gisfederal.GPUdbException;
+import com.gisfederal.Type;
 
 public class CreateTypeRequest extends Request {
 	
@@ -24,52 +18,7 @@ public class CreateTypeRequest extends Request {
 		this.file = "/registertype"; 
 		this.log = Logger.getLogger(CreateTypeRequest.class);		
 
-		// the name of the object/type
-		String name = c.getSimpleName();
-		
-		// gets all public and private fields in the object
-		Field[] fields = c.getDeclaredFields();
-		JsonArray json_fields = new JsonArray();
-		JsonObject json_field;
-		JsonObject json_type_def = new JsonObject();
-		
-		// type: record, name:..., 
-		json_type_def.addProperty("type", "record");
-		json_type_def.addProperty("name", name);
-		
-		// convert Field[] into the correct JsonArray version
-		for(int i=0; i<fields.length; i++) {
-			// each field has name and type
-			json_field = new JsonObject();
-			json_field.addProperty("name", fields[i].getName());
-			
-			// go through adding valid fields
-			String fieldTypeName = fields[i].getType().getSimpleName().toLowerCase();
-			this.log.debug("fieldTypeName:"+fieldTypeName);
-			if(fieldTypeName.equals("bytebuffer")){
-				json_field.addProperty("type", "bytes");
-			} else if(fieldTypeName.equals("string") || fieldTypeName.equals("double") 
-					|| fieldTypeName.equals("int") || fieldTypeName.equals("float") 
-					|| fieldTypeName.equals("long")){
-				json_field.addProperty("type", fieldTypeName);
-			} else {
-				log.error("Unsuported java data type:"+fieldTypeName);
-				throw new GPUdbException("Unsuported java data type:"+fieldTypeName);
-			}
-			
-			json_fields.add(json_field);
-		}
-		log.debug("FIELDS:"+json_fields.toString());
-		
-		// add fields
-		json_type_def.add("fields", json_fields);
-				
-		// need to convert the quotation marks into \" in the string
-		String str_json_type_def = json_type_def.toString();
-		log.debug("json_type_def (Before):"+str_json_type_def);
-						
-		str_json_type_def.replaceAll("\"", "\\\"");
-		log.debug("str_json_type_def (after):"+str_json_type_def);
+		String str_json_type_def = Type.classToTypeDefinition(c);
 		
 		// build avro object
 		register_type_request request = new register_type_request(str_json_type_def, annotation_attr, label, semanticType);
