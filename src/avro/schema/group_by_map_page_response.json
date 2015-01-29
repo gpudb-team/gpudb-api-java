@@ -1,9 +1,0 @@
-{
-    "namespace" : "avro.java.gpudb",
-    "type" : "record",
-    "name" : "group_by_map_page_response",
-    "fields" : [
-        { "name" : "count_map", "type" : { "type" : "map", "values" : { "type" : "array", "items" : "string" }}},
-        { "name" : "parent_set_id", "type" : "string" }
-    ]
-}
