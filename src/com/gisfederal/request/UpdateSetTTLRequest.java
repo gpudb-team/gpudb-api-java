@@ -30,9 +30,12 @@ public class UpdateSetTTLRequest extends Request {
 
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
+		msg.append("]");
+		
+		msg.append("[ttl=");
+		msg.append(request.getTtl());
 		msg.append("]]");
 		
 		setAuditMessage(msg.toString());
 	}
-
 }

@@ -50,8 +50,12 @@ public class StatisticsRequest extends Request {
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
 		msg.append("]");
-		
-		msg.append("[params=[stats=");
+
+		msg.append("[stat params=");
+		msg.append(request.getParams());
+		msg.append("]");
+
+		msg.append("[stats=");
 		msg.append(request.getStats());
 		msg.append("]]");
 

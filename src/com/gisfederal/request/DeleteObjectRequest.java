@@ -1,18 +1,15 @@
 package com.gisfederal.request;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.add_object_request;
-import avro.java.gpudb.bounding_box_request;
 import avro.java.gpudb.delete_object_request;
 
+import com.gisfederal.AvroUtils;
 import com.gisfederal.GPUdb;
 import com.gisfederal.SetId;
-import com.gisfederal.AvroUtils;
 
 public class DeleteObjectRequest extends Request {
 	public DeleteObjectRequest(GPUdb gPUdb, String file, SetId in_set, String objId){
@@ -38,6 +35,10 @@ public class DeleteObjectRequest extends Request {
 
 		msg.append("[params=[setids=");
 		msg.append(request.getSetIds().toString());
+		msg.append("]");
+		
+		msg.append("[object id =");
+		msg.append(request.getOBJECTID());
 		msg.append("]]");
 
 		setAuditMessage(msg.toString());

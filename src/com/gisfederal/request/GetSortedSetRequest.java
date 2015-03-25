@@ -32,6 +32,14 @@ public class GetSortedSetRequest extends Request {
 
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
+		msg.append("]");
+		
+		msg.append("[start=");
+		msg.append(request.getStart());
+		msg.append("]");
+		
+		msg.append("[end=");
+		msg.append(request.getEnd());
 		msg.append("]]");
 
 		setAuditMessage(msg.toString());

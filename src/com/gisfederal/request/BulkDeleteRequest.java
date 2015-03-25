@@ -42,6 +42,10 @@ public class BulkDeleteRequest extends Request {
 
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
+		msg.append("]");
+		
+		msg.append("[num predicates=");
+		msg.append(request.getExpressions().size());
 		msg.append("]]");
 
 		setAuditMessage(msg.toString());

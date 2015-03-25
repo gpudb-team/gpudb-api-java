@@ -84,6 +84,14 @@ public class BulkAddRequest extends Request {
 
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
+		msg.append("]");
+
+		msg.append("[binary packet size=");
+		msg.append(request.getList().size());
+		msg.append("]");
+
+		msg.append("[json packet size=");
+		msg.append(request.getListStr().size());
 		msg.append("]]");
 
 		setAuditMessage(msg.toString());

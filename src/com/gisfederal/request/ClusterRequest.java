@@ -21,9 +21,13 @@ import avro.java.gpudb.bounding_box_request;
 public class ClusterRequest extends Request {
 
 	public ClusterRequest(GPUdb gPUdb, String file, SetId world_id, SetId subworld_id, SetId result_set_id, String shared_attribute, String cluster_attribute) {
+		
+		throw new UnsupportedOperationException(" --- NOT IMPLEMENTED ----");
+		/*
 		this.gPUdb = gPUdb;
 		this.file = file;		
 		this.log = Logger.getLogger(ClusterRequest.class);
+		*/
 	}
 
 	/*

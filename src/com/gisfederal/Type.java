@@ -289,8 +289,8 @@ public class Type {
 		
 		logger.debug("Class name is : " + name);
 		
-		// gets all public and private fields in the object
-		Field[] fields = c.getDeclaredFields();
+		// gets only public but full up hierarchy
+		Field[] fields = c.getFields();
 		JsonArray json_fields = new JsonArray();
 		JsonObject json_field;
 		JsonObject json_type_def = new JsonObject();
@@ -342,7 +342,7 @@ public class Type {
 		logger.debug("json_type_def (Before):"+str_json_type_def);
 						
 		str_json_type_def.replaceAll("\"", "\\\"");
-		logger.info("str_json_type_def (after):"+str_json_type_def);
+		logger.debug("str_json_type_def (after):"+str_json_type_def);
 		return str_json_type_def;
 	}
 }

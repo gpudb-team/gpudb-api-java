@@ -1,14 +1,14 @@
 package com.gisfederal.request;
 
-import com.gisfederal.GPUdb;
-import com.gisfederal.AvroUtils;
-import com.gisfederal.SetId;
-
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
 import avro.java.gpudb.group_by_value_request;
+
+import com.gisfederal.AvroUtils;
+import com.gisfederal.GPUdb;
+import com.gisfederal.SetId;
 
 public class GroupByValueRequest extends Request{
 
@@ -33,6 +33,14 @@ public class GroupByValueRequest extends Request{
 
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
+		msg.append("]");
+		
+		msg.append("[attributes=");
+		msg.append(request.getAttributes());
+		msg.append("]");
+		
+		msg.append("[value attribute=");
+		msg.append(request.getValueAttribute());
 		msg.append("]]");
 
 		setAuditMessage(msg.toString());

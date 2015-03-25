@@ -44,6 +44,10 @@ public class UpdateObjectRequest extends Request{
 
 		msg.append("[params=[setids=");
 		msg.append(request.getSetIds().toString());
+		msg.append("]");
+		
+		msg.append("[object id =");
+		msg.append(request.getOBJECTID());
 		msg.append("]]");
 		
 		setAuditMessage(msg.toString());

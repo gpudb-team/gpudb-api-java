@@ -29,7 +29,6 @@ public class RegisterParentSetRequest extends Request {
 
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
-		
 		msg.append("]");
 		
 		msg.append("[duplicateChildren=");

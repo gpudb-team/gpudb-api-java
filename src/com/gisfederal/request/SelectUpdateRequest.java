@@ -36,8 +36,12 @@ public class SelectUpdateRequest extends Request{
 
 		msg.append("[params=[setids=");
 		msg.append(request.getSetId().toString());
+		msg.append("]");
+
+		msg.append("[predicate=");
+		msg.append(request.getExpression());
 		msg.append("]]");
-		
+
 		setAuditMessage(msg.toString());
 	}
 }

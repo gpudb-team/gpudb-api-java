@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -80,7 +81,7 @@ public class NamedSet{
 
 	// type and children	
 	private Type type;
-	private ConcurrentMap<Type,NamedSet> typeToChildren;
+	private ConcurrentMap<Type,List<NamedSet>> typeToChildren;
 
 	// this is used to limit the number of encoded objects to add per bulk add POST
 	private int bulkAddLimit = 1000;
@@ -90,10 +91,12 @@ public class NamedSet{
 	 * Provide basically a wrapper that returns a child set of this type from this parent set; creates a new one if it doesn't exist.
 	 * Coordinates with the server.
 	 * @param type The type of the child set.
-	 * @return The child NamedSet
+	 * @return The child NamedSet collection
 	 * @throws GPUdbException
 	 */
-	public NamedSet getChild(Type childType) throws GPUdbException{
+	public Collection<NamedSet> getChild(Type childType) throws GPUdbException{
+		
+		//TODO - we may like to not send cached data....
 		if(typeToChildren.containsKey(childType)) {
 			return typeToChildren.get(childType);
 		} else {
@@ -110,8 +113,13 @@ public class NamedSet{
 				
 				try {
 					NamedSet child = gPUdb.newNamedSet(this.id, childType);
-					typeToChildren.put(childType, child);
-					return child;
+					List<NamedSet> nss = typeToChildren.get(childType);
+					if ( nss == null ) {
+						nss = new ArrayList<NamedSet>();
+					}
+					nss.add(child);
+					typeToChildren.put(childType, nss);
+					return nss;
 				} catch (GPUdbException ge) {
 					if( ge.getMessage().contains("Identical child type in MASTER detected")) {
 						this.getChildrenFromServer();
@@ -128,7 +136,14 @@ public class NamedSet{
 	 * @return collection of named set children
 	 */
 	public Collection<NamedSet> getChildren() {
-		return this.typeToChildren.values();
+		
+		List<NamedSet> nss = new ArrayList<NamedSet>();
+		Set<Type> types = typeToChildren.keySet();
+		for( Type type : types ) {
+			Collection<NamedSet> cnss =  typeToChildren.get(type);
+			nss.addAll(cnss);
+		}
+		return nss;
 	}
 
 	/**
@@ -302,15 +317,15 @@ public class NamedSet{
 		log.debug("get children from server for set:"+this.id.get_id());
 
 		// reset the children
-		this.typeToChildren = new ConcurrentHashMap<Type,NamedSet>();
+		this.typeToChildren = new ConcurrentHashMap<Type,List<NamedSet>>();
 
 		// we need to grab the children from the server using the set info
 		try {
 			set_info_response response = gPUdb.do_set_info(id);
 			buildChildren(response);
 		} catch(GPUdbException e) {
-			if( !e.getMessage().equals("set doesn't exist:MASTER") ) { // This can be ignored.....
-				e.printStackTrace();
+			if( !e.getMessage().contains("set doesn't exist") ) { // This can be ignored.....
+				log.warn(" Exception : " + e.getMessage());
 			}
 			// set info throws an error if the set doesn't exist; which can be the case if its just a parent with no children; a bit weird
 			log.debug("No children found");
@@ -318,11 +333,16 @@ public class NamedSet{
 	}
 
 	/**
-	 * Get back the number of children.
+	 * Get back the number of children. Remember that there could be children of same type.
 	 * @return the number of children
 	 */
-	public int getNumberOfChildren() {		
-		return this.typeToChildren.size();
+	public int getNumberOfChildren() {	
+		int cnt = 0;
+		Set<Type> types = typeToChildren.keySet();
+		for( Type type : types ) {
+			cnt += typeToChildren.get(type).size();
+		}
+		return cnt;
 	}
 
 	/**
@@ -330,6 +350,7 @@ public class NamedSet{
 	 * @param response set info response of this set.
 	 */
 	public void buildChildren(set_info_response response) {
+		typeToChildren.clear();
 		// go through types; NOTE: not reseting the child mapping
 		List<CharSequence> semanticTypes = response.getSemanticTypes();
 		List<CharSequence> labels = response.getLabels();
@@ -342,7 +363,14 @@ public class NamedSet{
 					semanticTypes.get(i).toString());
 			NamedSet child = new NamedSet(new SetId(setIDs.get(i).toString()), gPUdb, childType); 
 			gPUdb.setInStore(child.get_setid(), child);
-			this.typeToChildren.put(childType, child);
+			
+			List<NamedSet> nss = typeToChildren.get(childType);
+			if ( nss == null ) {
+				nss = new ArrayList<NamedSet>();
+			}
+			nss.add(child);
+			
+			this.typeToChildren.put(childType, nss);
 		}
 	}
 
@@ -352,10 +380,17 @@ public class NamedSet{
 	 * @param child
 	 * @throws GPUdbException
 	 */
-	public void addChild(Type childType, NamedSet child) throws GPUdbException {
+	protected void addChild(Type childType, NamedSet child) throws GPUdbException {
+		/*
 		if(this.typeToChildren.containsKey(childType))
 			throw new GPUdbException("There is already a child of this type:"+childType);
-		this.typeToChildren.put(childType, child);
+		*/
+		List<NamedSet> nss = typeToChildren.get(childType);
+		if ( nss == null ) {
+			nss = new ArrayList<NamedSet>();
+		}
+		nss.add(child);
+		this.typeToChildren.put(childType, nss);
 	}
 	
 	public boolean childExists(Type childType) throws GPUdbException {
@@ -1064,7 +1099,10 @@ public class NamedSet{
 		// do a list [NOTE: so assuming we have gotten the children from the server]
 		List<NamedSet> children = new ArrayList<NamedSet>();
 		if(this.type.isParent()) {
-			children.addAll(this.typeToChildren.values());
+			Collection<List<NamedSet>> nss = typeToChildren.values();
+			for( List<NamedSet> lns : nss ) {
+				children.addAll(lns);
+			}
 		} else {
 			children = Arrays.asList(this);
 		}
@@ -1584,7 +1622,7 @@ public class NamedSet{
 
 		// set the type
 		this.type = type;
-		this.typeToChildren = new ConcurrentHashMap<Type,NamedSet>();
+		this.typeToChildren = new ConcurrentHashMap<Type,List<NamedSet>>();
 	}
 
 	/**

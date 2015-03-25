@@ -43,4 +43,28 @@ Some cleanups e.g., fixed wrong getLogger class names
 Added support for bulk_delete
 Added $primary_key in Annotation attributes
 
+2/4/2015 - 4.0.15
+Snappy codec was disabled but now it is on
+Corrected some faulty comments
+Added GPUdbApiUtil static methods to create params for upsert in bulkadd call
+Changed getDeclaredFields to getFields so that private class variables are not part of the DAO to Gpudb
+Added a getVersion() call to gpudb. Currently hardcoded to make sure works from IDEs too.
 
+2/12/2015 - 4.0.16
+If return status code is not 200, we will send back the error msg returned. While working with HA, this will be a error HTML constructed by Jetty.
+
+2/24/2015 - 4.0.17
+Backed out the error handling changes made in the previous version - it worked for HA errors but broke GPUDB errors.
+Removed local cache checking for setExists call. Always hit the server.
+Now connect and read timeouts are setable from gpudb object.
+Namedset has changes (some breaking) whereby now under a parent set we can have children sets of the same type.
+
+2/26/2015 - 4.0.18-SNAPSHOT
+Added get/update properties and metadata calls for sets. 
+
+3/1/2015 - 4.0.18-SNAPSHOT
+Added and adjusted appropriate audit params to many endpoints.
+
+3/2/2015 - 4.0.18
+Not auditing the schema now - maybe too big.
+Fixed a bug where the auth parameters were not properly initialized.

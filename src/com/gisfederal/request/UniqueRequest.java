@@ -35,6 +35,10 @@ public class UniqueRequest extends Request {
 
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
+		msg.append("]");
+		
+		msg.append("attribute=");
+		msg.append(request.getAttribute());
 		msg.append("]]");
 		
 		setAuditMessage(msg.toString());

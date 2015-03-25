@@ -57,16 +57,24 @@ public class CreateTypeWithAnnotationsRequest extends Request {
 		getAuditPart(msg);
 
 		msg.append("[params=[semantic_type=");
-		msg.append(request.getSemanticType().toString());
+		msg.append(request.getSemanticType());
 		msg.append("]");
 		
-		msg.append("[params=[label=");
-		msg.append(request.getLabel().toString());
+		msg.append("[label=");
+		msg.append(request.getLabel());
 		msg.append("]");
 		
+		/*
+		msg.append("schema=");
+		msg.append(request.getTypeDefinition());
+		msg.append("]");
+		*/
+		
+		/* THIS CAN BE TOO BIG
 		msg.append("[annotation_attr=");
 		msg.append(request.getAnnotations());
 		msg.append("]]");
+		*/
 		
 		setAuditMessage(msg.toString());
 	}

@@ -23,4 +23,13 @@ public class GPUdbApiUtil {
 	public static Map<CharSequence, CharSequence> getSilentonexistingpk() {
 		return silentOnExistingPk;
 	}
+	
+	public static Map<CharSequence, CharSequence> getSetPropertiesMap(boolean allowDuplicateChildren, boolean protectedSet) {
+		Map<CharSequence, CharSequence> setPropetiesMap = new HashMap<CharSequence, CharSequence>();
+		
+		setPropetiesMap.put("allow_duplicate_children", Boolean.toString(allowDuplicateChildren));
+		setPropetiesMap.put("protected", Boolean.toString(protectedSet));
+		
+		return setPropetiesMap;
+	}
 }

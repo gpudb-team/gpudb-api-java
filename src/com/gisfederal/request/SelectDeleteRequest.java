@@ -36,6 +36,10 @@ public class SelectDeleteRequest extends Request {
 
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
+		msg.append("]");
+		
+		msg.append("[predicate=");
+		msg.append(request.getExpression());
 		msg.append("]]");
 		
 		setAuditMessage(msg.toString());

@@ -48,7 +48,11 @@ public class NewSetRequest extends Request {
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
 		msg.append("]");
-		
+
+		msg.append("[typeid=");
+		msg.append(request.getTypeId());
+		msg.append("]");
+
 		msg.append("[parentsetid=");
 		msg.append(request.getParentSetId().toString());
 		msg.append("]]");

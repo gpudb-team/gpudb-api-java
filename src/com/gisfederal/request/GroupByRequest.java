@@ -33,6 +33,10 @@ public class GroupByRequest extends Request{
 
 		msg.append("[params=[setid=");
 		msg.append(request.getSetId().toString());
+		msg.append("]");
+		
+		msg.append("[attributes=");
+		msg.append(request.getAttributes());
 		msg.append("]]");
 
 		setAuditMessage(msg.toString());

@@ -9,7 +9,13 @@ package com.gisfederal.test;
  *
  */
 public class BigPoint {
-	// private or public it will get picked up by the getDeclaredFields
+	
+	// This should not have any impact on the schema etc.
+	private static final long serialVersionUID = 5784561614427299373L;
+	private static final int doesNotGoToGPUdb = 23;
+	public volatile float outcast = 54;
+
+	// Only public will get picked up by the getFields
 	public String msg_id;
 	public double x;
 	public double y;	
@@ -44,6 +50,7 @@ public class BigPoint {
 
 	@Override
 	public String toString(){
-		return "object_id"+OBJECT_ID+"msg_id:"+msg_id+" x:"+x+" y:"+y+" timestamp:"+timestamp+" source:"+source+" group_id:"+group_id;
+		return "object_id"+OBJECT_ID+"msg_id:"+msg_id+" x:"+x+" y:"+y+" timestamp:"+timestamp+" source:"+source+" group_id:"
+					+group_id+" doesNotGoToGPUdb:"+doesNotGoToGPUdb;
 	}
 }

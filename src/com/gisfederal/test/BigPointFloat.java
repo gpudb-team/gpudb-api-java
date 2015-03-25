@@ -6,7 +6,7 @@ package com.gisfederal.test;
 
 
 public class BigPointFloat {
-	// private or public it will get picked up by the getDeclaredFields
+	// Only public will get picked up by the getDeclaredFields
 	public String msg_id;
 	public float x;
 	public double y;	

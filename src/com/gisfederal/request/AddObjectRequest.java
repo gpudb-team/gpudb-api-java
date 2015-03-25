@@ -107,14 +107,17 @@ public class AddObjectRequest extends Request{
 						logger.error("Unsupported type:"+field_type);
 					}
 					// NOTE: no bytes														
-					logger.debug("Added:"+pairs.getKey()+" value:"+pairs.getValue());				    
+					logger.debug("Added:"+pairs.getKey()+" value:"+pairs.getValue());	
+					
+					/* No need to remove the element. SRB - 2/4/2015
 				    iter.remove();
+				    */
 				}
 			} else {
 				logger.debug("Type is NOT a generic object");
 				// need to figure out all the fields and add them to the record	
 				// NOTE: in order for this to work the class must be public too
-				Field[] fields = obj.getClass().getDeclaredFields();
+				Field[] fields = obj.getClass().getFields();
 				for(Field field : fields){
 					String fieldType = field.getType().getSimpleName().toLowerCase();
 					String fieldName = field.getName();
@@ -160,7 +163,7 @@ public class AddObjectRequest extends Request{
 			baos.close();
 
 		} catch(Exception e) {
-			logger.error(" Exception received " + e);
+			logger.error(" Exception received ", e);
 			throw new GPUdbException("Error writing avro encoding of object:"+e.toString());
 		}
 		// put the resulting byte array into the bytebuffer 

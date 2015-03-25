@@ -51,7 +51,9 @@ import avro.java.gpudb.generate_heatmap_video_response;
 import avro.java.gpudb.generate_video_response;
 import avro.java.gpudb.get_objects_response;
 import avro.java.gpudb.get_orphans_response;
+import avro.java.gpudb.get_set_metadata_response;
 import avro.java.gpudb.get_set_objects_response;
+import avro.java.gpudb.get_set_properties_response;
 import avro.java.gpudb.get_set_response;
 import avro.java.gpudb.get_sets_by_type_info_response;
 import avro.java.gpudb.get_sorted_set_response;
@@ -91,6 +93,8 @@ import avro.java.gpudb.store_group_by_response;
 import avro.java.gpudb.trigger_notification;
 import avro.java.gpudb.unique_response;
 import avro.java.gpudb.update_object_response;
+import avro.java.gpudb.update_set_metadata_response;
+import avro.java.gpudb.update_set_properties_response;
 import avro.java.gpudb.update_set_ttl_response;
 
 import com.gisfederal.request.AddObjectRequest;
@@ -105,6 +109,7 @@ import com.gisfederal.request.GenerateHeatMapVideoRequest;
 import com.gisfederal.request.GenerateVideoRequest;
 import com.gisfederal.request.GetObjectsRequest;
 import com.gisfederal.request.GetOrphansRequest;
+import com.gisfederal.request.GetSetPropertiesRequest;
 import com.gisfederal.request.GetSortedSetRequest;
 import com.gisfederal.request.HistogramRequest;
 import com.gisfederal.request.ListBasedOnTypeRequest;
@@ -122,6 +127,8 @@ import com.gisfederal.request.SelectUpdateRequest;
 import com.gisfederal.request.SpatialQueryRequest;
 import com.gisfederal.request.SpatialSetQueryRequest;
 import com.gisfederal.request.UpdateObjectRequest;
+import com.gisfederal.request.UpdateSetMetadataRequest;
+import com.gisfederal.request.UpdateSetPropertiesRequest;
 import com.gisfederal.semantic.types.SemanticTypeEnum;
 import com.gisfederal.utils.SpatialOperationEnum;
 import com.gisfederal.utils.StatisticsOptionsEnum;
@@ -156,6 +163,26 @@ public class GPUdb {
 	private String user_name = "";
 	private String user_pwd = "";
 	
+	// These are default values....but can be overridden
+	private int connectTimeout = 30000;
+	private int readTimeout = 1200000;
+	
+	public int getConnectTimeout() {
+		return connectTimeout;
+	}
+
+	public void setConnectTimeout(int connectTimeout) {
+		this.connectTimeout = connectTimeout;
+	}
+
+	public int getReadTimeout() {
+		return readTimeout;
+	}
+
+	public void setReadTimeout(int readTimeout) {
+		this.readTimeout = readTimeout;
+	}
+
 	// We will now snappy compress the bulk add packets if requested
 	private boolean snappyCompress = false;
 	
@@ -167,9 +194,7 @@ public class GPUdb {
 	}
 
 	public void setSnappyCompress(boolean snappyCompress) {
-		
-		//TODO - No compress for now till we figure what the issue with xerial is
-		//this.snappyCompress = snappyCompress;
+		this.snappyCompress = snappyCompress;
 	}
 
 	/**
@@ -208,6 +233,11 @@ public class GPUdb {
 
 	public void setCollectForReplay(boolean replay) {
 		this.collectForReplay = replay;
+	}
+	
+	public String getVersion() {
+		//return getClass().getPackage().getImplementationVersion();
+		return "4.0.18";
 	}
 
 	/**
@@ -540,7 +570,7 @@ public class GPUdb {
 		// build the connection to gpudb			
 		this.requestConnection = new RequestConnection(protocol, ip,port);
 		
-		setUser_name(userId == null ? "" : pwd);
+		setUser_name(userId == null ? "" : userId);
 		setUser_pwd(pwd == null ? "" : pwd);
 
 		// set the namespace if it's been set
@@ -562,7 +592,7 @@ public class GPUdb {
 		try {
 			this.log = Logger.getLogger(GPUdb.class); // need the logger
 			
-			setUser_name(userId == null ? "" : pwd);
+			setUser_name(userId == null ? "" : userId);
 			setUser_pwd(pwd == null ? "" : pwd);
 			
 			full_address.trim();
@@ -2420,15 +2450,11 @@ public class GPUdb {
 	}
 	
 	/**
-	 * Check if there is a set with this set id.  
+	 * Check if there is a set with this set id. We always go to the server for this. 
 	 * @param id The set id of the set to look for.
 	 * @return true if the set exists, false otherwise.
 	 */
 	public boolean setExists(SetId id) {
-		// first check your map
-		if(this.ns_store.contains(id))
-			return true;
-		
 		// do a set info; throws if the set doesn't exist
 		try {
 			set_info_response response = this.do_set_info(id);
@@ -2671,6 +2697,34 @@ public class GPUdb {
 		return response;
 	}
 	
+	public get_set_properties_response do_get_set_properties(List<SetId> set_ids ) throws GPUdbException{
+		Request request = new GetSetPropertiesRequest(this, "/getsetproperties", set_ids);
+		get_set_properties_response response = (get_set_properties_response)AvroUtils.convert_to_object_from_gpudb_response(get_set_properties_response.SCHEMA$, request.post_to_gpudb());		
+		log.debug("response:"+response.toString());				
+		return response;
+	}
+
+	public get_set_metadata_response do_get_set_metadata(List<SetId> set_ids ) throws GPUdbException{
+		Request request = new GetSetPropertiesRequest(this, "/getsetmetadata", set_ids);
+		get_set_metadata_response response = (get_set_metadata_response)AvroUtils.convert_to_object_from_gpudb_response(get_set_metadata_response.SCHEMA$, request.post_to_gpudb());		
+		log.debug("response:"+response.toString());				
+		return response;
+	}
+	
+	public update_set_properties_response do_update_set_properties(List<SetId> set_ids, Map<CharSequence, CharSequence> prop_map ) throws GPUdbException{
+		Request request = new UpdateSetPropertiesRequest(this, "/updatesetproperties", set_ids, prop_map);
+		update_set_properties_response response = (update_set_properties_response)AvroUtils.convert_to_object_from_gpudb_response(update_set_properties_response.SCHEMA$, request.post_to_gpudb());		
+		log.debug("response:"+response.toString());				
+		return response;
+	}
+
+	public update_set_metadata_response do_update_set_matedata(List<SetId> set_ids, Map<CharSequence, CharSequence> metadata_map ) throws GPUdbException{
+		Request request = new UpdateSetMetadataRequest(this, "/updatesetmetadata", set_ids, metadata_map);
+		update_set_metadata_response response = (update_set_metadata_response)AvroUtils.convert_to_object_from_gpudb_response(update_set_metadata_response.SCHEMA$, request.post_to_gpudb());		
+		log.debug("response:"+response.toString());				
+		return response;
+	}
+
 	private void stopVacuosPredicates(String expression) {
 		// Do some rudimentary checking
 		String test = expression.replace('(', ' ');

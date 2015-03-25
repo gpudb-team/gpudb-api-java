@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -95,6 +93,9 @@ public abstract class Request {
 			basicAuth = basicAuth.substring(0, basicAuth.length()-2);
 			connection.setRequestProperty ("Authorization", basicAuth); 
 			
+			connection.setConnectTimeout(gPUdb.getConnectTimeout());
+			connection.setReadTimeout(gPUdb.getReadTimeout());
+			
 			//System.out.println(" AUDITMESSAGE : " + auditMessage);
 
 			connection.setRequestProperty(logParam, auditMessage);
@@ -130,14 +131,17 @@ public abstract class Request {
 
 			long endTime = System.currentTimeMillis();
 
+			int statusCode = connection.getResponseCode();
 			connection.disconnect();
+			
 
-			// Lets create and write to a replay file if needed
+			/* Lets create and write to a replay file if needed
 			if (gPUdb.isCollectForReplay()) {
 
 				writeReplayFile(file, requestData.getData(),
 						(endTime - startTime) / 1000);
 			}
+			*/
 			log.debug("ret ba length [" + baf.length() + "]");
 		} catch (java.net.ConnectException e) {
 			log.error(e.toString());
