@@ -4,7 +4,6 @@
 package com.gisfederal.request;
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.stats_request;
 import avro.java.gpudb.status_request;
 
 import com.gisfederal.AvroUtils;

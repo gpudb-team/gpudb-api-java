@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "execute_request",
+    "fields" : [
+        { "name" : "statement", "type" : "string" }
+    ]
+}

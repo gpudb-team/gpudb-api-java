@@ -1,0 +1,8 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "ranged_statistics_response",
+    "fields" : [
+        { "name" : "stats",   "type" : { "type" : "map",  "values" : { "type" : "array", "items" : "double" }}}
+    ]
+}

@@ -2,15 +2,18 @@ package com.gisfederal.utils;
 
 public enum StatisticsOptionsEnum {
 	
+	COUNT("count"),
 	MEAN("mean"),
 	STDV("stdv"),
-	ESTIMATED_CARDINALITY("estimated_cardinality"),
 	VARIANCE("variance"),
 	SKEW("skew"),
 	KURTOSIS("kurtosis"),
 	SUM("sum"),
+	MIN("min"),
+	MAX("max"),
+	WEIGHTED_AVERAGE("weighted_average"),
 	CARDINALITY("cardinality"),
-	COUNT("count");
+	ESTIMATED_CARDINALITY("estimated_cardinality");
 	
 	private String value;
 	

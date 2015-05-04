@@ -133,8 +133,6 @@ public class RequestFactory {
 			return new MaxMinRequest(this.gPUdb, file, id, attr_name);		
 		if(file.equals("/makebloom"))
 			return new MakeBloomRequest(this.gPUdb, file, id, attr_name);
-		if(file.equals("/unique"))
-			return new UniqueRequest(this.gPUdb, file, id, attr_name);
 		else
 			return null;
 	}
@@ -167,13 +165,6 @@ public class RequestFactory {
 			return null;
 	}
 	
-	public Request create_request(String file, SetId id, List<String> attributes, String value_attribute) {
-		if(file.equals("/groupbyvalue"))
-			return new GroupByValueRequest(this.gPUdb, file, id, attributes, value_attribute);		
-		else
-			return null;
-	}
-		
 	public Request create_request(String file, SetId id, String filter_attribute, List<CharSequence> filter, String histogram_attribute, long interval, double start, double end) {
 		if(file.equals("/filterthenhistogram"))
 			return new FilterThenHistogramRequest(this.gPUdb, file, id, filter_attribute, filter, histogram_attribute, interval, start, end);

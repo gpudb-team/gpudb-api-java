@@ -1,0 +1,13 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "shape_intersection_response",
+    "fields" : [
+        { "name" : "wkt_strings_1", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "group_ids_1", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "set_ids_1", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "wkt_strings_2", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "group_ids_2", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "set_ids_2", "type" : { "type" : "array", "items" : "string" }}
+    ]
+}

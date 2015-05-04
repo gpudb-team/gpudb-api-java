@@ -1,6 +1,7 @@
 package com.gisfederal.request;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -12,13 +13,15 @@ import com.gisfederal.SetId;
 
 public class GroupByValueRequest extends Request{
 
-	public GroupByValueRequest(GPUdb gPUdb, String file, SetId id, List<String> attributes, String value_attribute) {
+	public GroupByValueRequest(GPUdb gPUdb, String file, SetId id, List<String> attributes, String value_attribute,
+			Map<CharSequence,CharSequence> params) {
 		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(GroupByValueRequest.class);
 
 		this.log.debug("gpudb:"+gPUdb.toString()+" in_set:"+id.get_id());	
-		group_by_value_request request = new group_by_value_request(id.get_id(), (List)attributes, value_attribute, this.gPUdb.getUserAuth());	
+		group_by_value_request request = new group_by_value_request(id.get_id(), (List)attributes, value_attribute, 
+				params, this.gPUdb.getUserAuth());	
 
 		this.log.debug("Build request object");
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));

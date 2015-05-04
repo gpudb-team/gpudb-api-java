@@ -32,4 +32,8 @@ public class GPUdbApiUtil {
 		
 		return setPropetiesMap;
 	}
+	
+	public static Map<CharSequence, CharSequence> getEmptyParams() {
+		return new HashMap<CharSequence, CharSequence>();
+	}
 }

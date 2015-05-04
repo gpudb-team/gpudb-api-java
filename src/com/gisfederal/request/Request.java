@@ -112,13 +112,15 @@ public abstract class Request {
 			log.debug("before reader");
 
 			BufferedInputStream bis = null;
+            long requestStartTime = System.currentTimeMillis();
 			try {
 				bis = new BufferedInputStream(connection.getInputStream());
 			} catch (IOException exception) {
 				bis = new BufferedInputStream(connection.getErrorStream());
 			}
 			
-			int read = 0;
+            long requestTime = (System.currentTimeMillis() - requestStartTime);
+            int read = 0;
 			int bufSize = 8192;
 			byte[] buffer = new byte[bufSize];
 			while (true) {
@@ -142,7 +144,8 @@ public abstract class Request {
 						(endTime - startTime) / 1000);
 			}
 			*/
-			log.debug("ret ba length [" + baf.length() + "]");
+            log.info(String.format("Request %s Sent: %,d bytes, Received: %,d bytes, Request time: %,d ms, Total time: %,d ms", file, requestData.getData().length, baf.length(), requestTime, endTime - startTime)); 
+			//log.debug("ret ba length [" + baf.length() + "]");
 		} catch (java.net.ConnectException e) {
 			log.error(e.toString());
 			throw new GPUdbException(

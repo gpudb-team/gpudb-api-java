@@ -1,0 +1,15 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "bulk_update_pk_request",
+    "fields" : [
+    	{ "name" : "set_id", "type" : "string" },
+    	{ "name" : "pk_expressions", "type" : { "type" : "map", "values" : { "type" : "array", "items": "string" }}},
+        { "name" : "new_values", "type" : { "type" : "map", "values" : "string" }},
+        { "name" : "objects_to_insert", "type" : { "type" : "array", "items" : "bytes" }},
+        { "name" : "objects_to_insert_str", "type" : { "type" : "array", "items" : "string" }},
+        { "name" : "object_encoding", "type" : "string" },
+        { "name" : "params", "type" : { "type" : "map", "values" : "string"} },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

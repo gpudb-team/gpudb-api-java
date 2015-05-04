@@ -56,6 +56,7 @@ import avro.java.gpudb.make_bloom_response;
 import avro.java.gpudb.max_min_response;
 import avro.java.gpudb.merge_sets_response;
 import avro.java.gpudb.predicate_join_response;
+import avro.java.gpudb.ranged_statistics_response;
 import avro.java.gpudb.register_parent_set_response;
 import avro.java.gpudb.register_trigger_nai_response;
 import avro.java.gpudb.register_trigger_range_response;
@@ -82,6 +83,7 @@ import com.gisfederal.semantic.types.SemanticTypeEnum;
 import com.gisfederal.semantic.types.Track;
 import com.gisfederal.utils.GPUdbApiUtil;
 import com.gisfederal.utils.NullObject;
+import com.gisfederal.utils.RangedStatisticsOptionsEnum;
 import com.gisfederal.utils.SpatialOperationEnum;
 import com.gisfederal.utils.StatisticsOptionsEnum;
 
@@ -95,7 +97,7 @@ public class TestGpudb {
 	public static void setUpClass() throws Exception {
 		// Code executed before the first test method
 		System.out.println("Build gpudb...");
-		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.27:9191");
+		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.41:9191");
 		
 		//String gpudbURL = System.getProperty("GPUDB_URL", "https://172.30.20.27:9191");
 
@@ -321,9 +323,13 @@ public class TestGpudb {
 
 		// Test type can be created using create_type_with_annotation()
 		{
+			try {
 			Type type = gPUdb.create_type_with_annotations(definition, label,
 					semanticType, annotation_attributes);
 			assertNotNull(type.getID());
+			} catch (GPUdbException e) {
+				assertTrue(e.getMessage().contains("but text search is not enabled"));
+			}   
 		}
 
 		// Test type creation throws an exception for field not in the definition
@@ -1672,6 +1678,19 @@ public class TestGpudb {
 			assertTrue(local_points.contains(bp));
 		}
 	}
+	
+	@Ignore
+	public void testDougStuff() {
+		NamedSet ns = gPUdb.getNamedSet(new SetId("2014-10-08_breadcrumb"));
+
+		// Get out the objects of GROUP1 and GROUP2
+		List<CharSequence> values = new ArrayList<CharSequence>();
+		//values.addAll(Arrays.asList(""));
+
+		// Give me the object having group_id == GROUP1 and GROUP2
+		List<BigPoint> points  = ns.get_objects("DEVICEID", values);
+
+	}
 
 	@Test
 	public void testListObject() {
@@ -1750,7 +1769,7 @@ public class TestGpudb {
 	public void testTypeByDefinitionCreationAndList() {
 		gPUdb.do_clear();
 		// test of using the string definition; create a type; then a new set; add objects
-		Type type = gPUdb.create_type("{\"type\":\"record\",\"name\":\"TestType\",\"fields\":[{\"name\":\"OBJECT_ID\",\"type\":\"string\"},{\"name\":\"person\",\"type\":\"string\"},{\"name\":\"age\",\"type\":\"int\"}]}");
+		Type type = gPUdb.create_type("{\"type\":\"record\",\"name\":\"TestType\",\"fields\":[{\"name\":\"OBJECT_IDX\",\"type\":\"string\"},{\"name\":\"person\",\"type\":\"string\"},{\"name\":\"age\",\"type\":\"int\"}]}");
 		NamedSet ns = gPUdb.newNamedSet(type);
 		System.out.println(type.getTypeClass());
 		System.out.println(ns.getType().getTypeClass());
@@ -1760,13 +1779,13 @@ public class TestGpudb {
 		GenericObject go = new GenericObject();
 		go.addField("person", "Alice");
 		go.addField("age", "21");
-		go.addField("OBJECT_ID", "0.0");
+		go.addField("OBJECT_IDX", "AAA");
 		ns.add(go);
 
 		go = new GenericObject();
 		go.addField("person", "Bob");
 		go.addField("age", "25");
-		go.addField("OBJECT_ID", "0.0");
+		go.addField("OBJECT_IDX", "YYY");
 		ns.add(go);
 
 		// check the size
@@ -1777,13 +1796,13 @@ public class TestGpudb {
 		go = new GenericObject();
 		go.addField("person", "Carl");
 		go.addField("age", "35");
-		go.addField("OBJECT_ID", "0.0");
+		go.addField("OBJECT_IDX", "ZZZ");
 		gos.add(go);
 
 		go = new GenericObject();
 		go.addField("person", "Denise");
 		go.addField("age", "31");
-		go.addField("OBJECT_ID", "0.0");
+		go.addField("OBJECT_IDX", "SSS");
 		gos.add(go);
 
 		// bulk add
@@ -2265,7 +2284,7 @@ public class TestGpudb {
 
 	@Test
 	public void testGroupBy() {
-		//gPUdb.do_clear();
+		gPUdb.do_clear();
 		Type type = gPUdb.create_type(BigPoint.class);
 		NamedSet ns = gPUdb.newNamedSet(type);
 
@@ -2326,7 +2345,6 @@ public class TestGpudb {
 
 	@Test
 	public void testGroupByValue() {
-		gPUdb.do_clear();
 		Type type = gPUdb.create_type(BigPoint.class);
 		NamedSet ns = gPUdb.newNamedSet(type);
 
@@ -2357,16 +2375,18 @@ public class TestGpudb {
 		// Give me the sum of x grouped by (group_id, source)
 		String value_attribute = "timestamp";
 
-		group_by_value_response response = gPUdb.do_group_by_value(ns, attributes, value_attribute);
-		Map<CharSequence, Double> count_map = response.getCountMap();
+		group_by_value_response response = gPUdb.do_group_by_value(ns, attributes, value_attribute,
+				GPUdbApiUtil.getEmptyParams());
 
 		// CharSequences in avro are really org.apache.avro.util.Utf8 let's convert into strings
 		Map<String, Double> str_count_map = new HashMap<String, Double>();
 		
-		for (CharSequence key : count_map.keySet()) {
-			str_count_map.put(key.toString(), count_map.get(key));
+		int cnt = response.getGroupKeys().size();
+		for( int ii = 0; ii < cnt; ii++ ) {
+			str_count_map.put(response.getGroupKeys().get(ii).toString(), Double.valueOf(response.getGroupValues().get(ii)));
 		}
-				
+		
+		
 		System.out.println("G1S1:"+str_count_map.get("GROUP1,SRC1")+" G3S4:"+str_count_map.get("GROUP3,SRC4")+ 
 				" G3S3:"+str_count_map.get("GROUP3,SRC3") + " G2S2:"+str_count_map.get("GROUP2,SRC2"));
 		assertTrue(str_count_map.get("GROUP1,SRC1") == 0.0 && 
@@ -2375,20 +2395,24 @@ public class TestGpudb {
 				str_count_map.get("GROUP2,SRC2") == 1.0);
 		
 		// Test that when value_attribute is null then it behaves like simple group_by
-		response = gPUdb.do_group_by_value(ns, attributes, "");
-		count_map = response.getCountMap();
+		response = gPUdb.do_group_by_value(ns, attributes, "", GPUdbApiUtil.getEmptyParams());
 
 		// CharSequences in avro are really org.apache.avro.util.Utf8 let's convert into strings
 		str_count_map = new HashMap<String, Double>();
 		
-		for (CharSequence key : count_map.keySet()) {
-			str_count_map.put(key.toString(), count_map.get(key));
+		cnt = response.getGroupKeys().size();
+		for( int ii = 0; ii < cnt; ii++ ) {
+			str_count_map.put(response.getGroupKeys().get(ii).toString(), Double.valueOf(response.getGroupValues().get(ii)));
 		}
+		
+		
+		System.out.println(" XXX " + str_count_map);
 		
 		assertTrue(str_count_map.get("GROUP1,SRC1") == 3 && 
 				str_count_map.get("GROUP3,SRC4") == 1 && 
 				str_count_map.get("GROUP3,SRC3") == 1 && 
 				str_count_map.get("GROUP2,SRC2") == 1);
+				
 	}
 
 	@Test
@@ -2785,7 +2809,7 @@ public class TestGpudb {
 		p = new BigPoint(UUID.randomUUID().toString(), "LMSGID3", 3.01, 4.01, 2, "SRC3", "GROUP3");
 		left_set.add(p);
 
-		unique_response response = gPUdb.do_unique(left_set, "msg_id");
+		unique_response response = gPUdb.do_unique(left_set, "msg_id", GPUdbApiUtil.getEmptyParams());
 		assertTrue(response.getIsString());
 
 		List<CharSequence> values = response.getValuesStr();
@@ -2794,7 +2818,7 @@ public class TestGpudb {
 		assertTrue(values.get(1).toString().equals("LMSGID2"));
 		assertTrue(values.get(2).toString().equals("LMSGID3"));
 
-		response = gPUdb.do_unique(left_set, "x");
+		response = gPUdb.do_unique(left_set, "x", GPUdbApiUtil.getEmptyParams());
 		assertFalse(response.getIsString());
 
 		List<Double> values2 = response.getValues();
@@ -4207,6 +4231,19 @@ public class TestGpudb {
 		assertEquals(rows, ns.size());
 	}
 	
+	@Ignore
+	public void testAndyStuff() throws Exception {
+		gPUdb.do_clear();
+		
+		SetId setId = new SetId("FATHER");
+		register_parent_set_response response = gPUdb.do_register_parent_set(setId, false);
+
+		List<SetId> sets = new ArrayList<SetId>();
+		sets.add(new SetId("FATHER2"));
+				
+		gPUdb.do_update_set_properties(sets, GPUdbApiUtil.getSetPropertiesMap(true, true));
+	}
+	
 	@Test
 	public void testRegisterParentSet() throws Exception {
 		gPUdb.do_clear();
@@ -4262,7 +4299,176 @@ public class TestGpudb {
 		//childSetId2 = child2.get_setid();
 		//assertEquals(child2, gPUdb.getNamedSet(childSetId2));
 	}
-	
+
+    @Test
+    public void testRangedStatistics() throws Exception {
+    	
+    	//gPUdb.do_clear();
+    	
+        Type type = gPUdb.create_type(BigPoint.class);
+        SetId setId = gPUdb.new_setid();
+        NamedSet ns = gPUdb.newNamedSet(setId, type);
+
+        BigPoint p;
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 1, -3, 0, "SRC1", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 2, -2, 1, "SRC1", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 3, -1, 0, "SRC1", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 4, 0, 1, "SRC1", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 5, 1, 0, "SRC1", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 6, 2, 1, "SRC1", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 6, 3, 1, "SRC1", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 7, 3, 1, "SRC1", "GROUP1");
+        ns.add(p);
+
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 1, -3, 0, "SRC2", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 2, -2, 1, "SRC2", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 3, -1, 0, "SRC2", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 4, 0, 1, "SRC2", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 5, 1, 0, "SRC2", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 6, 2, 1, "SRC2", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 6, 3, 1, "SRC2", "GROUP1");
+        ns.add(p);
+        p = new BigPoint(UUID.randomUUID().toString(), "MSG", 7, 3, 1, "SRC2", "GROUP1");
+        ns.add(p);
+
+        ArrayList<RangedStatisticsOptionsEnum> stats = new ArrayList<RangedStatisticsOptionsEnum>();
+        stats.add(RangedStatisticsOptionsEnum.MEAN);
+        stats.add(RangedStatisticsOptionsEnum.STDV);
+        stats.add(RangedStatisticsOptionsEnum.VARIANCE);
+        stats.add(RangedStatisticsOptionsEnum.SKEW);
+        stats.add(RangedStatisticsOptionsEnum.KURTOSIS);
+        stats.add(RangedStatisticsOptionsEnum.SUM);
+        stats.add(RangedStatisticsOptionsEnum.MIN);
+        stats.add(RangedStatisticsOptionsEnum.MAX);
+        stats.add(RangedStatisticsOptionsEnum.FIRST);
+        stats.add(RangedStatisticsOptionsEnum.LAST);
+        stats.add(RangedStatisticsOptionsEnum.WEIGHTED_AVERAGE);
+
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("weight_attribute", "timestamp");
+
+        ranged_statistics_response response = gPUdb.do_ranged_statistics(ns, stats, "y", "x", -3, 3, 2, "x < 7", params);
+        assertEquals(response.getStats().size(), 12);
+
+        for (Map.Entry<CharSequence, List<Double>> entry : response.getStats().entrySet()) {
+            assertEquals(entry.getValue().size(), 3);
+
+            if (entry.getKey().toString().equals("count")) {
+                    assertEquals(entry.getValue().get(0).doubleValue(), 4.0, .001);
+                    assertEquals(entry.getValue().get(1).doubleValue(), 4.0, .001);
+                    assertEquals(entry.getValue().get(2).doubleValue(), 6.0, .001);
+            } else if (entry.getKey().toString().equals("mean")) {
+                    assertEquals(entry.getValue().get(0), 1.500, 0.001);
+                    assertEquals(entry.getValue().get(1), 3.500, 0.001);
+                    assertEquals(entry.getValue().get(2), 5.667, 0.001);
+            } else if (entry.getKey().toString().equals("stdv")) {
+                    assertEquals(entry.getValue().get(0), 0.577, 0.001);
+                    assertEquals(entry.getValue().get(1), 0.577, 0.001);
+                    assertEquals(entry.getValue().get(2), 0.516, 0.001);
+            } else if (entry.getKey().toString().equals("variance")) {
+                    assertEquals(entry.getValue().get(0), 0.333, 0.001);
+                    assertEquals(entry.getValue().get(1), 0.333, 0.001);
+                    assertEquals(entry.getValue().get(2), 0.267, 0.001);
+            } else if (entry.getKey().toString().equals("skew")) {
+                    assertEquals(entry.getValue().get(0), 0.0, 0.001);
+                    assertEquals(entry.getValue().get(1), 0.0, 0.001);
+                    assertEquals(entry.getValue().get(2), -0.707, 0.001);
+            } else if (entry.getKey().toString().equals("kurtosis")) {
+                    assertEquals(entry.getValue().get(0), 1.000, 0.001);
+                    assertEquals(entry.getValue().get(1), 1.000, 0.001);
+                    assertEquals(entry.getValue().get(2), 1.500, 0.001);
+            } else if (entry.getKey().toString().equals("sum")) {
+                    assertEquals(entry.getValue().get(0).doubleValue(), 6.0, .001);
+                    assertEquals(entry.getValue().get(1).doubleValue(), 14.0, .001);
+                    assertEquals(entry.getValue().get(2).doubleValue(), 34.0, .001);
+            } else if (entry.getKey().toString().equals("min")) {
+                    assertEquals(entry.getValue().get(0).doubleValue(), 1.0, .005);
+                    assertEquals(entry.getValue().get(1).doubleValue(), 3.0, .005);
+                    assertEquals(entry.getValue().get(2).doubleValue(), 5.0, .005);
+            } else if (entry.getKey().toString().equals("max")) {
+                    assertEquals(entry.getValue().get(0).doubleValue(), 2.0, .005);
+                    assertEquals(entry.getValue().get(1).doubleValue(), 4.0, .005);
+                    assertEquals(entry.getValue().get(2).doubleValue(), 6.0, .005);
+            } else if (entry.getKey().toString().equals("first")) {
+                    assertEquals(entry.getValue().get(0).doubleValue(), 1.0, .005);
+                    assertEquals(entry.getValue().get(1).doubleValue(), 3.0, .005);
+                    assertEquals(entry.getValue().get(2).doubleValue(), 5.0, .005);
+            } else if (entry.getKey().toString().equals("last")) {
+                    assertEquals(entry.getValue().get(0).doubleValue(), 2.0, .005);
+                    assertEquals(entry.getValue().get(1).doubleValue(), 4.0, .005);
+                    assertEquals(entry.getValue().get(2).doubleValue(), 6.0, .005);
+            } else if (entry.getKey().toString().equals("weighted_average")) {
+                    assertEquals(entry.getValue().get(0), 2.000, 0.001);
+                    assertEquals(entry.getValue().get(1), 4.000, 0.001);
+                    assertEquals(entry.getValue().get(2), 6.000, 0.001);
+            } else {
+                    assertEquals(0, 1);
+            }
+        }
+
+        params.put("bin_values", "SRC1,SRC2");
+
+        response = gPUdb.do_ranged_statistics(ns, stats, "source", "x", 0, 0, 0, "x < 7", params);
+        assertEquals(response.getStats().size(), 12);
+
+        for (Map.Entry<CharSequence, List<Double>> entry : response.getStats().entrySet()) {
+            assertEquals(entry.getValue().size(), 2);
+
+            if (entry.getKey().toString().equals("count")) {
+                    assertEquals(entry.getValue().get(0).doubleValue(), 7.0, .001);
+                    assertEquals(entry.getValue().get(1).doubleValue(), 7.0, .001);
+            } else if (entry.getKey().toString().equals("mean")) {
+                    assertEquals(entry.getValue().get(0), 3.857, 0.001);
+                    assertEquals(entry.getValue().get(1), 3.857, 0.001);
+            } else if (entry.getKey().toString().equals("stdv")) {
+                    assertEquals(entry.getValue().get(0), 1.952, 0.001);
+                    assertEquals(entry.getValue().get(1), 1.952, 0.001);
+            } else if (entry.getKey().toString().equals("variance")) {
+                    assertEquals(entry.getValue().get(0), 3.810, 0.001);
+                    assertEquals(entry.getValue().get(1), 3.810, 0.001);
+            } else if (entry.getKey().toString().equals("skew")) {
+                    assertEquals(entry.getValue().get(0), -0.222, 0.001);
+                    assertEquals(entry.getValue().get(1), -0.222, 0.001);
+            } else if (entry.getKey().toString().equals("kurtosis")) {
+                    assertEquals(entry.getValue().get(0), 1.647, 0.001);
+                    assertEquals(entry.getValue().get(1), 1.647, 0.001);
+            } else if (entry.getKey().toString().equals("sum")) {
+                    assertEquals(entry.getValue().get(0).doubleValue(), 27.0, .001);
+                    assertEquals(entry.getValue().get(1).doubleValue(), 27.0, .001);
+            } else if (entry.getKey().toString().equals("min")) {
+                    assertEquals(entry.getValue().get(0).doubleValue(), 1.0, .001);
+                    assertEquals(entry.getValue().get(1).doubleValue(), 1.0, .001);
+            } else if (entry.getKey().toString().equals("max")) {
+                    assertEquals(entry.getValue().get(0).doubleValue(), 6.0, .001);
+                    assertEquals(entry.getValue().get(1).doubleValue(), 6.0, .001);
+            } else if (entry.getKey().toString().equals("first")) {
+                    // Meaningless for bin values query
+            } else if (entry.getKey().toString().equals("last")) {
+                    // Meaningless for bin values query
+            } else if (entry.getKey().toString().equals("weighted_average")) {
+                    assertEquals(entry.getValue().get(0), 4.500, 0.001);
+                    assertEquals(entry.getValue().get(1), 4.500, 0.001);
+            } else {
+            		System.out.println(entry.getKey().toString());
+                    assertEquals(0, 1);
+                    break;
+            }
+        }
+    }
+
 	@Test
 	public void testStatistics() throws Exception {
 		//gPUdb.do_clear();

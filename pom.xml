@@ -2,8 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.gisfederal.gpudb</groupId>
   <artifactId>gpudb-client</artifactId>
-  <version>4.0.18</version>
-  
+  <version>4.0.24</version>  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>

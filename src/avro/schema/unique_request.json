@@ -5,6 +5,7 @@
     "fields" : [
         { "name" : "set_id", "type" : "string" },
         { "name" : "attribute", "type" : "string" },
+        { "name" : "params", "type" : { "type" : "map", "values" : "string" }},
         { "name" : "user_auth_string", "type" : "string" }
     ]
 }

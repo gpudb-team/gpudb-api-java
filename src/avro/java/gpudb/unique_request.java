@@ -6,9 +6,10 @@
 package avro.java.gpudb;  
 @SuppressWarnings("all")
 public class unique_request extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"unique_request\",\"namespace\":\"avro.java.gpudb\",\"fields\":[{\"name\":\"set_id\",\"type\":\"string\"},{\"name\":\"attribute\",\"type\":\"string\"},{\"name\":\"user_auth_string\",\"type\":\"string\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"unique_request\",\"namespace\":\"avro.java.gpudb\",\"fields\":[{\"name\":\"set_id\",\"type\":\"string\"},{\"name\":\"attribute\",\"type\":\"string\"},{\"name\":\"params\",\"type\":{\"type\":\"map\",\"values\":\"string\"}},{\"name\":\"user_auth_string\",\"type\":\"string\"}]}");
   @Deprecated public java.lang.CharSequence set_id;
   @Deprecated public java.lang.CharSequence attribute;
+  @Deprecated public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params;
   @Deprecated public java.lang.CharSequence user_auth_string;
 
   /**
@@ -19,9 +20,10 @@ public class unique_request extends org.apache.avro.specific.SpecificRecordBase 
   /**
    * All-args constructor.
    */
-  public unique_request(java.lang.CharSequence set_id, java.lang.CharSequence attribute, java.lang.CharSequence user_auth_string) {
+  public unique_request(java.lang.CharSequence set_id, java.lang.CharSequence attribute, java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params, java.lang.CharSequence user_auth_string) {
     this.set_id = set_id;
     this.attribute = attribute;
+    this.params = params;
     this.user_auth_string = user_auth_string;
   }
 
@@ -31,7 +33,8 @@ public class unique_request extends org.apache.avro.specific.SpecificRecordBase 
     switch (field$) {
     case 0: return set_id;
     case 1: return attribute;
-    case 2: return user_auth_string;
+    case 2: return params;
+    case 3: return user_auth_string;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -41,7 +44,8 @@ public class unique_request extends org.apache.avro.specific.SpecificRecordBase 
     switch (field$) {
     case 0: set_id = (java.lang.CharSequence)value$; break;
     case 1: attribute = (java.lang.CharSequence)value$; break;
-    case 2: user_auth_string = (java.lang.CharSequence)value$; break;
+    case 2: params = (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>)value$; break;
+    case 3: user_auth_string = (java.lang.CharSequence)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -74,6 +78,21 @@ public class unique_request extends org.apache.avro.specific.SpecificRecordBase 
    */
   public void setAttribute(java.lang.CharSequence value) {
     this.attribute = value;
+  }
+
+  /**
+   * Gets the value of the 'params' field.
+   */
+  public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> getParams() {
+    return params;
+  }
+
+  /**
+   * Sets the value of the 'params' field.
+   * @param value the value to set.
+   */
+  public void setParams(java.util.Map<java.lang.CharSequence,java.lang.CharSequence> value) {
+    this.params = value;
   }
 
   /**
@@ -114,6 +133,7 @@ public class unique_request extends org.apache.avro.specific.SpecificRecordBase 
 
     private java.lang.CharSequence set_id;
     private java.lang.CharSequence attribute;
+    private java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params;
     private java.lang.CharSequence user_auth_string;
 
     /** Creates a new Builder */
@@ -137,9 +157,13 @@ public class unique_request extends org.apache.avro.specific.SpecificRecordBase 
         this.attribute = (java.lang.CharSequence) data().deepCopy(fields()[1].schema(), other.attribute);
         fieldSetFlags()[1] = true;
       }
-      if (isValidValue(fields()[2], other.user_auth_string)) {
-        this.user_auth_string = (java.lang.CharSequence) data().deepCopy(fields()[2].schema(), other.user_auth_string);
+      if (isValidValue(fields()[2], other.params)) {
+        this.params = (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>) data().deepCopy(fields()[2].schema(), other.params);
         fieldSetFlags()[2] = true;
+      }
+      if (isValidValue(fields()[3], other.user_auth_string)) {
+        this.user_auth_string = (java.lang.CharSequence) data().deepCopy(fields()[3].schema(), other.user_auth_string);
+        fieldSetFlags()[3] = true;
       }
     }
 
@@ -193,6 +217,31 @@ public class unique_request extends org.apache.avro.specific.SpecificRecordBase 
       return this;
     }
 
+    /** Gets the value of the 'params' field */
+    public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> getParams() {
+      return params;
+    }
+    
+    /** Sets the value of the 'params' field */
+    public avro.java.gpudb.unique_request.Builder setParams(java.util.Map<java.lang.CharSequence,java.lang.CharSequence> value) {
+      validate(fields()[2], value);
+      this.params = value;
+      fieldSetFlags()[2] = true;
+      return this; 
+    }
+    
+    /** Checks whether the 'params' field has been set */
+    public boolean hasParams() {
+      return fieldSetFlags()[2];
+    }
+    
+    /** Clears the value of the 'params' field */
+    public avro.java.gpudb.unique_request.Builder clearParams() {
+      params = null;
+      fieldSetFlags()[2] = false;
+      return this;
+    }
+
     /** Gets the value of the 'user_auth_string' field */
     public java.lang.CharSequence getUserAuthString() {
       return user_auth_string;
@@ -200,21 +249,21 @@ public class unique_request extends org.apache.avro.specific.SpecificRecordBase 
     
     /** Sets the value of the 'user_auth_string' field */
     public avro.java.gpudb.unique_request.Builder setUserAuthString(java.lang.CharSequence value) {
-      validate(fields()[2], value);
+      validate(fields()[3], value);
       this.user_auth_string = value;
-      fieldSetFlags()[2] = true;
+      fieldSetFlags()[3] = true;
       return this; 
     }
     
     /** Checks whether the 'user_auth_string' field has been set */
     public boolean hasUserAuthString() {
-      return fieldSetFlags()[2];
+      return fieldSetFlags()[3];
     }
     
     /** Clears the value of the 'user_auth_string' field */
     public avro.java.gpudb.unique_request.Builder clearUserAuthString() {
       user_auth_string = null;
-      fieldSetFlags()[2] = false;
+      fieldSetFlags()[3] = false;
       return this;
     }
 
@@ -224,7 +273,8 @@ public class unique_request extends org.apache.avro.specific.SpecificRecordBase 
         unique_request record = new unique_request();
         record.set_id = fieldSetFlags()[0] ? this.set_id : (java.lang.CharSequence) defaultValue(fields()[0]);
         record.attribute = fieldSetFlags()[1] ? this.attribute : (java.lang.CharSequence) defaultValue(fields()[1]);
-        record.user_auth_string = fieldSetFlags()[2] ? this.user_auth_string : (java.lang.CharSequence) defaultValue(fields()[2]);
+        record.params = fieldSetFlags()[2] ? this.params : (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>) defaultValue(fields()[2]);
+        record.user_auth_string = fieldSetFlags()[3] ? this.user_auth_string : (java.lang.CharSequence) defaultValue(fields()[3]);
         return record;
       } catch (Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

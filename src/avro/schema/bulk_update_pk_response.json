@@ -1,0 +1,11 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "bulk_update_pk_response",
+    "fields" : [
+        { "name" : "count_updated", "type" : "long" },
+        { "name" : "counts_updated", "type" : { "type" : "array", "items" : "long" }},
+        { "name" : "count_inserted", "type" : "long" },
+        { "name" : "counts_inserted", "type" : { "type" : "array", "items" : "long" }}
+    ]
+}

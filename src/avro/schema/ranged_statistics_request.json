@@ -1,0 +1,17 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "ranged_statistics_request",
+    "fields" : [
+        { "name" : "set_id", "type" : "string" },
+        { "name" : "attribute", "type" : "string" },
+        { "name" : "value_attribute", "type" : "string" },
+        { "name" : "stats", "type" : "string" },
+        { "name" : "start", "type" : "double" },
+        { "name" : "end", "type" : "double" },
+        { "name" : "interval", "type" : "double" },
+        { "name" : "select_expression", "type" : "string" },        
+        { "name" : "params", "type" : { "type" : "map", "values" : "string"} },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

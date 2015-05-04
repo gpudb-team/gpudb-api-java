@@ -1,0 +1,12 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "bulk_select_values_pk_request",
+    "fields" : [
+    	{ "name" : "set_id", "type" : "string" },
+        { "name" : "attributes", "type" : { "type" : "array", "items" : "string" }},        
+    	{ "name" : "pk_expressions", "type" : { "type" : "map", "values" : { "type" : "array", "items": "string" }}},
+        { "name" : "params", "type" : { "type" : "map", "values" : "string"} },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

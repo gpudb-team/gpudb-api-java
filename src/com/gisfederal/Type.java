@@ -38,6 +38,10 @@ public class Type {
 	// NOTE: we should be able to depreciate this string semanticType
 	private String semanticType;
 	private SemanticTypeEnum semanticTypeEnum;
+	
+	Field[] fields = null;
+	GenericDatumReader<GenericData.Record> reader = null;
+	DecoderFactory decoder_factory = null;
 
 	public SemanticTypeEnum getSemanticTypeEnum() {
 		return semanticTypeEnum;
@@ -98,6 +102,8 @@ public class Type {
 		this.label = label;
 		this.semanticType = semanticType;
 		this.semanticTypeEnum = SemanticTypeEnum.valueOfWithEmpty(this.semanticType);
+		this.reader = new GenericDatumReader<GenericData.Record>(schema);
+		this.decoder_factory = new DecoderFactory();
 	}
 
 	/**
@@ -150,10 +156,10 @@ public class Type {
 	 */
 	public Object decode(ByteBuffer bytes) {
 		// binary decode
-		GenericDatumReader<GenericData.Record> reader = new GenericDatumReader<GenericData.Record>(schema);
-		DecoderFactory decoder_factory = new DecoderFactory();
+		//GenericDatumReader<GenericData.Record> reader = new GenericDatumReader<GenericData.Record>(schema);
+		//DecoderFactory decoder_factory = new DecoderFactory();
 
-		log.debug("After building binary decoder");
+		//log.debug("After building binary decoder");
 		// build the object
 		try {
 			
@@ -167,7 +173,7 @@ public class Type {
 			e.printStackTrace();
 			log.error(e.toString());
 		}
-		log.error("Returning empty object; was unable to decode");
+		//log.error("Returning empty object; was unable to decode");
 		return new Object();
 	}
 
@@ -205,26 +211,33 @@ public class Type {
 		} else {
 			// now use the record to build an object of class "class_of_obj"
 			// loop through the fields of the object these correspond to keys in the genericdata record
-			Field[] fields = type_class.getFields();
+			if( fields == null ) {
+				fields = type_class.getFields();
+			}
+			
 			for(Field field : fields) {
-				String fieldType = field.getType().getSimpleName().toLowerCase(); // need to know how to set the fields
-				log.debug("record.get(field.getName()):"+record.get(field.getName()).toString()+" fieldType:"+fieldType);
-				if(fieldType.equals("int")){
+				//String fieldType = field.getType().getSimpleName().toLowerCase(); // need to know how to set the fields
+				
+				Class fieldTypec = field.getType();
+				
+				//log.debug("record.get(field.getName()):"+record.get(field.getName()).toString()+" fieldType:"+fieldType);
+				
+				if(fieldTypec == Integer.TYPE){
 					Integer value = (Integer)record.get(field.getName());
 					field.setInt(instance, value.intValue());
-				} else if(fieldType.equals("long")){
+				} else if(fieldTypec == Long.TYPE){
 					Long value = (Long)record.get(field.getName());
 					field.setLong(instance, value.longValue());
-				} else if(fieldType.equals("double")){
+				} else if(fieldTypec == Double.TYPE){
 					Double value = (Double)record.get(field.getName());
 					field.setDouble(instance, value.doubleValue());
-				} else if(fieldType.equals("float")){
+				} else if(fieldTypec == Float.TYPE){
 					Float value = (Float)record.get(field.getName());
 					field.setFloat(instance, value.floatValue());
-				} else if(fieldType.equals("string")){
+				} else if(fieldTypec == String.class){
 					org.apache.avro.util.Utf8 value = (org.apache.avro.util.Utf8)record.get(field.getName());
 					field.set(instance, value.toString());
-				} else if(fieldType.equals("bytebuffer")){
+				} else if(fieldTypec == ByteBuffer.class){
 					ByteBuffer value = (ByteBuffer)record.get(field.getName());
 					field.set(instance, value);
 				}

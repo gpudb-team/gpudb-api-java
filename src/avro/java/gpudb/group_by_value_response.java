@@ -6,11 +6,13 @@
 package avro.java.gpudb;  
 @SuppressWarnings("all")
 public class group_by_value_response extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"group_by_value_response\",\"namespace\":\"avro.java.gpudb\",\"fields\":[{\"name\":\"set_id\",\"type\":\"string\"},{\"name\":\"attributes\",\"type\":{\"type\":\"array\",\"items\":\"string\"}},{\"name\":\"value_attribute\",\"type\":\"string\"},{\"name\":\"count_map\",\"type\":{\"type\":\"map\",\"values\":\"double\"}}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"group_by_value_response\",\"namespace\":\"avro.java.gpudb\",\"fields\":[{\"name\":\"set_id\",\"type\":\"string\"},{\"name\":\"attributes\",\"type\":{\"type\":\"array\",\"items\":\"string\"}},{\"name\":\"value_attribute\",\"type\":\"string\"},{\"name\":\"params\",\"type\":{\"type\":\"map\",\"values\":\"string\"}},{\"name\":\"group_keys\",\"type\":{\"type\":\"array\",\"items\":\"string\"}},{\"name\":\"group_values\",\"type\":{\"type\":\"array\",\"items\":\"double\"}}]}");
   @Deprecated public java.lang.CharSequence set_id;
   @Deprecated public java.util.List<java.lang.CharSequence> attributes;
   @Deprecated public java.lang.CharSequence value_attribute;
-  @Deprecated public java.util.Map<java.lang.CharSequence,java.lang.Double> count_map;
+  @Deprecated public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params;
+  @Deprecated public java.util.List<java.lang.CharSequence> group_keys;
+  @Deprecated public java.util.List<java.lang.Double> group_values;
 
   /**
    * Default constructor.
@@ -20,11 +22,13 @@ public class group_by_value_response extends org.apache.avro.specific.SpecificRe
   /**
    * All-args constructor.
    */
-  public group_by_value_response(java.lang.CharSequence set_id, java.util.List<java.lang.CharSequence> attributes, java.lang.CharSequence value_attribute, java.util.Map<java.lang.CharSequence,java.lang.Double> count_map) {
+  public group_by_value_response(java.lang.CharSequence set_id, java.util.List<java.lang.CharSequence> attributes, java.lang.CharSequence value_attribute, java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params, java.util.List<java.lang.CharSequence> group_keys, java.util.List<java.lang.Double> group_values) {
     this.set_id = set_id;
     this.attributes = attributes;
     this.value_attribute = value_attribute;
-    this.count_map = count_map;
+    this.params = params;
+    this.group_keys = group_keys;
+    this.group_values = group_values;
   }
 
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
@@ -34,7 +38,9 @@ public class group_by_value_response extends org.apache.avro.specific.SpecificRe
     case 0: return set_id;
     case 1: return attributes;
     case 2: return value_attribute;
-    case 3: return count_map;
+    case 3: return params;
+    case 4: return group_keys;
+    case 5: return group_values;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -45,7 +51,9 @@ public class group_by_value_response extends org.apache.avro.specific.SpecificRe
     case 0: set_id = (java.lang.CharSequence)value$; break;
     case 1: attributes = (java.util.List<java.lang.CharSequence>)value$; break;
     case 2: value_attribute = (java.lang.CharSequence)value$; break;
-    case 3: count_map = (java.util.Map<java.lang.CharSequence,java.lang.Double>)value$; break;
+    case 3: params = (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>)value$; break;
+    case 4: group_keys = (java.util.List<java.lang.CharSequence>)value$; break;
+    case 5: group_values = (java.util.List<java.lang.Double>)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -96,18 +104,48 @@ public class group_by_value_response extends org.apache.avro.specific.SpecificRe
   }
 
   /**
-   * Gets the value of the 'count_map' field.
+   * Gets the value of the 'params' field.
    */
-  public java.util.Map<java.lang.CharSequence,java.lang.Double> getCountMap() {
-    return count_map;
+  public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> getParams() {
+    return params;
   }
 
   /**
-   * Sets the value of the 'count_map' field.
+   * Sets the value of the 'params' field.
    * @param value the value to set.
    */
-  public void setCountMap(java.util.Map<java.lang.CharSequence,java.lang.Double> value) {
-    this.count_map = value;
+  public void setParams(java.util.Map<java.lang.CharSequence,java.lang.CharSequence> value) {
+    this.params = value;
+  }
+
+  /**
+   * Gets the value of the 'group_keys' field.
+   */
+  public java.util.List<java.lang.CharSequence> getGroupKeys() {
+    return group_keys;
+  }
+
+  /**
+   * Sets the value of the 'group_keys' field.
+   * @param value the value to set.
+   */
+  public void setGroupKeys(java.util.List<java.lang.CharSequence> value) {
+    this.group_keys = value;
+  }
+
+  /**
+   * Gets the value of the 'group_values' field.
+   */
+  public java.util.List<java.lang.Double> getGroupValues() {
+    return group_values;
+  }
+
+  /**
+   * Sets the value of the 'group_values' field.
+   * @param value the value to set.
+   */
+  public void setGroupValues(java.util.List<java.lang.Double> value) {
+    this.group_values = value;
   }
 
   /** Creates a new group_by_value_response RecordBuilder */
@@ -134,7 +172,9 @@ public class group_by_value_response extends org.apache.avro.specific.SpecificRe
     private java.lang.CharSequence set_id;
     private java.util.List<java.lang.CharSequence> attributes;
     private java.lang.CharSequence value_attribute;
-    private java.util.Map<java.lang.CharSequence,java.lang.Double> count_map;
+    private java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params;
+    private java.util.List<java.lang.CharSequence> group_keys;
+    private java.util.List<java.lang.Double> group_values;
 
     /** Creates a new Builder */
     private Builder() {
@@ -161,9 +201,17 @@ public class group_by_value_response extends org.apache.avro.specific.SpecificRe
         this.value_attribute = (java.lang.CharSequence) data().deepCopy(fields()[2].schema(), other.value_attribute);
         fieldSetFlags()[2] = true;
       }
-      if (isValidValue(fields()[3], other.count_map)) {
-        this.count_map = (java.util.Map<java.lang.CharSequence,java.lang.Double>) data().deepCopy(fields()[3].schema(), other.count_map);
+      if (isValidValue(fields()[3], other.params)) {
+        this.params = (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>) data().deepCopy(fields()[3].schema(), other.params);
         fieldSetFlags()[3] = true;
+      }
+      if (isValidValue(fields()[4], other.group_keys)) {
+        this.group_keys = (java.util.List<java.lang.CharSequence>) data().deepCopy(fields()[4].schema(), other.group_keys);
+        fieldSetFlags()[4] = true;
+      }
+      if (isValidValue(fields()[5], other.group_values)) {
+        this.group_values = (java.util.List<java.lang.Double>) data().deepCopy(fields()[5].schema(), other.group_values);
+        fieldSetFlags()[5] = true;
       }
     }
 
@@ -242,28 +290,78 @@ public class group_by_value_response extends org.apache.avro.specific.SpecificRe
       return this;
     }
 
-    /** Gets the value of the 'count_map' field */
-    public java.util.Map<java.lang.CharSequence,java.lang.Double> getCountMap() {
-      return count_map;
+    /** Gets the value of the 'params' field */
+    public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> getParams() {
+      return params;
     }
     
-    /** Sets the value of the 'count_map' field */
-    public avro.java.gpudb.group_by_value_response.Builder setCountMap(java.util.Map<java.lang.CharSequence,java.lang.Double> value) {
+    /** Sets the value of the 'params' field */
+    public avro.java.gpudb.group_by_value_response.Builder setParams(java.util.Map<java.lang.CharSequence,java.lang.CharSequence> value) {
       validate(fields()[3], value);
-      this.count_map = value;
+      this.params = value;
       fieldSetFlags()[3] = true;
       return this; 
     }
     
-    /** Checks whether the 'count_map' field has been set */
-    public boolean hasCountMap() {
+    /** Checks whether the 'params' field has been set */
+    public boolean hasParams() {
       return fieldSetFlags()[3];
     }
     
-    /** Clears the value of the 'count_map' field */
-    public avro.java.gpudb.group_by_value_response.Builder clearCountMap() {
-      count_map = null;
+    /** Clears the value of the 'params' field */
+    public avro.java.gpudb.group_by_value_response.Builder clearParams() {
+      params = null;
       fieldSetFlags()[3] = false;
+      return this;
+    }
+
+    /** Gets the value of the 'group_keys' field */
+    public java.util.List<java.lang.CharSequence> getGroupKeys() {
+      return group_keys;
+    }
+    
+    /** Sets the value of the 'group_keys' field */
+    public avro.java.gpudb.group_by_value_response.Builder setGroupKeys(java.util.List<java.lang.CharSequence> value) {
+      validate(fields()[4], value);
+      this.group_keys = value;
+      fieldSetFlags()[4] = true;
+      return this; 
+    }
+    
+    /** Checks whether the 'group_keys' field has been set */
+    public boolean hasGroupKeys() {
+      return fieldSetFlags()[4];
+    }
+    
+    /** Clears the value of the 'group_keys' field */
+    public avro.java.gpudb.group_by_value_response.Builder clearGroupKeys() {
+      group_keys = null;
+      fieldSetFlags()[4] = false;
+      return this;
+    }
+
+    /** Gets the value of the 'group_values' field */
+    public java.util.List<java.lang.Double> getGroupValues() {
+      return group_values;
+    }
+    
+    /** Sets the value of the 'group_values' field */
+    public avro.java.gpudb.group_by_value_response.Builder setGroupValues(java.util.List<java.lang.Double> value) {
+      validate(fields()[5], value);
+      this.group_values = value;
+      fieldSetFlags()[5] = true;
+      return this; 
+    }
+    
+    /** Checks whether the 'group_values' field has been set */
+    public boolean hasGroupValues() {
+      return fieldSetFlags()[5];
+    }
+    
+    /** Clears the value of the 'group_values' field */
+    public avro.java.gpudb.group_by_value_response.Builder clearGroupValues() {
+      group_values = null;
+      fieldSetFlags()[5] = false;
       return this;
     }
 
@@ -274,7 +372,9 @@ public class group_by_value_response extends org.apache.avro.specific.SpecificRe
         record.set_id = fieldSetFlags()[0] ? this.set_id : (java.lang.CharSequence) defaultValue(fields()[0]);
         record.attributes = fieldSetFlags()[1] ? this.attributes : (java.util.List<java.lang.CharSequence>) defaultValue(fields()[1]);
         record.value_attribute = fieldSetFlags()[2] ? this.value_attribute : (java.lang.CharSequence) defaultValue(fields()[2]);
-        record.count_map = fieldSetFlags()[3] ? this.count_map : (java.util.Map<java.lang.CharSequence,java.lang.Double>) defaultValue(fields()[3]);
+        record.params = fieldSetFlags()[3] ? this.params : (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>) defaultValue(fields()[3]);
+        record.group_keys = fieldSetFlags()[4] ? this.group_keys : (java.util.List<java.lang.CharSequence>) defaultValue(fields()[4]);
+        record.group_values = fieldSetFlags()[5] ? this.group_values : (java.util.List<java.lang.Double>) defaultValue(fields()[5]);
         return record;
       } catch (Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

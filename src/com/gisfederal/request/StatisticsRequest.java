@@ -8,8 +8,6 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import avro.java.gpudb.get_sorted_sets_request;
-import avro.java.gpudb.get_tracks2_request;
 import avro.java.gpudb.statistics_request;
 
 import com.gisfederal.AvroUtils;

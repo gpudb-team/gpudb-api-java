@@ -6,10 +6,11 @@
 package avro.java.gpudb;  
 @SuppressWarnings("all")
 public class group_by_value_request extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"group_by_value_request\",\"namespace\":\"avro.java.gpudb\",\"fields\":[{\"name\":\"set_id\",\"type\":\"string\"},{\"name\":\"attributes\",\"type\":{\"type\":\"array\",\"items\":\"string\"}},{\"name\":\"value_attribute\",\"type\":\"string\"},{\"name\":\"user_auth_string\",\"type\":\"string\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"group_by_value_request\",\"namespace\":\"avro.java.gpudb\",\"fields\":[{\"name\":\"set_id\",\"type\":\"string\"},{\"name\":\"attributes\",\"type\":{\"type\":\"array\",\"items\":\"string\"}},{\"name\":\"value_attribute\",\"type\":\"string\"},{\"name\":\"params\",\"type\":{\"type\":\"map\",\"values\":\"string\"}},{\"name\":\"user_auth_string\",\"type\":\"string\"}]}");
   @Deprecated public java.lang.CharSequence set_id;
   @Deprecated public java.util.List<java.lang.CharSequence> attributes;
   @Deprecated public java.lang.CharSequence value_attribute;
+  @Deprecated public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params;
   @Deprecated public java.lang.CharSequence user_auth_string;
 
   /**
@@ -20,10 +21,11 @@ public class group_by_value_request extends org.apache.avro.specific.SpecificRec
   /**
    * All-args constructor.
    */
-  public group_by_value_request(java.lang.CharSequence set_id, java.util.List<java.lang.CharSequence> attributes, java.lang.CharSequence value_attribute, java.lang.CharSequence user_auth_string) {
+  public group_by_value_request(java.lang.CharSequence set_id, java.util.List<java.lang.CharSequence> attributes, java.lang.CharSequence value_attribute, java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params, java.lang.CharSequence user_auth_string) {
     this.set_id = set_id;
     this.attributes = attributes;
     this.value_attribute = value_attribute;
+    this.params = params;
     this.user_auth_string = user_auth_string;
   }
 
@@ -34,7 +36,8 @@ public class group_by_value_request extends org.apache.avro.specific.SpecificRec
     case 0: return set_id;
     case 1: return attributes;
     case 2: return value_attribute;
-    case 3: return user_auth_string;
+    case 3: return params;
+    case 4: return user_auth_string;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -45,7 +48,8 @@ public class group_by_value_request extends org.apache.avro.specific.SpecificRec
     case 0: set_id = (java.lang.CharSequence)value$; break;
     case 1: attributes = (java.util.List<java.lang.CharSequence>)value$; break;
     case 2: value_attribute = (java.lang.CharSequence)value$; break;
-    case 3: user_auth_string = (java.lang.CharSequence)value$; break;
+    case 3: params = (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>)value$; break;
+    case 4: user_auth_string = (java.lang.CharSequence)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -96,6 +100,21 @@ public class group_by_value_request extends org.apache.avro.specific.SpecificRec
   }
 
   /**
+   * Gets the value of the 'params' field.
+   */
+  public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> getParams() {
+    return params;
+  }
+
+  /**
+   * Sets the value of the 'params' field.
+   * @param value the value to set.
+   */
+  public void setParams(java.util.Map<java.lang.CharSequence,java.lang.CharSequence> value) {
+    this.params = value;
+  }
+
+  /**
    * Gets the value of the 'user_auth_string' field.
    */
   public java.lang.CharSequence getUserAuthString() {
@@ -134,6 +153,7 @@ public class group_by_value_request extends org.apache.avro.specific.SpecificRec
     private java.lang.CharSequence set_id;
     private java.util.List<java.lang.CharSequence> attributes;
     private java.lang.CharSequence value_attribute;
+    private java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params;
     private java.lang.CharSequence user_auth_string;
 
     /** Creates a new Builder */
@@ -161,9 +181,13 @@ public class group_by_value_request extends org.apache.avro.specific.SpecificRec
         this.value_attribute = (java.lang.CharSequence) data().deepCopy(fields()[2].schema(), other.value_attribute);
         fieldSetFlags()[2] = true;
       }
-      if (isValidValue(fields()[3], other.user_auth_string)) {
-        this.user_auth_string = (java.lang.CharSequence) data().deepCopy(fields()[3].schema(), other.user_auth_string);
+      if (isValidValue(fields()[3], other.params)) {
+        this.params = (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>) data().deepCopy(fields()[3].schema(), other.params);
         fieldSetFlags()[3] = true;
+      }
+      if (isValidValue(fields()[4], other.user_auth_string)) {
+        this.user_auth_string = (java.lang.CharSequence) data().deepCopy(fields()[4].schema(), other.user_auth_string);
+        fieldSetFlags()[4] = true;
       }
     }
 
@@ -242,6 +266,31 @@ public class group_by_value_request extends org.apache.avro.specific.SpecificRec
       return this;
     }
 
+    /** Gets the value of the 'params' field */
+    public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> getParams() {
+      return params;
+    }
+    
+    /** Sets the value of the 'params' field */
+    public avro.java.gpudb.group_by_value_request.Builder setParams(java.util.Map<java.lang.CharSequence,java.lang.CharSequence> value) {
+      validate(fields()[3], value);
+      this.params = value;
+      fieldSetFlags()[3] = true;
+      return this; 
+    }
+    
+    /** Checks whether the 'params' field has been set */
+    public boolean hasParams() {
+      return fieldSetFlags()[3];
+    }
+    
+    /** Clears the value of the 'params' field */
+    public avro.java.gpudb.group_by_value_request.Builder clearParams() {
+      params = null;
+      fieldSetFlags()[3] = false;
+      return this;
+    }
+
     /** Gets the value of the 'user_auth_string' field */
     public java.lang.CharSequence getUserAuthString() {
       return user_auth_string;
@@ -249,21 +298,21 @@ public class group_by_value_request extends org.apache.avro.specific.SpecificRec
     
     /** Sets the value of the 'user_auth_string' field */
     public avro.java.gpudb.group_by_value_request.Builder setUserAuthString(java.lang.CharSequence value) {
-      validate(fields()[3], value);
+      validate(fields()[4], value);
       this.user_auth_string = value;
-      fieldSetFlags()[3] = true;
+      fieldSetFlags()[4] = true;
       return this; 
     }
     
     /** Checks whether the 'user_auth_string' field has been set */
     public boolean hasUserAuthString() {
-      return fieldSetFlags()[3];
+      return fieldSetFlags()[4];
     }
     
     /** Clears the value of the 'user_auth_string' field */
     public avro.java.gpudb.group_by_value_request.Builder clearUserAuthString() {
       user_auth_string = null;
-      fieldSetFlags()[3] = false;
+      fieldSetFlags()[4] = false;
       return this;
     }
 
@@ -274,7 +323,8 @@ public class group_by_value_request extends org.apache.avro.specific.SpecificRec
         record.set_id = fieldSetFlags()[0] ? this.set_id : (java.lang.CharSequence) defaultValue(fields()[0]);
         record.attributes = fieldSetFlags()[1] ? this.attributes : (java.util.List<java.lang.CharSequence>) defaultValue(fields()[1]);
         record.value_attribute = fieldSetFlags()[2] ? this.value_attribute : (java.lang.CharSequence) defaultValue(fields()[2]);
-        record.user_auth_string = fieldSetFlags()[3] ? this.user_auth_string : (java.lang.CharSequence) defaultValue(fields()[3]);
+        record.params = fieldSetFlags()[3] ? this.params : (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>) defaultValue(fields()[3]);
+        record.user_auth_string = fieldSetFlags()[4] ? this.user_auth_string : (java.lang.CharSequence) defaultValue(fields()[4]);
         return record;
       } catch (Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

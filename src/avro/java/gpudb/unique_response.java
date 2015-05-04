@@ -6,12 +6,14 @@
 package avro.java.gpudb;  
 @SuppressWarnings("all")
 public class unique_response extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"unique_response\",\"namespace\":\"avro.java.gpudb\",\"fields\":[{\"name\":\"set_id\",\"type\":\"string\"},{\"name\":\"attribute\",\"type\":\"string\"},{\"name\":\"values\",\"type\":{\"type\":\"array\",\"items\":\"double\"}},{\"name\":\"values_str\",\"type\":{\"type\":\"array\",\"items\":\"string\"}},{\"name\":\"is_string\",\"type\":\"boolean\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"unique_response\",\"namespace\":\"avro.java.gpudb\",\"fields\":[{\"name\":\"set_id\",\"type\":\"string\"},{\"name\":\"attribute\",\"type\":\"string\"},{\"name\":\"values\",\"type\":{\"type\":\"array\",\"items\":\"double\"}},{\"name\":\"values_str\",\"type\":{\"type\":\"array\",\"items\":\"string\"}},{\"name\":\"is_string\",\"type\":\"boolean\"},{\"name\":\"status\",\"type\":\"string\"},{\"name\":\"params\",\"type\":{\"type\":\"map\",\"values\":\"string\"}}]}");
   @Deprecated public java.lang.CharSequence set_id;
   @Deprecated public java.lang.CharSequence attribute;
   @Deprecated public java.util.List<java.lang.Double> values;
   @Deprecated public java.util.List<java.lang.CharSequence> values_str;
   @Deprecated public boolean is_string;
+  @Deprecated public java.lang.CharSequence status;
+  @Deprecated public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params;
 
   /**
    * Default constructor.
@@ -21,12 +23,14 @@ public class unique_response extends org.apache.avro.specific.SpecificRecordBase
   /**
    * All-args constructor.
    */
-  public unique_response(java.lang.CharSequence set_id, java.lang.CharSequence attribute, java.util.List<java.lang.Double> values, java.util.List<java.lang.CharSequence> values_str, java.lang.Boolean is_string) {
+  public unique_response(java.lang.CharSequence set_id, java.lang.CharSequence attribute, java.util.List<java.lang.Double> values, java.util.List<java.lang.CharSequence> values_str, java.lang.Boolean is_string, java.lang.CharSequence status, java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params) {
     this.set_id = set_id;
     this.attribute = attribute;
     this.values = values;
     this.values_str = values_str;
     this.is_string = is_string;
+    this.status = status;
+    this.params = params;
   }
 
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
@@ -38,6 +42,8 @@ public class unique_response extends org.apache.avro.specific.SpecificRecordBase
     case 2: return values;
     case 3: return values_str;
     case 4: return is_string;
+    case 5: return status;
+    case 6: return params;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -50,6 +56,8 @@ public class unique_response extends org.apache.avro.specific.SpecificRecordBase
     case 2: values = (java.util.List<java.lang.Double>)value$; break;
     case 3: values_str = (java.util.List<java.lang.CharSequence>)value$; break;
     case 4: is_string = (java.lang.Boolean)value$; break;
+    case 5: status = (java.lang.CharSequence)value$; break;
+    case 6: params = (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -129,6 +137,36 @@ public class unique_response extends org.apache.avro.specific.SpecificRecordBase
     this.is_string = value;
   }
 
+  /**
+   * Gets the value of the 'status' field.
+   */
+  public java.lang.CharSequence getStatus() {
+    return status;
+  }
+
+  /**
+   * Sets the value of the 'status' field.
+   * @param value the value to set.
+   */
+  public void setStatus(java.lang.CharSequence value) {
+    this.status = value;
+  }
+
+  /**
+   * Gets the value of the 'params' field.
+   */
+  public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> getParams() {
+    return params;
+  }
+
+  /**
+   * Sets the value of the 'params' field.
+   * @param value the value to set.
+   */
+  public void setParams(java.util.Map<java.lang.CharSequence,java.lang.CharSequence> value) {
+    this.params = value;
+  }
+
   /** Creates a new unique_response RecordBuilder */
   public static avro.java.gpudb.unique_response.Builder newBuilder() {
     return new avro.java.gpudb.unique_response.Builder();
@@ -155,6 +193,8 @@ public class unique_response extends org.apache.avro.specific.SpecificRecordBase
     private java.util.List<java.lang.Double> values;
     private java.util.List<java.lang.CharSequence> values_str;
     private boolean is_string;
+    private java.lang.CharSequence status;
+    private java.util.Map<java.lang.CharSequence,java.lang.CharSequence> params;
 
     /** Creates a new Builder */
     private Builder() {
@@ -188,6 +228,14 @@ public class unique_response extends org.apache.avro.specific.SpecificRecordBase
       if (isValidValue(fields()[4], other.is_string)) {
         this.is_string = (java.lang.Boolean) data().deepCopy(fields()[4].schema(), other.is_string);
         fieldSetFlags()[4] = true;
+      }
+      if (isValidValue(fields()[5], other.status)) {
+        this.status = (java.lang.CharSequence) data().deepCopy(fields()[5].schema(), other.status);
+        fieldSetFlags()[5] = true;
+      }
+      if (isValidValue(fields()[6], other.params)) {
+        this.params = (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>) data().deepCopy(fields()[6].schema(), other.params);
+        fieldSetFlags()[6] = true;
       }
     }
 
@@ -315,6 +363,56 @@ public class unique_response extends org.apache.avro.specific.SpecificRecordBase
       return this;
     }
 
+    /** Gets the value of the 'status' field */
+    public java.lang.CharSequence getStatus() {
+      return status;
+    }
+    
+    /** Sets the value of the 'status' field */
+    public avro.java.gpudb.unique_response.Builder setStatus(java.lang.CharSequence value) {
+      validate(fields()[5], value);
+      this.status = value;
+      fieldSetFlags()[5] = true;
+      return this; 
+    }
+    
+    /** Checks whether the 'status' field has been set */
+    public boolean hasStatus() {
+      return fieldSetFlags()[5];
+    }
+    
+    /** Clears the value of the 'status' field */
+    public avro.java.gpudb.unique_response.Builder clearStatus() {
+      status = null;
+      fieldSetFlags()[5] = false;
+      return this;
+    }
+
+    /** Gets the value of the 'params' field */
+    public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> getParams() {
+      return params;
+    }
+    
+    /** Sets the value of the 'params' field */
+    public avro.java.gpudb.unique_response.Builder setParams(java.util.Map<java.lang.CharSequence,java.lang.CharSequence> value) {
+      validate(fields()[6], value);
+      this.params = value;
+      fieldSetFlags()[6] = true;
+      return this; 
+    }
+    
+    /** Checks whether the 'params' field has been set */
+    public boolean hasParams() {
+      return fieldSetFlags()[6];
+    }
+    
+    /** Clears the value of the 'params' field */
+    public avro.java.gpudb.unique_response.Builder clearParams() {
+      params = null;
+      fieldSetFlags()[6] = false;
+      return this;
+    }
+
     @Override
     public unique_response build() {
       try {
@@ -324,6 +422,8 @@ public class unique_response extends org.apache.avro.specific.SpecificRecordBase
         record.values = fieldSetFlags()[2] ? this.values : (java.util.List<java.lang.Double>) defaultValue(fields()[2]);
         record.values_str = fieldSetFlags()[3] ? this.values_str : (java.util.List<java.lang.CharSequence>) defaultValue(fields()[3]);
         record.is_string = fieldSetFlags()[4] ? this.is_string : (java.lang.Boolean) defaultValue(fields()[4]);
+        record.status = fieldSetFlags()[5] ? this.status : (java.lang.CharSequence) defaultValue(fields()[5]);
+        record.params = fieldSetFlags()[6] ? this.params : (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>) defaultValue(fields()[6]);
         return record;
       } catch (Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

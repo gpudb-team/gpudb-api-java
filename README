@@ -68,3 +68,21 @@ Added and adjusted appropriate audit params to many endpoints.
 3/2/2015 - 4.0.18
 Not auditing the schema now - maybe too big.
 Fixed a bug where the auth parameters were not properly initialized.
+
+3/25/2015 - 4.0.20 (4.0.19 was an unofficial release)
+Changed NamedSet println to debug msg in getChildrenFromServer.
+Changes due to group_by_value and unique endpoint schemas changing. Returns are kept compatible but calls require change and recompile.
+
+4/15/2015 - 4.0.22 (4.0.21 was an unofficial release)
+Added ranged statistics function support in API.
+Added new enum for ranged_statistics and corrected statistics enums.
+
+4/23/2015 - 4.0.23 
+Faster encoding for bulkadds
+New logging to trap request processing time accurately
+Removal of a debug like which made very large response.toString() to crash
+Added new endpoint /index (http://www.gpudb.com/gpudb-index/)
+
+5/4/2015 - 4.0.24
+Added bulk_delete_pk and bulk_select_pk API calls.
+Changed name to bulk_update_pk from bulk_updates_pk

@@ -6,10 +6,11 @@
 package avro.java.gpudb;  
 @SuppressWarnings("all")
 public class bulk_select_response extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"bulk_select_response\",\"namespace\":\"avro.java.gpudb\",\"fields\":[{\"name\":\"count_found\",\"type\":\"long\"},{\"name\":\"counts_found\",\"type\":{\"type\":\"array\",\"items\":\"long\"}},{\"name\":\"objects\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"array\",\"items\":\"bytes\"}}}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"bulk_select_response\",\"namespace\":\"avro.java.gpudb\",\"fields\":[{\"name\":\"count_found\",\"type\":\"long\"},{\"name\":\"counts_found\",\"type\":{\"type\":\"array\",\"items\":\"long\"}},{\"name\":\"objects\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"array\",\"items\":\"bytes\"}}},{\"name\":\"object_strs\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"array\",\"items\":\"string\"}}}]}");
   @Deprecated public long count_found;
   @Deprecated public java.util.List<java.lang.Long> counts_found;
   @Deprecated public java.util.List<java.util.List<java.nio.ByteBuffer>> objects;
+  @Deprecated public java.util.List<java.util.List<java.lang.CharSequence>> object_strs;
 
   /**
    * Default constructor.
@@ -19,10 +20,11 @@ public class bulk_select_response extends org.apache.avro.specific.SpecificRecor
   /**
    * All-args constructor.
    */
-  public bulk_select_response(java.lang.Long count_found, java.util.List<java.lang.Long> counts_found, java.util.List<java.util.List<java.nio.ByteBuffer>> objects) {
+  public bulk_select_response(java.lang.Long count_found, java.util.List<java.lang.Long> counts_found, java.util.List<java.util.List<java.nio.ByteBuffer>> objects, java.util.List<java.util.List<java.lang.CharSequence>> object_strs) {
     this.count_found = count_found;
     this.counts_found = counts_found;
     this.objects = objects;
+    this.object_strs = object_strs;
   }
 
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
@@ -32,6 +34,7 @@ public class bulk_select_response extends org.apache.avro.specific.SpecificRecor
     case 0: return count_found;
     case 1: return counts_found;
     case 2: return objects;
+    case 3: return object_strs;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -42,6 +45,7 @@ public class bulk_select_response extends org.apache.avro.specific.SpecificRecor
     case 0: count_found = (java.lang.Long)value$; break;
     case 1: counts_found = (java.util.List<java.lang.Long>)value$; break;
     case 2: objects = (java.util.List<java.util.List<java.nio.ByteBuffer>>)value$; break;
+    case 3: object_strs = (java.util.List<java.util.List<java.lang.CharSequence>>)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -91,6 +95,21 @@ public class bulk_select_response extends org.apache.avro.specific.SpecificRecor
     this.objects = value;
   }
 
+  /**
+   * Gets the value of the 'object_strs' field.
+   */
+  public java.util.List<java.util.List<java.lang.CharSequence>> getObjectStrs() {
+    return object_strs;
+  }
+
+  /**
+   * Sets the value of the 'object_strs' field.
+   * @param value the value to set.
+   */
+  public void setObjectStrs(java.util.List<java.util.List<java.lang.CharSequence>> value) {
+    this.object_strs = value;
+  }
+
   /** Creates a new bulk_select_response RecordBuilder */
   public static avro.java.gpudb.bulk_select_response.Builder newBuilder() {
     return new avro.java.gpudb.bulk_select_response.Builder();
@@ -115,6 +134,7 @@ public class bulk_select_response extends org.apache.avro.specific.SpecificRecor
     private long count_found;
     private java.util.List<java.lang.Long> counts_found;
     private java.util.List<java.util.List<java.nio.ByteBuffer>> objects;
+    private java.util.List<java.util.List<java.lang.CharSequence>> object_strs;
 
     /** Creates a new Builder */
     private Builder() {
@@ -140,6 +160,10 @@ public class bulk_select_response extends org.apache.avro.specific.SpecificRecor
       if (isValidValue(fields()[2], other.objects)) {
         this.objects = (java.util.List<java.util.List<java.nio.ByteBuffer>>) data().deepCopy(fields()[2].schema(), other.objects);
         fieldSetFlags()[2] = true;
+      }
+      if (isValidValue(fields()[3], other.object_strs)) {
+        this.object_strs = (java.util.List<java.util.List<java.lang.CharSequence>>) data().deepCopy(fields()[3].schema(), other.object_strs);
+        fieldSetFlags()[3] = true;
       }
     }
 
@@ -217,6 +241,31 @@ public class bulk_select_response extends org.apache.avro.specific.SpecificRecor
       return this;
     }
 
+    /** Gets the value of the 'object_strs' field */
+    public java.util.List<java.util.List<java.lang.CharSequence>> getObjectStrs() {
+      return object_strs;
+    }
+    
+    /** Sets the value of the 'object_strs' field */
+    public avro.java.gpudb.bulk_select_response.Builder setObjectStrs(java.util.List<java.util.List<java.lang.CharSequence>> value) {
+      validate(fields()[3], value);
+      this.object_strs = value;
+      fieldSetFlags()[3] = true;
+      return this; 
+    }
+    
+    /** Checks whether the 'object_strs' field has been set */
+    public boolean hasObjectStrs() {
+      return fieldSetFlags()[3];
+    }
+    
+    /** Clears the value of the 'object_strs' field */
+    public avro.java.gpudb.bulk_select_response.Builder clearObjectStrs() {
+      object_strs = null;
+      fieldSetFlags()[3] = false;
+      return this;
+    }
+
     @Override
     public bulk_select_response build() {
       try {
@@ -224,6 +273,7 @@ public class bulk_select_response extends org.apache.avro.specific.SpecificRecor
         record.count_found = fieldSetFlags()[0] ? this.count_found : (java.lang.Long) defaultValue(fields()[0]);
         record.counts_found = fieldSetFlags()[1] ? this.counts_found : (java.util.List<java.lang.Long>) defaultValue(fields()[1]);
         record.objects = fieldSetFlags()[2] ? this.objects : (java.util.List<java.util.List<java.nio.ByteBuffer>>) defaultValue(fields()[2]);
+        record.object_strs = fieldSetFlags()[3] ? this.object_strs : (java.util.List<java.util.List<java.lang.CharSequence>>) defaultValue(fields()[3]);
         return record;
       } catch (Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

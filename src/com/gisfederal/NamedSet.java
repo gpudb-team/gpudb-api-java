@@ -15,6 +15,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.avro.Schema;
 import org.apache.log4j.Logger;
@@ -22,6 +26,7 @@ import org.apache.log4j.Logger;
 import avro.java.gpudb.add_object_response;
 import avro.java.gpudb.bounding_box_response;
 import avro.java.gpudb.bulk_add_response;
+import avro.java.gpudb.bulk_select_pk_response;
 import avro.java.gpudb.bulk_select_response;
 import avro.java.gpudb.delete_object_response;
 import avro.java.gpudb.filter_by_bounds_response;
@@ -57,6 +62,7 @@ import com.gisfederal.semantic.types.SemanticType;
 import com.gisfederal.semantic.types.SemanticTypeEnum;
 import com.gisfederal.semantic.types.Time;
 import com.gisfederal.semantic.types.Track;
+import com.gisfederal.utils.GPUdbApiUtil;
 import com.gisfederal.utils.SpatialOperationEnum;
 import com.gisfederal.utils.StatisticsOptionsEnum;
 
@@ -199,7 +205,7 @@ public class NamedSet{
 	 */
 	public List<SourceType> listAllSources(String sourceKey) throws GPUdbException{
 		List<SourceType> sources = new ArrayList<SourceType>();
-		unique_response response = gPUdb.do_unique(this, sourceKey);
+		unique_response response = gPUdb.do_unique(this, sourceKey, GPUdbApiUtil.getEmptyParams());
 		List<CharSequence> values = response.getValuesStr();
 		for(CharSequence composite : values) {
 			// each composite a source type object
@@ -1049,16 +1055,44 @@ public class NamedSet{
 	}
 
 	private List createObjectList(List<ByteBuffer> bytesList) {
-		Schema schema = this.type.getAvroSchema();
-		log.debug("schema "+schema);
+		//Schema schema = this.type.getAvroSchema();
+		//log.info("createObjectList - list size "+ bytesList.size());
 
 		List objectList = new ArrayList();
 		for(ByteBuffer bytes : bytesList){
 			// binary decode
 			objectList.add(this.type.decode(bytes));
-			log.debug("Added object to the list");			
+			//log.debug("Added object to the list");			
 		}
+		//log.info("createObjectList - done ");
 		return objectList;
+	}
+	
+	/**
+	 * This is a helper routine returns a list of list of objects for bulk select call - only 1 object per
+	 * pk is returned.
+	 * @param expressions
+	 * @param params
+	 * @return A list of list of objects
+	 */
+	public List<List> bulkSelectObjectsPk(String global_expression, 
+			Map<CharSequence, List<CharSequence>> expressions, Map<java.lang.CharSequence,java.lang.CharSequence> params) {
+		
+		log.info(" In GPUDB Api ...ready to select. Expression length!! " + expressions.size());
+		
+		bulk_select_pk_response bsr = gPUdb.do_bulk_select_pk(this, expressions, params);
+		
+		log.info(" In GPUDB Api ...back from select...will create objects now...");
+		
+		List<List> listOfList = Collections.synchronizedList(new ArrayList<List>());
+		List<List<ByteBuffer>> llbb = new ArrayList<List<ByteBuffer>>();
+		
+		log.info(" In GPUDB Api ....." + bsr.getObjects().size());
+		
+		llbb.add(bsr.getObjects());
+		processReturnList(listOfList, llbb);
+		log.info(" In GPUDB Api ...Object creation done...will return objects now..." + listOfList.size());
+		return listOfList;
 	}
 	
 	
@@ -1072,17 +1106,71 @@ public class NamedSet{
 	public List<List> bulkSelectObjects(String global_expression, 
 			List<java.lang.CharSequence> expressions, Map<java.lang.CharSequence,java.lang.CharSequence> params) {
 		
+		log.info(" In GPUDB Api ...ready to select. Expression length!! " + expressions.size());
 		bulk_select_response bsr = gPUdb.do_bulk_selects(this, global_expression, expressions, params);
+		log.info(" In GPUDB Api ...back from select...will create objects now...");
 		
-		List<List> listOfList = new ArrayList<List>();
-		
+		List<List> listOfList = Collections.synchronizedList(new ArrayList<List>());
 		List<List<ByteBuffer>> llbb = bsr.getObjects();
-		for( List<ByteBuffer> lbb : llbb ) {
-			
-			List rows = createObjectList(lbb);
-			listOfList.add(rows);
-		}
+		processReturnList(listOfList, llbb);
+		log.info(" In GPUDB Api ...Object creation done...will return objects now..." + listOfList.size());
 		return listOfList;
+	}
+
+	private void processReturnList(List<List> listOfList,
+			List<List<ByteBuffer>> llbb) {
+		int perThreadBulk = 1000;
+        ExecutorService executor = Executors.newFixedThreadPool(30);
+        int tasks = (int) Math.ceil(llbb.size()/perThreadBulk);
+        if( tasks == 0 ) tasks = 1;
+        CountDownLatch latch = new CountDownLatch(tasks);
+        
+        //System.out.println(" tasks size " + tasks);
+
+        List<List> tempL = new ArrayList<List>();
+        int bulk = 1;
+        for( List<ByteBuffer> lbb : llbb ) {
+        	tempL.add(lbb);
+        	if( bulk++ >= perThreadBulk ) {
+        		executor.submit(new DecoderTask(this, tempL, listOfList, latch));
+        		tempL = new ArrayList<List>();
+        		bulk = 1;
+        	} 
+        }
+        if( tempL.size() > 0 ) {
+        	executor.submit(new DecoderTask(this, tempL, listOfList, latch));
+        }
+        try {
+        	latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        executor.shutdown();
+	}
+	
+	class DecoderTask implements Runnable {
+		NamedSet ns;
+		CountDownLatch mylatch;
+		List<List> listOfList;
+		List<List> myllbb;
+		
+		public DecoderTask(NamedSet ns, List<List> llbb,
+				List<List> listOfList2, CountDownLatch latch2) {
+			this.ns = ns;
+			this.mylatch = latch2;
+			this.listOfList = listOfList2;
+			this.myllbb = llbb;
+		}
+
+		@Override
+		public void run() {
+			//System.out.println(Thread.currentThread() + " XXX " + myllbb.size());
+			for( List<ByteBuffer> lbb : myllbb ) {
+				List rows = createObjectList(lbb);
+				listOfList.add(rows);
+			}
+			mylatch.countDown();
+		}
 	}
 
 	/**
@@ -1400,20 +1488,16 @@ public class NamedSet{
 		return group_count_map;
 	}
 
-	// Accepts a value_attribute field in computing the sum of the value_attribute field. 
+	// Accepts an attribute field in computing the sum of the value_attribute field. 
 	// If the value_attribute is "" then it behaves like do_group_by and returns counts of group_by fields
-	public Map<String, Double> do_group_by_value(String attribute, String value_attribute) throws GPUdbException {
-		group_by_value_response response =  gPUdb.do_group_by_value(this, Arrays.asList(attribute), value_attribute);
-		Map<CharSequence, Double> count_map = response.getCountMap();
-
+	public Map<String, Double> do_group_by_value(String attribute, String value_attribute,
+			Map<CharSequence,CharSequence> params) throws GPUdbException {
+		group_by_value_response response =  gPUdb.do_group_by_value(this, Arrays.asList(attribute), value_attribute, params);
+		
 		Map<String, Double> group_count_map = new HashMap<String, Double>();
-		for (CharSequence key : count_map.keySet()) {
-			try {
-				group_count_map.put(key.toString(), count_map.get(key));
-			} catch (Exception e) {
-				log.error(e.toString());
-				throw new GPUdbException(e.getMessage());
-			}
+		int cnt = response.getGroupKeys().size();
+		for( int ii = 0; ii < cnt; ii++ ) {
+			group_count_map.put(response.getGroupKeys().get(ii).toString(), Double.valueOf(response.getGroupValues().get(ii)));
 		}
 		return group_count_map;
 	}
@@ -1531,7 +1615,7 @@ public class NamedSet{
 	 * @param attribute - attribute of the set for which unique values are sought
 	 */
 	public unique_response do_unique(String attribute) {
-		return this.gPUdb.do_unique(this, attribute);
+		return this.gPUdb.do_unique(this, attribute, GPUdbApiUtil.getEmptyParams());
 	}
 	
 	/**
@@ -1539,7 +1623,7 @@ public class NamedSet{
 	 * @param attribute - attribute of the set for which unique values are sought
 	 */
 	public List<CharSequence> getUniqueTrackIds(String attribute) {
-		unique_response tr = this.gPUdb.do_unique(this, Track.groupingFieldName);
+		unique_response tr = this.gPUdb.do_unique(this, Track.groupingFieldName, GPUdbApiUtil.getEmptyParams());
 		return tr.getValuesStr();
 	}
 
@@ -1630,5 +1714,5 @@ public class NamedSet{
 	 */	
 	public NamedSet(SetId id, GPUdb gPUdb, Type type) {
 		initialize(id, gPUdb, type);
-	}		
+	}	
 }

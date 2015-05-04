@@ -1,0 +1,10 @@
+{
+    "namespace" : "avro.java.gpudb",
+    "type" : "record",
+    "name" : "group_by_map_page_request",
+    "fields" : [
+        { "name" : "map_id", "type" : "string" },
+        { "name" : "page_number", "type" : "int" },
+        { "name" : "user_auth_string", "type" : "string" }
+    ]
+}

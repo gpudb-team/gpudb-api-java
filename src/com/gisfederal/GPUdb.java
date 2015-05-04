@@ -32,8 +32,11 @@ import avro.java.gpudb.add_object_response;
 import avro.java.gpudb.add_symbol_response;
 import avro.java.gpudb.bounding_box_response;
 import avro.java.gpudb.bulk_add_response;
+import avro.java.gpudb.bulk_delete_pk_response;
 import avro.java.gpudb.bulk_delete_response;
+import avro.java.gpudb.bulk_select_pk_response;
 import avro.java.gpudb.bulk_select_response;
+import avro.java.gpudb.bulk_update_pk_response;
 import avro.java.gpudb.bulk_update_response;
 import avro.java.gpudb.clear_response;
 import avro.java.gpudb.convex_hull_response;
@@ -63,6 +66,7 @@ import avro.java.gpudb.get_type_info_response;
 import avro.java.gpudb.group_by_response;
 import avro.java.gpudb.group_by_value_response;
 import avro.java.gpudb.histogram_response;
+import avro.java.gpudb.index_response;
 import avro.java.gpudb.join_incremental_response;
 import avro.java.gpudb.join_response;
 import avro.java.gpudb.join_setup_response;
@@ -72,6 +76,7 @@ import avro.java.gpudb.merge_sets_response;
 import avro.java.gpudb.new_set_response;
 import avro.java.gpudb.populate_full_tracks_response;
 import avro.java.gpudb.predicate_join_response;
+import avro.java.gpudb.ranged_statistics_response;
 import avro.java.gpudb.register_parent_set_response;
 import avro.java.gpudb.register_trigger_nai_response;
 import avro.java.gpudb.register_trigger_range_response;
@@ -101,7 +106,9 @@ import com.gisfederal.request.AddObjectRequest;
 import com.gisfederal.request.BulkAddRequest;
 import com.gisfederal.request.BulkDeleteRequest;
 import com.gisfederal.request.BulkSelectRequest;
+import com.gisfederal.request.BulkSelectRequestPK;
 import com.gisfederal.request.BulkUpdateRequest;
+import com.gisfederal.request.BulkUpdateRequestPK;
 import com.gisfederal.request.ClearRequest;
 import com.gisfederal.request.CreateTypeWithAnnotationsRequest;
 import com.gisfederal.request.DeleteObjectRequest;
@@ -111,13 +118,16 @@ import com.gisfederal.request.GetObjectsRequest;
 import com.gisfederal.request.GetOrphansRequest;
 import com.gisfederal.request.GetSetPropertiesRequest;
 import com.gisfederal.request.GetSortedSetRequest;
+import com.gisfederal.request.GroupByValueRequest;
 import com.gisfederal.request.HistogramRequest;
+import com.gisfederal.request.IndexRequest;
 import com.gisfederal.request.ListBasedOnTypeRequest;
 import com.gisfederal.request.ListRequest;
 import com.gisfederal.request.MergeSetsRequest;
 import com.gisfederal.request.NewSetRequest;
 import com.gisfederal.request.PopulateFullTracksRequest;
 import com.gisfederal.request.PredicateJoinRequest;
+import com.gisfederal.request.RangedStatisticsRequest;
 import com.gisfederal.request.RegisterParentSetRequest;
 import com.gisfederal.request.Request;
 import com.gisfederal.request.RequestConnection;
@@ -126,10 +136,13 @@ import com.gisfederal.request.SelectDeleteRequest;
 import com.gisfederal.request.SelectUpdateRequest;
 import com.gisfederal.request.SpatialQueryRequest;
 import com.gisfederal.request.SpatialSetQueryRequest;
+import com.gisfederal.request.UniqueRequest;
 import com.gisfederal.request.UpdateObjectRequest;
 import com.gisfederal.request.UpdateSetMetadataRequest;
 import com.gisfederal.request.UpdateSetPropertiesRequest;
 import com.gisfederal.semantic.types.SemanticTypeEnum;
+import com.gisfederal.utils.IndexActionsEnum;
+import com.gisfederal.utils.RangedStatisticsOptionsEnum;
 import com.gisfederal.utils.SpatialOperationEnum;
 import com.gisfederal.utils.StatisticsOptionsEnum;
 import com.google.gson.Gson;
@@ -237,8 +250,7 @@ public class GPUdb {
 	
 	public String getVersion() {
 		//return getClass().getPackage().getImplementationVersion();
-		return "4.0.18";
-	}
+		return "4.0.23";	}
 
 	/**
 	 * Set the socket and context given the address.  This is used by the triggering system. Ex: "tcp://192.168.1.101:9001"
@@ -893,9 +905,9 @@ public class GPUdb {
 	 * Find the unique values of a specified attribute
 	 * @param attribute - attribute of the set for which unique values are sought
 	 */
-	public unique_response do_unique(NamedSet in_set, String attribute) {
+	public unique_response do_unique(NamedSet in_set, String attribute, Map<CharSequence,CharSequence> params) {
 		this.log.debug("Do Unique");
-		Request request = this.request_factory.create_request("/unique", in_set.get_setid(), attribute);
+		Request request = new UniqueRequest(this, "/unique", in_set.get_setid(), attribute, params);
 		unique_response response = (unique_response)AvroUtils.convert_to_object_from_gpudb_response(unique_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());
 		return response;	
@@ -1094,11 +1106,12 @@ public class GPUdb {
 
 	// Accepts a value_attribute field in computing the sum of the value_attribute field. 
 	// If the value_attribute is "" then it behaves like do_group_by and returns counts of group_by fields
-	public group_by_value_response do_group_by_value(NamedSet namedSet, List<String> attributes, String value_attribute) throws GPUdbException{
+	public group_by_value_response do_group_by_value(NamedSet namedSet, List<String> attributes, String value_attribute,
+			Map<CharSequence,CharSequence> params) throws GPUdbException{
 		this.log.debug("Do group by");
 
-		Request request = this.request_factory.create_request("/groupbyvalue", namedSet.get_setid(), attributes, value_attribute);
-
+		Request request = new GroupByValueRequest(this, "/groupbyvalue", namedSet.get_setid(), attributes, value_attribute, params);	 
+				
 		/// decode 		
 		group_by_value_response response = (group_by_value_response)AvroUtils.convert_to_object_from_gpudb_response(group_by_value_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());
@@ -1999,6 +2012,69 @@ public class GPUdb {
 	}
 	
 	/**
+	 * Bulk delete request with PK. See gpudb.com API documentation for a more detailed description. See test code
+	 * as to how to set the data structures up.
+	 * @param in_set - Set to work in
+	 * @param expressions - first list - expressions
+	 * @param params - ignored for now. pass and empty map.
+	 * @return - bulk_update_pk_response is returned. 
+	 * @throws GPUdbException
+	 */
+	public bulk_delete_pk_response do_bulk_delete_pk(NamedSet in_set,  
+			Map<CharSequence,java.util.List<CharSequence>> expressions, Map<java.lang.CharSequence,java.lang.CharSequence> params) 
+					throws GPUdbException{		
+		this.log.debug("Do bulk delete pk");
+		Request request = new BulkSelectRequestPK(this, "/bulkdeletepk", in_set, expressions, params);
+		bulk_delete_pk_response response = (bulk_delete_pk_response)AvroUtils.convert_to_object_from_gpudb_response(bulk_delete_pk_response.SCHEMA$, request.post_to_gpudb(true));		
+		return response;		
+	}
+	
+	/**
+	 * Bulk select request with PK. See gpudb.com API documentation for a more detailed description. See test code
+	 * as to how to set the data structures up.
+	 * @param in_set - Set to work in
+	 * @param expressions - first list - expressions
+	 * @param params - ignored for now. pass and empty map.
+	 * @return - bulk_update_pk_response is returned. 
+	 * @throws GPUdbException
+	 */
+	public bulk_select_pk_response do_bulk_select_pk(NamedSet in_set,  
+			Map<CharSequence,java.util.List<CharSequence>> expressions, Map<java.lang.CharSequence,java.lang.CharSequence> params) 
+					throws GPUdbException{		
+		this.log.debug("Do bulk select pk");
+		Request request = new BulkSelectRequestPK(this, "/bulkselectpk", in_set, expressions, params);
+		bulk_select_pk_response response = (bulk_select_pk_response)AvroUtils.convert_to_object_from_gpudb_response(bulk_select_pk_response.SCHEMA$, request.post_to_gpudb(true));		
+		return response;		
+	}
+	
+	/**
+	 * Bulk update request for PK. See gpudb.com API documentation for a more detailed description. See test code
+	 * as to how to set the data structures up.
+	 * @param in_set - Set to work in
+	 * @param expressions - first list - expressions
+	 * @param newValueMaps - second list - maps of values
+	 * @param insertObjects - third list - insert objects (maybe empty)
+	 * @param params - ignored for now. pass and empty map.
+	 * @return - bulk_update_pk_response is returned. 
+	 * @throws GPUdbException
+	 */
+	public bulk_update_pk_response do_bulk_update_pk(NamedSet in_set,  
+			Map<CharSequence,java.util.List<CharSequence>> expressions, Map<java.lang.CharSequence, java.lang.CharSequence> newValueMaps, 
+			List<Object> insertObjects, Map<java.lang.CharSequence,java.lang.CharSequence> params) throws GPUdbException{		
+		this.log.debug("Do bulk updates pk");
+				
+		// get the request
+		Request request = new BulkUpdateRequestPK(this, "/bulkupdatepk", in_set, expressions, newValueMaps,
+				insertObjects, params);
+
+		/// decode 		
+		bulk_update_pk_response response = (bulk_update_pk_response)AvroUtils.convert_to_object_from_gpudb_response(bulk_update_pk_response.SCHEMA$, request.post_to_gpudb(true));		
+		log.debug("response:"+response.toString());
+
+		return response;		
+	}
+	
+	/**
 	 * Bulk update request. Global expression acts as an initial filter. There are 3 tandem list. First is the list of
 	 * expressions which are matched against set data. For each match, the corresponding newValueObject is used (from the
 	 * second tandem list) to update the objects. If no match is found for an expression, and if a corresponding non-empty
@@ -2047,7 +2123,7 @@ public class GPUdb {
 
 		/// decode 		
 		bulk_select_response response = (bulk_select_response)AvroUtils.convert_to_object_from_gpudb_response(bulk_select_response.SCHEMA$, request.post_to_gpudb(true));		
-		log.debug("response:"+response.toString());
+		//log.debug("response:"+response.toString());
 
 		return response;		
 	}
@@ -2660,6 +2736,36 @@ public class GPUdb {
 		return response;
 	}
 	
+	public ranged_statistics_response do_ranged_statistics (NamedSet namedSet, List<RangedStatisticsOptionsEnum> stats, String attribute,
+			String value_attribute, double start, double end, double interval, String select_expression,
+			Map<String, String> params) {
+		
+		this.log.debug("Do get do_ranged_statistics");
+		
+		// Convert stats to a comma separated string
+		StringBuffer comma_separated_stats = new StringBuffer();
+		for (int i=0; i< stats.size(); i++) {
+			if (i < stats.size() - 1) {
+				comma_separated_stats.append(stats.get(i).value() + ",");
+			} else {
+				comma_separated_stats.append(stats.get(i).value());
+			}
+		}
+
+		// get the request
+		log.debug("Build the request");
+		Request request = new RangedStatisticsRequest(this, "/rangedstatistics", namedSet.get_setid(), attribute, value_attribute, 
+				comma_separated_stats.toString(), interval, start, end, select_expression, params); 
+				
+				
+		/// decode 		
+		ranged_statistics_response response = (ranged_statistics_response)AvroUtils.convert_to_object_from_gpudb_response(ranged_statistics_response.SCHEMA$, 
+				request.post_to_gpudb());		
+		log.debug("response:"+response.toString());
+
+		return response;
+	}
+	
 	public statistics_response do_statistics (NamedSet namedSet, List<StatisticsOptionsEnum> stats, String attribute) {
 		
 		this.log.debug("Do get do_statistics");
@@ -2722,6 +2828,24 @@ public class GPUdb {
 		Request request = new UpdateSetMetadataRequest(this, "/updatesetmetadata", set_ids, metadata_map);
 		update_set_metadata_response response = (update_set_metadata_response)AvroUtils.convert_to_object_from_gpudb_response(update_set_metadata_response.SCHEMA$, request.post_to_gpudb());		
 		log.debug("response:"+response.toString());				
+		return response;
+	}
+
+	public index_response do_index (NamedSet namedSet, String attribute,
+			IndexActionsEnum action, Map<String, String> params) {
+
+		this.log.debug("Do index");
+
+		// get the request
+		log.debug("Build the request");
+		Request request = new IndexRequest(this, "/index", namedSet.get_setid(), attribute, action.toString(), params);
+
+
+		/// decode
+		index_response response = (index_response)AvroUtils.convert_to_object_from_gpudb_response(index_response.SCHEMA$,
+				request.post_to_gpudb());
+		log.debug("response:"+response.toString());
+
 		return response;
 	}
 
