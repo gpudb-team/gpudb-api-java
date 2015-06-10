@@ -28,25 +28,25 @@ import com.gisfederal.utils.IgnoreOnIngest;
 public class AddObjectRequest extends Request{
 
 	// Given the object to add and the set id of named set to add it too
-	public AddObjectRequest(GPUdb gPUdb, String file, Object obj, NamedSet ns, Map<java.lang.CharSequence,java.lang.CharSequence> params) 
+	public AddObjectRequest(GPUdb gPUdb, String file, Object obj, NamedSet ns, Map<java.lang.CharSequence,java.lang.CharSequence> params)
 			throws GPUdbException{
 		this.gPUdb = gPUdb;
 		this.file = file;
 		this.log = Logger.getLogger(AddObjectRequest.class);
-		
+
 		this.setId = ns.get_setid().toString();
-		
+
 		ByteBuffer serialized = encodeObject(gPUdb, file, obj, ns, log);
 
 		// add to avro object
-		add_object_request request = new add_object_request(ns.get_setid().get_id(), serialized, "", "BINARY", params);	
+		add_object_request request = new add_object_request(ns.get_setid().get_id(), serialized, "", "BINARY", params);
 		log.debug(request.getObjectData().toString());
 
-		log.debug("Add object request created");	
+		log.debug("Add object request created");
 		log.debug("Request byte[] length:"+AvroUtils.convert_to_bytes(request).length);
 
 		this.requestData = new RequestData(AvroUtils.convert_to_bytes(request));
-		
+
 		// Create log msg for audit
 		createAuditMsg(request);
 	}
@@ -61,7 +61,7 @@ public class AddObjectRequest extends Request{
 
 		setAuditMessage(msg.toString());
 	}
-	
+
 	public static ByteBuffer encodeObject(GPUdb gPUdb, String file, Object obj, NamedSet ns, Logger logger) {
 
 		// grab schema
@@ -71,28 +71,31 @@ public class AddObjectRequest extends Request{
 		//GenericDatumWriter writer = new GenericDatumWriter(schema);
 		EncoderFactory encoderFactory = new EncoderFactory();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		logger.debug("After building encoder factory");				
+		logger.debug("After building encoder factory");
 
-		// build the bytes		
+		// build the bytes
 		try {
 			GenericDatumWriter<GenericRecord> writer = new GenericDatumWriter<GenericRecord>(schema);
 			GenericRecord record = new GenericData.Record(schema);
 
-			// different procedure if this is generic object
-			if((Class)type.getTypeClass() == GenericObject.class) {
-				logger.debug("Type is a generic object");				
-				
+			if (obj instanceof GenericRecord) {
+                record = (GenericRecord) obj;
+            }
+			else if(type.getTypeClass() == GenericObject.class) {
+		        // different procedure if this is generic object
+				logger.debug("Type is a generic object");
+
 				GenericObject go = (GenericObject)obj;
 				Iterator iter = go.dataMap.entrySet().iterator();
 				while(iter.hasNext()) {
 					Map.Entry pairs = (Map.Entry)iter.next();
-					
+
 					// figure out the type of this field; use that to decode the value
 					String field_name = (String)pairs.getKey();
 					String field_value = (String)pairs.getValue(); // stored as string in the map
 					Schema.Field field = schema.getField(field_name);
 					Schema.Type field_type =field.schema().getType();
-					
+
 					if(Schema.Type.STRING == field_type) {
 						record.put(field_name, field_value);
 					} else if(Schema.Type.FLOAT == field_type) {
@@ -106,29 +109,29 @@ public class AddObjectRequest extends Request{
 					} else {
 						logger.error("Unsupported type:"+field_type);
 					}
-					// NOTE: no bytes														
-					logger.debug("Added:"+pairs.getKey()+" value:"+pairs.getValue());	
-					
+					// NOTE: no bytes
+					logger.debug("Added:"+pairs.getKey()+" value:"+pairs.getValue());
+
 					/* No need to remove the element. SRB - 2/4/2015
 				    iter.remove();
 				    */
 				}
 			} else {
 				logger.debug("Type is NOT a generic object");
-				// need to figure out all the fields and add them to the record	
+				// need to figure out all the fields and add them to the record
 				// NOTE: in order for this to work the class must be public too
 				Field[] fields = obj.getClass().getFields();
 				for(Field field : fields){
 					String fieldType = field.getType().getSimpleName().toLowerCase();
 					String fieldName = field.getName();
-					
+
 					Annotation annotation = field.getAnnotation(IgnoreOnIngest.class);
 				    logger.debug("Annotation for field : " + fieldName + " is : " + annotation);
 					if( annotation instanceof IgnoreOnIngest ) {
 						// If the field is annotated IgnoreOnIngest, skip it
 						continue;
 					}
-					
+
 					logger.debug("fieldName:"+fieldName+" fieldType:"+fieldType);
 					if(fieldType.equals("double")){
 						// field.getDouble(obj) will get, as a double, the field for this object; then we put it into the record with this name
@@ -148,7 +151,7 @@ public class AddObjectRequest extends Request{
 						record.put(fieldName, field.get(obj).toString());
 					} else if (fieldType.equals("bytebuffer")) {
 						logger.debug("record.put("+fieldName+","+field.get(obj).toString());
-						record.put(fieldName, (ByteBuffer)field.get(obj));
+						record.put(fieldName, field.get(obj));
 					} else {
 						logger.error("Unhandled field; fieldType:"+fieldType);
 					}
@@ -156,7 +159,7 @@ public class AddObjectRequest extends Request{
 			}
 			Encoder encoder = encoderFactory.binaryEncoder(baos, null);//null just means give me a new one
 
-			writer.write(record, encoder);	
+			writer.write(record, encoder);
 			encoder.flush();
 
 			baos.flush();
@@ -166,7 +169,7 @@ public class AddObjectRequest extends Request{
 			logger.error(" Exception received ", e);
 			throw new GPUdbException("Error writing avro encoding of object:"+e.toString());
 		}
-		// put the resulting byte array into the bytebuffer 
+		// put the resulting byte array into the bytebuffer
 		logger.debug("baos.toByteArray().length:"+baos.toByteArray().length);
 		ByteBuffer serialized = ByteBuffer.wrap(baos.toByteArray());
 		logger.debug("serialized:"+serialized.toString());

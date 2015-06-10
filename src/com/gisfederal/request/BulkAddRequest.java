@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.gisfederal.request;
 
@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -54,7 +55,7 @@ public class BulkAddRequest extends Request {
 		 * AddObjectRequest.encodeObject(gPUdb, file, obj, ns, log); // add to
 		 * list binaryList.add(serialized); }
 		 */
-		this.log.info("BulkAddRequest new way data in millis "
+		this.log.debug("BulkAddRequest new way data in millis "
 				+ (System.currentTimeMillis() - start));
 
 		// list of string encodings
@@ -119,37 +120,40 @@ public class BulkAddRequest extends Request {
 	}
 
 	private List<ByteBuffer> fastEncode(List<Object> list_obj, NamedSet ns) {
-		List binaryList = new ArrayList();
+		List<ByteBuffer> binaryList = new ArrayList<ByteBuffer>();
 
 		Type type = ns.getType();
 		Schema schema = type.getAvroSchema();
 		try {
-			GenericDatumWriter writer = new GenericDatumWriter(schema);
+			GenericDatumWriter<GenericRecord> writer =
+			    new GenericDatumWriter<GenericRecord>(schema);
 			GenericRecord record = new GenericData.Record(schema);
-			
-			boolean genericObjectType = (Class)type.getTypeClass() == GenericObject.class;
+
+			boolean genericObjectType = type.getTypeClass() == GenericObject.class;
 
 			Field[] fields = null;
-			int cnt = 0;
-			for (Iterator localIterator = list_obj.iterator(); localIterator
+			for (Iterator<Object> localIterator = list_obj.iterator(); localIterator
 					.hasNext();) {
 
 				Object obj = localIterator.next();
 				EncoderFactory encoderFactory = new EncoderFactory();
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-				if( genericObjectType ) {
+				if (obj instanceof GenericRecord) {
+				    record = (GenericRecord) obj;
+				}
+				else if( genericObjectType ) {
 					GenericObject go = (GenericObject)obj;
-					Iterator iter = go.dataMap.entrySet().iterator();
+					Iterator<Entry<String, String>> iter = go.dataMap.entrySet().iterator();
 					while(iter.hasNext()) {
-						Map.Entry pairs = (Map.Entry)iter.next();
-						
+						Map.Entry<String, String> pairs = iter.next();
+
 						// figure out the type of this field; use that to decode the value
-						String field_name = (String)pairs.getKey();
-						String field_value = (String)pairs.getValue(); // stored as string in the map
+						String field_name = pairs.getKey();
+						String field_value = pairs.getValue(); // stored as string in the map
 						Schema.Field field = schema.getField(field_name);
 						Schema.Type field_type =field.schema().getType();
-						
+
 						if(Schema.Type.STRING == field_type) {
 							record.put(field_name, field_value);
 						} else if(Schema.Type.FLOAT == field_type) {
@@ -168,12 +172,12 @@ public class BulkAddRequest extends Request {
 					if (fields == null) {
 						fields = obj.getClass().getFields();
 					}
-	
+
 					for (Field field : fields) {
 						String fieldName = field.getName();
-	
-						Class fieldType = field.getType();
-	
+
+						Class<?> fieldType = field.getType();
+
 						Annotation annotation = field
 								.getAnnotation(IgnoreOnIngest.class);
 						if (!(annotation instanceof IgnoreOnIngest)) {
@@ -192,13 +196,13 @@ public class BulkAddRequest extends Request {
 							else if (fieldType == String.class)
 								record.put(fieldName, field.get(obj).toString());
 							else if (fieldType == ByteBuffer.class)
-								record.put(fieldName, (ByteBuffer) field.get(obj));
+								record.put(fieldName, field.get(obj));
 							else
 								System.out.println("Unhandled field; fieldType:"
 										+ fieldType);
 						}
 					}
-					
+
 				}
 				Encoder encoder = encoderFactory.binaryEncoder(baos, null);
 				writer.write(record, encoder);

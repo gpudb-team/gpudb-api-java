@@ -86,3 +86,21 @@ Added new endpoint /index (http://www.gpudb.com/gpudb-index/)
 5/4/2015 - 4.0.24
 Added bulk_delete_pk and bulk_select_pk API calls.
 Changed name to bulk_update_pk from bulk_updates_pk
+
+5/5/2015 - 4.0.25
+Removed global expression param when calling namedSet.bulkSelectObjectsPk()
+Bug fix with bulkselect and bulkselectpk API return data handling.
+
+5/12/2015 - 4.0.26
+Pom changes to not shade anything in the primary jar and create a new classifier for the shaded jar.
+
+5/17/2015 - 4.0.27
+Changes to accept cooked avro binary into add and bulk_add APIs.
+
+5/27/2015 - 4.0.28-SNAPSHOT, 4.0.28
+Bulk select result fixes. Bulk select PK is now returned in 1 list. Delimiter for update PK done.
+
+5/28/2015 - 4.0.29
+Added new do_bulk_update_pk signature to take parameters closer to do_bulk_updates.
+Updated to Avro v1.7.7.
+Added GPUdbApiUtil.getUpdatePkSeparators method for clients to get default separators.

@@ -18,9 +18,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.avro.Schema;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
 
 import avro.java.gpudb.add_object_response;
@@ -63,6 +63,7 @@ import com.gisfederal.semantic.types.SemanticTypeEnum;
 import com.gisfederal.semantic.types.Time;
 import com.gisfederal.semantic.types.Track;
 import com.gisfederal.utils.GPUdbApiUtil;
+import com.gisfederal.utils.NullObject;
 import com.gisfederal.utils.SpatialOperationEnum;
 import com.gisfederal.utils.StatisticsOptionsEnum;
 
@@ -71,28 +72,28 @@ import com.gisfederal.utils.StatisticsOptionsEnum;
  *
  */
 public class NamedSet{
-		
+
 	/**
 	 * This constant is used to indicate the end of a gpudb set. Used when getting data out of a set.
 	 */
 	public static final int END_OF_SET = -9999;
 
 	// This is not very pleasant but for now we will match strings sent by the server
-	private static final String EMPTY_SET_ERROR_MSG = "At least 1 child set must match the given semantic type"; 
+	private static final String EMPTY_SET_ERROR_MSG = "At least 1 child set must match the given semantic type";
 
 	// Keeps it's name (i.e. guid) and the instance of gpudb to hit up
 	private SetId id;
 	private GPUdb gPUdb;
 	private Logger log;
 
-	// type and children	
+	// type and children
 	private Type type;
 	private ConcurrentMap<Type,List<NamedSet>> typeToChildren;
 
 	// this is used to limit the number of encoded objects to add per bulk add POST
 	private int bulkAddLimit = 1000;
 	private int pageSize = 1000; // for the iterator
-	
+
 	/**
 	 * Provide basically a wrapper that returns a child set of this type from this parent set; creates a new one if it doesn't exist.
 	 * Coordinates with the server.
@@ -101,7 +102,7 @@ public class NamedSet{
 	 * @throws GPUdbException
 	 */
 	public Collection<NamedSet> getChild(Type childType) throws GPUdbException{
-		
+
 		//TODO - we may like to not send cached data....
 		if(typeToChildren.containsKey(childType)) {
 			return typeToChildren.get(childType);
@@ -111,12 +112,12 @@ public class NamedSet{
 			if(typeToChildren.containsKey(childType)) {
 				return typeToChildren.get(childType);
 			} else {
-				// now create the child; NOTE: in the future it would be nice if we could avoid doing this getChildrenFromServer()  (GPUDBDB-474)				
+				// now create the child; NOTE: in the future it would be nice if we could avoid doing this getChildrenFromServer()  (GPUDBDB-474)
 				// we don't know that this Type actually exists in gpudb so create it
-				// OLD NOTE: security annotation of ARTIFACTID? is this right? very UCD specific, it would be better to add that annotation attribute to the type object				
+				// OLD NOTE: security annotation of ARTIFACTID? is this right? very UCD specific, it would be better to add that annotation attribute to the type object
 				// NEW NOTE: security annotation is OBJECTAUTH now
 				childType = gPUdb.create_type(childType.getAvroSchema().toString(), "OBJECTAUTH", childType.getTypeLabel(), childType.getSemanticTypeEnum());
-				
+
 				try {
 					NamedSet child = gPUdb.newNamedSet(this.id, childType);
 					List<NamedSet> nss = typeToChildren.get(childType);
@@ -142,7 +143,7 @@ public class NamedSet{
 	 * @return collection of named set children
 	 */
 	public Collection<NamedSet> getChildren() {
-		
+
 		List<NamedSet> nss = new ArrayList<NamedSet>();
 		Set<Type> types = typeToChildren.keySet();
 		for( Type type : types ) {
@@ -161,14 +162,14 @@ public class NamedSet{
 		List<Type> types = new ArrayList<Type>();
 
 		if(type.isParent()) {
-			
+
 			Map<String, Long> setId2Size = new HashMap<String, Long>();
 			status_response response = gPUdb.do_status(this);
 			List<CharSequence> setids = response.getSetIds();
 			List<Long> setsizes = response.getFullSizes();
-			
+
 			int idx = 0;
-			while(idx<setids.size() && idx<setsizes.size()){  
+			while(idx<setids.size() && idx<setsizes.size()){
 				String setid = setids.get(idx).toString();
 				Long size = setsizes.get(idx);
 				setId2Size.put(setid, size);
@@ -194,12 +195,12 @@ public class NamedSet{
 				log.debug("This set has a zero size; don't add");
 			}
 		}
-		
+
 		return types;
 	}
 
 	/**
-	 * Get the list of all different "sources" in this set. Relies upon the SOURCEKEY (param) being present in the objects.  
+	 * Get the list of all different "sources" in this set. Relies upon the SOURCEKEY (param) being present in the objects.
 	 * @return List of SourceType objects. Each one has a type and a subtype.
 	 * @throws GPUdbException
 	 */
@@ -225,7 +226,7 @@ public class NamedSet{
 
 		attributes.add(sourceKey);
 		// do the actual counting
-		group_by_response response = gPUdb.do_group_by(this, attributes);			
+		group_by_response response = gPUdb.do_group_by(this, attributes);
 
 		// build out the source types
 		Iterator iter = response.getCountMap().entrySet().iterator();
@@ -233,15 +234,15 @@ public class NamedSet{
 		while(iter.hasNext()) {
 			Map.Entry<CharSequence, List<CharSequence>> pairs = (Map.Entry<CharSequence, List<CharSequence>>)iter.next();
 			// each key becomes a source type object
-			log.debug("build source type on:"+pairs.getKey().toString());				
+			log.debug("build source type on:"+pairs.getKey().toString());
 			map2counts.put(new SourceType(pairs.getKey().toString()), Integer.parseInt(pairs.getValue().get(0).toString()));
-		}			
+		}
 		return map2counts;
 	}
-	
+
 	/*
 	private String getGroupingFieldForST(SemanticTypeEnum st) {
-		String groupingFieldName = "";					
+		String groupingFieldName = "";
 		switch(st) {
 		case LINE:
 			groupingFieldName = Line.groupingFieldName;
@@ -261,7 +262,7 @@ public class NamedSet{
 		case TIME:
 			groupingFieldName = Time.groupingFieldName;
 			break;
-		case SHAPE:	
+		case SHAPE:
 		case EMPTY:
 			groupingFieldName = "";
 			break;
@@ -274,21 +275,21 @@ public class NamedSet{
 		return groupingFieldName;
 	}
 	*/
-	
+
 	/**
 	 * This returns a map of semantic type to count.  So if there are 5 polygon objects and 2 points in this set it will return
 	 * a map with the key-value pairs: "POLYGON2D" -> 5, "POINT" -> 2
 	 * @return Map of semantic types to counts.
 	 */
 	public EnumMap<SemanticTypeEnum, Long> getSemanticTypesWithCounts() {
-		EnumMap<SemanticTypeEnum, Long> typeToCount = new EnumMap<SemanticTypeEnum, Long>(SemanticTypeEnum.class);		
-		
+		EnumMap<SemanticTypeEnum, Long> typeToCount = new EnumMap<SemanticTypeEnum, Long>(SemanticTypeEnum.class);
+
 		// if this is NOT a parent; it's just a key-value entry
 		if(!this.type.isParent()) {
 			typeToCount.put(SemanticTypeEnum.valueOfWithEmpty(this.type.getSemanticType()), this.size());
 			return typeToCount;
 		}
-		
+
 		status_response response = gPUdb.do_status(this);
 		List<CharSequence> stypes = response.getSemanticTypes();
 		List<Long> setsizes = response.getSizes();
@@ -307,12 +308,12 @@ public class NamedSet{
 			}
 			idx++;
 		}
-		
+
 		return typeToCount;
 	}
 
 	/**
-	 * Retrieve the children from the server.  Throws an error if this set is not a parent set. 
+	 * Retrieve the children from the server.  Throws an error if this set is not a parent set.
 	 * @throws GPUdbException
 	 */
 	public void getChildrenFromServer() throws GPUdbException{
@@ -335,14 +336,14 @@ public class NamedSet{
 			}
 			// set info throws an error if the set doesn't exist; which can be the case if its just a parent with no children; a bit weird
 			log.debug("No children found");
-		}		
+		}
 	}
 
 	/**
 	 * Get back the number of children. Remember that there could be children of same type.
 	 * @return the number of children
 	 */
-	public int getNumberOfChildren() {	
+	public int getNumberOfChildren() {
 		int cnt = 0;
 		Set<Type> types = typeToChildren.keySet();
 		for( Type type : types ) {
@@ -364,18 +365,18 @@ public class NamedSet{
 		List<CharSequence> typeIDs = response.getTypeIds();
 		List<CharSequence> typeSchemas = response.getTypeSchemas();
 		for(int i=0; i<setIDs.size(); i++) {
-			Type childType = new Type(typeIDs.get(i).toString(), GenericObject.class, 
-					Schema.parse(typeSchemas.get(i).toString()), labels.get(i).toString(), 
+			Type childType = new Type(typeIDs.get(i).toString(), GenericObject.class,
+					Schema.parse(typeSchemas.get(i).toString()), labels.get(i).toString(),
 					semanticTypes.get(i).toString());
-			NamedSet child = new NamedSet(new SetId(setIDs.get(i).toString()), gPUdb, childType); 
+			NamedSet child = new NamedSet(new SetId(setIDs.get(i).toString()), gPUdb, childType);
 			gPUdb.setInStore(child.get_setid(), child);
-			
+
 			List<NamedSet> nss = typeToChildren.get(childType);
 			if ( nss == null ) {
 				nss = new ArrayList<NamedSet>();
 			}
 			nss.add(child);
-			
+
 			this.typeToChildren.put(childType, nss);
 		}
 	}
@@ -398,34 +399,34 @@ public class NamedSet{
 		nss.add(child);
 		this.typeToChildren.put(childType, nss);
 	}
-	
+
 	public boolean childExists(Type childType) throws GPUdbException {
 		return typeToChildren.containsKey(childType);
 	}
 
 	/**
-	 * Get back the list of objects per key. 
+	 * Get back the list of objects per key.
 	 * @param child_ids The child sets.
 	 * @param ids
 	 * @return
 	 */
 	public EnumMap<SemanticTypeEnum, List<SemanticType>> getObjectsByID(List<CharSequence> child_ids, List<CharSequence> ids) {
-		// designed to be run after a shape intersection 
+		// designed to be run after a shape intersection
 		// need to do a separate getObjectsByID for each of the different semantic types;
 		// need to call getObjectsById on each child set
-		Map<NamedSet, List<String>> ns_to_ids = new HashMap<NamedSet, List<String>>();				
+		Map<NamedSet, List<String>> ns_to_ids = new HashMap<NamedSet, List<String>>();
 		EnumMap<SemanticTypeEnum, List<SemanticType>> em = new EnumMap<SemanticTypeEnum, List<SemanticType>>(SemanticTypeEnum.class);
-		
+
 		// group the ids based upon their set id
 		for(int i=0; i<child_ids.size(); i++) {
 			NamedSet ns = gPUdb.getNamedSet(new SetId(child_ids.get(i).toString()));
 			if(!ns_to_ids.containsKey(ns)){
-				ns_to_ids.put(ns, new ArrayList<String>());			
+				ns_to_ids.put(ns, new ArrayList<String>());
 			}
 			log.debug("Add to ns's ids:"+ns.get_setid()+" id:"+ids.get(i)+" i:"+i);
 			ns_to_ids.get(ns).add(ids.get(i).toString());
 		}
-		
+
 		// for each named set call get objects with the appropriate semantic type
 		Iterator it = ns_to_ids.entrySet().iterator();
 		while(it.hasNext()) {
@@ -439,22 +440,22 @@ public class NamedSet{
 			} else {
 				log.warn("Unsupported type:"+key.getType().getSemanticType());
 			}
-		}				
-		
+		}
+
 		return em;
 	}
-	
 
-	public List<SemanticType> getObjectsByID(Class<? extends SemanticType> cls, Collection<String> ids) throws GPUdbException{		
+
+	public List<SemanticType> getObjectsByID(Class<? extends SemanticType> cls, Collection<String> ids) throws GPUdbException{
 		List<CharSequence> list = new ArrayList<CharSequence>();
-		list.addAll(ids);		
+		list.addAll(ids);
 		List<SemanticType> objectList = new ArrayList<SemanticType>();
 
-		// NOTE: do I need to do this? all I want is the grouping field name		
+		// NOTE: do I need to do this? all I want is the grouping field name
 		if(cls == Line.class) {
-			objectList.addAll(convertToLines((List<GenericObject>)this.get_objects(Line.groupingFieldName, list)));			
+			objectList.addAll(convertToLines(this.get_objects(Line.groupingFieldName, list)));
 		} else if(cls == Polygon.class) {
-			objectList.addAll(convertToPolygons((List<GenericObject>)this.get_objects(Polygon.groupingFieldName, list)));
+			objectList.addAll(convertToPolygons(this.get_objects(Polygon.groupingFieldName, list)));
 		} else {
 			log.error("Unsupported class:"+cls);
 			throw new GPUdbException("Unsupported class:"+cls);
@@ -475,7 +476,7 @@ public class NamedSet{
 					log.error("The expected WKT key is not in the object even though its a polygon");
 					throw new GPUdbException("The expected WKT key is not in the object even though its a polygon");
 				}
-	
+
 				// populate the other keys NOTE: keys to ignore? i.e. we don't want "x" and "y" -- what was pulled out of wkt
 				Polygon polygon = new Polygon(go.getField("WKT"), go.getField(Polygon.groupingFieldName), new HashMap<String,String>());
 				Iterator iter = go.dataMap.entrySet().iterator();
@@ -486,10 +487,10 @@ public class NamedSet{
 						polygon.features.put(pairs.getKey(), pairs.getValue());
 					}
 				}
-	
+
 				// add the polygon
-				polygons.add(polygon);															
-			}	
+				polygons.add(polygon);
+			}
 		} catch( GPUdbException ge ) {
 			if( !ge.getMessage().contains(EMPTY_SET_ERROR_MSG)) {
 				throw ge;
@@ -522,8 +523,8 @@ public class NamedSet{
 			}
 
 			// add the SEMANTIC object
-			semanticObjs.add(semanticObj);												
-		}				
+			semanticObjs.add(semanticObj);
+		}
 
 		return semanticObjs;
 	}
@@ -535,17 +536,17 @@ public class NamedSet{
 	 * @return List of Polygons
 	 * @throws GPUdbException
 	 */
-	public List<Polygon> getPolygons(int start, int end) throws GPUdbException{	
-		
+	public List<Polygon> getPolygons(int start, int end) throws GPUdbException{
+
 		try {
-			List<com.gisfederal.GenericObject> gos = (List<com.gisfederal.GenericObject>)this.list(start,end,Polygon.type.toString());
+			List<com.gisfederal.GenericObject> gos = this.list(start,end,Polygon.type.toString());
 			return convertToPolygons(gos);
 		} catch( GPUdbException ge ) {
 			if( !ge.getMessage().contains(EMPTY_SET_ERROR_MSG)) {
 				throw ge;
-			}	
+			}
 		}
-		return Collections.EMPTY_LIST;		
+		return Collections.EMPTY_LIST;
 	}
 
 	/**
@@ -562,11 +563,11 @@ public class NamedSet{
 		try {
 			// now check the semantic type; only interested in ploygon
 			String semanticType = "POINT";
-	
+
 			List<com.gisfederal.GenericObject> goList;
-	
-			goList = (List<com.gisfederal.GenericObject>)this.list(start,end,semanticType);
-	
+
+			goList = this.list(start,end,semanticType);
+
 			// we are assuming that each "GO" maps to one Polygon
 			// now convert the GOs to Polygon; assume there is a string "WKT" all other keys just add to the map
 			for(com.gisfederal.GenericObject go : goList) {
@@ -574,7 +575,7 @@ public class NamedSet{
 					log.error("The expected x and y key are not in the object even though its a "+semanticType);
 					throw new GPUdbException("The expected x and y key are not in the object even though its a "+semanticType);
 				}
-	
+
 				// populate the other keys NOTE: keys to ignore? i.e. we don't want "x" and "y" -- what was pulled out of wkt
 				Point2D point = new Point2D(Double.parseDouble(go.dataMap.get("x")), Double.parseDouble(go.dataMap.get("y")), new HashMap<String,String>());
 				Iterator iter = go.dataMap.entrySet().iterator();
@@ -586,10 +587,10 @@ public class NamedSet{
 						point.features.put(pairs.getKey(), pairs.getValue());
 					}
 				}
-	
+
 				// add the polygon
-				semanticObjs.add(point);					
-			}	
+				semanticObjs.add(point);
+			}
 		} catch ( GPUdbException ge ) {
 			if( !ge.getMessage().contains(EMPTY_SET_ERROR_MSG)) {
 				throw ge;
@@ -599,7 +600,7 @@ public class NamedSet{
 	}
 
 	/**
-	 * Returns a list of objects which are of the generic semantic type. 
+	 * Returns a list of objects which are of the generic semantic type.
 	 * @param start The start index.
 	 * @param end The end index.
 	 * @return List of GenericSemanticType.
@@ -614,14 +615,14 @@ public class NamedSet{
 
 		List<com.gisfederal.GenericObject> goList;
 
-		goList = (List<com.gisfederal.GenericObject>)list(start, end, semanticType);
+		goList = list(start, end, semanticType);
 
 		// convert them; NOTE: maybe we should just return com.gisfederal.GenericObjects
 		for(com.gisfederal.GenericObject go : goList) {
 			// NOTE no assumed keys
 
 			// add the object
-			semanticObjs.add(new GenericSemanticType(go.dataMap));					
+			semanticObjs.add(new GenericSemanticType(go.dataMap));
 		}
 
 		return semanticObjs;
@@ -635,16 +636,16 @@ public class NamedSet{
 	 * @throws GPUdbException
 	 */
 	public List<Line> getLines(long start, long end) throws GPUdbException{
-		
+
 		try {
-			List<com.gisfederal.GenericObject> gos = (List<com.gisfederal.GenericObject>)this.list(start,end,Line.type.toString());
+			List<com.gisfederal.GenericObject> gos = this.list(start,end,Line.type.toString());
 			return convertToLines(gos);
 		} catch( GPUdbException ge ) {
 			if( !ge.getMessage().contains(EMPTY_SET_ERROR_MSG)) {
 				throw ge;
-			}	
+			}
 		}
-		return Collections.EMPTY_LIST;		
+		return Collections.EMPTY_LIST;
 	}
 
 	/**
@@ -659,12 +660,12 @@ public class NamedSet{
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
 		// now check the semantic type; only interested in polygon
-		String semanticType = SemanticTypeEnum.POLYGON3D.toString(); 
+		String semanticType = SemanticTypeEnum.POLYGON3D.toString();
 
 		// all these children are of this semantic type
 		List<com.gisfederal.GenericObject> goList;
 
-		goList = (List<com.gisfederal.GenericObject>)list(start, end, semanticType);
+		goList = list(start, end, semanticType);
 
 		// we are assuming that each "GO" maps to one Polygon
 		// now convert the GOs to Polygon; assume there is a string "WKT" all other keys just add to the map
@@ -686,8 +687,8 @@ public class NamedSet{
 			}
 
 			// add the polygon
-			polygons.add(polygon);															
-		}							
+			polygons.add(polygon);
+		}
 
 		return polygons;
 	}
@@ -708,7 +709,7 @@ public class NamedSet{
 
 		List<com.gisfederal.GenericObject> goList;
 
-		goList = (List<com.gisfederal.GenericObject>)list(start, end, semanticType);
+		goList = list(start, end, semanticType);
 
 		// we are assuming that each "GO" maps to one Polygon
 		// now convert the GOs to Polygon; assume there is a string "WKT" all other keys just add to the map
@@ -731,24 +732,24 @@ public class NamedSet{
 			}
 
 			// add the polygon
-			semanticObjs.add(time);					
-		}					
+			semanticObjs.add(time);
+		}
 		return semanticObjs;
 	}
 
 	// This is new and improved gettracks() API....and the only API...
 	public List<Track> getTracks(NamedSet world, int start , int end, double min_x, double min_y, double max_x, double max_y) throws GPUdbException {
-		
+
 		List<Track> tracks = new ArrayList<Track>();
-		
-		boolean doExtent = (min_x <= -180 && max_x >= 180 && min_y <= -90 && max_y >= 90) ? false : true; 
+
+		boolean doExtent = (min_x <= -180 && max_x >= 180 && min_y <= -90 && max_y >= 90) ? false : true;
 
 		get_tracks2_response response = gPUdb.do_get_tracks(this, world, start, end, min_x, min_y, max_x, max_y, doExtent);
-		
+
 		log.debug("get tracks response - number of tracks: " + response.getSetIds().size());
 
 		// We have a bunch of set ids. They may be from different types. So bunch them all together by type
-		
+
 		NamedSet setForType = null;
 		List<SetId> setIDs = new ArrayList<SetId>();
 		List<CharSequence> setIdStrings = response.getSetIds();
@@ -769,12 +770,12 @@ public class NamedSet{
 			for(ByteBuffer bytes : list_encoded) {
 				list_decoded.add(gPUdb.getNamedSet(new SetId(setId.toString())).getType().decode(bytes));
 			}
-			listOfLists.add(list_decoded);			
+			listOfLists.add(list_decoded);
 		}
 
-		// convert into the List<Track> every "list" collapses to one track object			
+		// convert into the List<Track> every "list" collapses to one track object
 		for(int i=0; i<listOfLists.size(); i++) {
-			List<Object> listGOs = listOfLists.get(i);			
+			List<Object> listGOs = listOfLists.get(i);
 			Track track = new Track();
 			track.setSetID(setIDs.get(i));
 			log.debug("number of track points in this track:"+listGOs.size());
@@ -787,7 +788,7 @@ public class NamedSet{
 					// add to the features if need be
 					String key = pairs.getKey();
 					String value = pairs.getValue();
-					log.debug("key:"+key+" value:"+value);					
+					log.debug("key:"+key+" value:"+value);
 					if(key.equals("x")) {
 						onePoint.setX(Double.parseDouble(value));
 					} else if(key.equals("y")) {
@@ -801,7 +802,7 @@ public class NamedSet{
 						track.groupingField = value;
 					} else {
 						onePoint.getFeatures().put(key, value);
-					}						
+					}
 				}
 				track.addTrackPoint(onePoint);
 				log.debug("track point:"+track.toString());
@@ -812,42 +813,42 @@ public class NamedSet{
 
 		return tracks;
 	}
-	
+
 	// Statistics returns a map of statistics for requested STAT fields ("mean,stdv,esimtated_cardinality")
 	public Map<String, Double> statistics (List<StatisticsOptionsEnum> stats, String attribute) throws GPUdbException {
-		
+
 		Map<String, Double> result = new HashMap<String, Double>();
-		
+
 		statistics_response response = gPUdb.do_statistics(this, stats, attribute);
-		
+
 		log.debug("statistics response - number of stats: " + response.getStats().size());
-		
+
 		Map<CharSequence, Double> map = response.getStats();
 		for (CharSequence key : map.keySet()) {
 			result.put(key.toString(), map.get(key));
 		}
-		
+
 		return result;
 	}
-		
+
 	// Helper method for statistics assumes estimated cardinality as the STAT
 	public boolean canFacetAttribute(String attribute, Integer limit) {
-	
+
 		List<StatisticsOptionsEnum> stats = new ArrayList<StatisticsOptionsEnum>();
 		stats.add(StatisticsOptionsEnum.ESTIMATED_CARDINALITY);
-		
+
 		statistics_response response = gPUdb.do_statistics(this, stats, attribute);
-		
+
 		Map<CharSequence, Double> map = response.getStats();
 		Map<String, Double> result = new HashMap<String, Double>();
 		for (CharSequence key : map.keySet()) {
 			result.put(key.toString(), map.get(key));
 		}
 		Double res = result.get(StatisticsOptionsEnum.ESTIMATED_CARDINALITY.value());
-		
+
 		return (res < (limit == null? 1000: limit));
 	}
-	
+
 	/**
 	 * Return an iterator for the set.
 	 */
@@ -866,7 +867,7 @@ public class NamedSet{
 	public int getPageSize(){return pageSize;	}
 
 
-	/** 
+	/**
 	 * Set the bulk add limit.
 	 * @param bulkAddLimit The new limit.
 	 */
@@ -879,16 +880,16 @@ public class NamedSet{
 	 * @return size of this set
 	 */
 	public long size() {
-		
+
 		status_response response = gPUdb.do_status(this);
 		return response.getTotalSize();
 	}
-	
+
 	/**
-	 * Return the element size of this set i.e., the total number of elements within the set. For polygons ( points, lines, generic objects, events) e.g., 
+	 * Return the element size of this set i.e., the total number of elements within the set. For polygons ( points, lines, generic objects, events) e.g.,
 	 * the number of polygons is equal to the number of objects which is also equal to the number of elements in GPUDB. For tracks, the number of tracks is
-	 * equal to the number of objects but the total number of trackpoints making up those tracks is equal to the number of elements for the 
-	 * track set. 
+	 * equal to the number of objects but the total number of trackpoints making up those tracks is equal to the number of elements for the
+	 * track set.
 	 * This will hit the server.
 	 * @return size of this set
 	 */
@@ -910,7 +911,7 @@ public class NamedSet{
 	 * @param type
 	 */
 	public void setType(Type type) {
-		
+
 		/* Make sure that the type is not being changed badly */
 		Class c = type.getTypeClass();
 		if( (c != null) && (c != GenericObject.class) ) {
@@ -921,16 +922,16 @@ public class NamedSet{
 				Schema.Parser parser = new Schema.Parser();
 				Schema newSchema = parser.parse(str_json_type_def);
 				if( !newSchema.equals(currentSchema) ) {
-					throw new GPUdbException("Attempting to change schema invalid...current = " + 
+					throw new GPUdbException("Attempting to change schema invalid...current = " +
 								currentSchema + " and new = " + newSchema);
 				}
 			}
 		}
 		this.type = type;
 	}
-	
+
 	/**
-	 * Update an object in this set. 
+	 * Update an object in this set.
 	 * @param obj The java object to add to the gpudb set.
 	 * @param objectId The objectId to update.
 	 * @return An add object response which has the object id for this object.
@@ -955,7 +956,7 @@ public class NamedSet{
 		}
 		return gPUdb.do_add_object(this, obj, params);
 	}
-	
+
 	/**
 	 * Add an object to this set. Throws if you use on a parent set. This is a passthru helper
 	 * which calls add() with an empty param map.
@@ -978,11 +979,11 @@ public class NamedSet{
 		if(list_obj.size() > this.bulkAddLimit){
 			log.debug("Bulk add list greater than limit; limit:"+this.bulkAddLimit+" size:"+list_obj.size());
 			int listSize = list_obj.size();
-			
+
 			int startIndex = 0;
 			int endIndex = this.bulkAddLimit;
 			bulk_add_response response; // warning! get's overriden every time
-			List<Object> sublist;			
+			List<Object> sublist;
 			do {
 				sublist = list_obj.subList(startIndex, endIndex); // a list of length bulk add limit [or less if this is the last loop]
 				response = gPUdb.do_add_object_list(sublist, this, params);
@@ -1005,7 +1006,7 @@ public class NamedSet{
 		}
 	}
 
-	
+
 	public bulk_add_response add_list(List<Object> list_obj) {
 		return add_list(list_obj, new HashMap<CharSequence, CharSequence>());
 	}
@@ -1017,10 +1018,10 @@ public class NamedSet{
 	 * @return List of objects.
 	 * @throws GPUdbException
 	 */
-	public List get_objects(String attribute, List<CharSequence> values) throws GPUdbException {		
-		if(this.type.isParent()) 
+	public List get_objects(String attribute, List<CharSequence> values) throws GPUdbException {
+		if(this.type.isParent())
 			throw new GPUdbException("Can't call this function on a parent set; id:"+this.id.get_id());
-		
+
 		get_objects_response response = gPUdb.do_get_objects(this.id, attribute, values);
 		return createObjectList(response.getList());
 	}
@@ -1038,7 +1039,7 @@ public class NamedSet{
 		List objectList = createObjectList(bytesList);
 		return objectList;
 	}
-	
+
 	/**
 	 * Return a list of the objects in this named set between start and end with a specified sort attribute.
 	 * @param start The start index, starts at 0 and is inclusive.
@@ -1061,13 +1062,17 @@ public class NamedSet{
 		List objectList = new ArrayList();
 		for(ByteBuffer bytes : bytesList){
 			// binary decode
-			objectList.add(this.type.decode(bytes));
-			//log.debug("Added object to the list");			
+			if( bytes.array().length > 0 ) {
+				objectList.add(this.type.decode(bytes));
+			} else {
+				objectList.add(new NullObject()  {});
+			}
+			//log.debug("Added object to the list");
 		}
 		//log.info("createObjectList - done ");
 		return objectList;
 	}
-	
+
 	/**
 	 * This is a helper routine returns a list of list of objects for bulk select call - only 1 object per
 	 * pk is returned.
@@ -1075,27 +1080,35 @@ public class NamedSet{
 	 * @param params
 	 * @return A list of list of objects
 	 */
-	public List<List> bulkSelectObjectsPk(String global_expression, 
+	public List<Object> bulkSelectObjectsPk(
 			Map<CharSequence, List<CharSequence>> expressions, Map<java.lang.CharSequence,java.lang.CharSequence> params) {
-		
+
 		log.info(" In GPUDB Api ...ready to select. Expression length!! " + expressions.size());
-		
+
 		bulk_select_pk_response bsr = gPUdb.do_bulk_select_pk(this, expressions, params);
-		
-		log.info(" In GPUDB Api ...back from select...will create objects now...");
-		
 		List<List> listOfList = Collections.synchronizedList(new ArrayList<List>());
 		List<List<ByteBuffer>> llbb = new ArrayList<List<ByteBuffer>>();
-		
-		log.info(" In GPUDB Api ....." + bsr.getObjects().size());
-		
 		llbb.add(bsr.getObjects());
+		for( int ii = 0; ii < llbb.size(); ii++ ) {
+			listOfList.add(null);
+		}
+
+		log.info(" In GPUDB Api !!....." + bsr.getObjects().size());
+
+
+		//printObjects(llbb);
+
 		processReturnList(listOfList, llbb);
+		List<Object> result = new ArrayList<Object>();
+		for (List<Object> list : listOfList) {
+			result.addAll(list);
+	    }
+
 		log.info(" In GPUDB Api ...Object creation done...will return objects now..." + listOfList.size());
-		return listOfList;
+		return result;
 	}
-	
-	
+
+
 	/**
 	 * This is a helper routine returns a list of list of objects for bulk select call.
 	 * @param global_expression
@@ -1103,42 +1116,45 @@ public class NamedSet{
 	 * @param params
 	 * @return A list of list of objects
 	 */
-	public List<List> bulkSelectObjects(String global_expression, 
+	public List<List> bulkSelectObjects(String global_expression,
 			List<java.lang.CharSequence> expressions, Map<java.lang.CharSequence,java.lang.CharSequence> params) {
-		
+
 		log.info(" In GPUDB Api ...ready to select. Expression length!! " + expressions.size());
 		bulk_select_response bsr = gPUdb.do_bulk_selects(this, global_expression, expressions, params);
-		log.info(" In GPUDB Api ...back from select...will create objects now...");
-		
-		List<List> listOfList = Collections.synchronizedList(new ArrayList<List>());
 		List<List<ByteBuffer>> llbb = bsr.getObjects();
+		List<List> listOfList = Collections.synchronizedList(new ArrayList<List>(llbb.size()));
+		for( int ii = 0; ii < llbb.size(); ii++ ) {
+			listOfList.add(null);
+		}
+		//printObjects(bsr.getObjects());
+
 		processReturnList(listOfList, llbb);
 		log.info(" In GPUDB Api ...Object creation done...will return objects now..." + listOfList.size());
 		return listOfList;
 	}
 
+	private void printObjects(List<List<ByteBuffer>> objects) {
+		for( List<ByteBuffer> lbb : objects ) {
+			System.out.println(" Bytebuffer list length " + lbb.size());
+			for ( ByteBuffer bb : lbb ) {
+				System.out.println( " byte array length : " + bb.array().length );
+				System.out.println( " hex string : " + Hex.encodeHexString( bb.array() ) );
+			}
+		}
+		System.out.println(" xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ");
+	}
+
 	private void processReturnList(List<List> listOfList,
 			List<List<ByteBuffer>> llbb) {
-		int perThreadBulk = 1000;
         ExecutorService executor = Executors.newFixedThreadPool(30);
-        int tasks = (int) Math.ceil(llbb.size()/perThreadBulk);
-        if( tasks == 0 ) tasks = 1;
-        CountDownLatch latch = new CountDownLatch(tasks);
-        
-        //System.out.println(" tasks size " + tasks);
 
-        List<List> tempL = new ArrayList<List>();
-        int bulk = 1;
+        int tasks = llbb.size();
+        CountDownLatch latch = new CountDownLatch(tasks);
+
+        //System.out.println(" tasks size " + tasks);
+        int position = 0;
         for( List<ByteBuffer> lbb : llbb ) {
-        	tempL.add(lbb);
-        	if( bulk++ >= perThreadBulk ) {
-        		executor.submit(new DecoderTask(this, tempL, listOfList, latch));
-        		tempL = new ArrayList<List>();
-        		bulk = 1;
-        	} 
-        }
-        if( tempL.size() > 0 ) {
-        	executor.submit(new DecoderTask(this, tempL, listOfList, latch));
+    		executor.submit(new DecoderTask(this, lbb, listOfList, latch, position++));
         }
         try {
         	latch.await();
@@ -1146,29 +1162,35 @@ public class NamedSet{
             e.printStackTrace();
         }
         executor.shutdown();
+        log.info(" In GPUDB Api ...Object creation done...will return objects now...");
 	}
-	
+
 	class DecoderTask implements Runnable {
 		NamedSet ns;
 		CountDownLatch mylatch;
-		List<List> listOfList;
-		List<List> myllbb;
-		
-		public DecoderTask(NamedSet ns, List<List> llbb,
-				List<List> listOfList2, CountDownLatch latch2) {
+		List<List> resultList;
+		List<ByteBuffer> myllbb;
+		int position;
+
+		public DecoderTask(NamedSet ns, List<ByteBuffer> llbb,
+				List<List> listOfList2, CountDownLatch latch2, int position) {
+
+			//System.out.println(" @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ");
+
 			this.ns = ns;
 			this.mylatch = latch2;
-			this.listOfList = listOfList2;
+			this.resultList = listOfList2;
 			this.myllbb = llbb;
+			this.position = position;
 		}
 
 		@Override
 		public void run() {
 			//System.out.println(Thread.currentThread() + " XXX " + myllbb.size());
-			for( List<ByteBuffer> lbb : myllbb ) {
-				List rows = createObjectList(lbb);
-				listOfList.add(rows);
-			}
+			List rows = createObjectList(myllbb);
+			//System.out.println(rows + " XXXX " + position);
+			resultList.set(position, rows);
+			//System.out.println(rows + " YYYY " + position);
 			mylatch.countDown();
 		}
 	}
@@ -1178,7 +1200,7 @@ public class NamedSet{
 	 * @param start The start index, starts at 0 and is inclusive.
 	 * @param end The end index, inclusive.
 	 * @param semantic_type The semantic type of the objects of interest
-	 * @param semanticChildrenTypes 
+	 * @param semanticChildrenTypes
 	 * @return The list of objects in this named set.
 	 */
 	public List list(long start, long end, String semantic_type) {
@@ -1201,7 +1223,7 @@ public class NamedSet{
 			if(child.getType().getSemanticType().equals(semantic_type)) {
 				typeMap.put(child.type.getID(), child.type);
 			}
-		}				
+		}
 
 		get_set_response response;
 		response = gPUdb.do_list(this, start, end, semantic_type);
@@ -1226,7 +1248,7 @@ public class NamedSet{
 			CharSequence seq = typeIds.get(i);
 			Type type = typeMap.get(seq.toString());
 			objectList.add(type.decode(bytes));
-			log.debug("Added object to the list");			
+			log.debug("Added object to the list");
 			i++;
 		}
 
@@ -1267,7 +1289,7 @@ public class NamedSet{
 		return gPUdb.getNamedSet(rs);
 	}
 
-	
+
 	/**
 	 * Run a bounding box calculation on this set.
 	 * @param min_x The min value of the the "x" attribute.
@@ -1309,7 +1331,7 @@ public class NamedSet{
 
 		return gPUdb.getNamedSet(rs);
 	}
-	
+
 	/**
 	 * Run a filter_by_set calculation on this set.
 	 * @param attribute - this set's attribute we are interested in
@@ -1321,7 +1343,7 @@ public class NamedSet{
 	public NamedSet do_filter_by_set(String attribute, SetId sourceSetId, String source_attribute) throws GPUdbException {
 		SetId rs = gPUdb.new_setid();
 		filter_by_set_response response = gPUdb.do_filter_by_set(this, rs, attribute, sourceSetId, source_attribute);
-				
+
 		log.debug("filter by set count:"+response.getCount());
 
 		return gPUdb.getNamedSet(rs);
@@ -1354,7 +1376,7 @@ public class NamedSet{
 		return response.getStatus().toString();
 	}
 
-	
+
 	/**
 	 * Run a filter_by_list calculation on this set.
 	 * @param attribute The attribute to compare.
@@ -1465,6 +1487,7 @@ public class NamedSet{
 	 * @throws GPUdbException
 	 * @deprecated use do_group_by_value instead
 	 */
+	@Deprecated
 	public Map<String, Integer> do_group_by(String attribute) throws GPUdbException {
 		group_by_response response =  gPUdb.do_group_by(this, Arrays.asList(attribute));
 		Map<CharSequence, List<CharSequence>> count_map = response.getCountMap();
@@ -1473,7 +1496,7 @@ public class NamedSet{
 		Map<String, Integer> group_count_map = new HashMap<String, Integer>();
 		Iterator<CharSequence> iter = count_map.keySet().iterator();
 		// iterating through the Utf8 map and building a new string based one
-		while(iter.hasNext()) {		
+		while(iter.hasNext()) {
 			try {
 				org.apache.avro.util.Utf8 key = (org.apache.avro.util.Utf8)iter.next();
 				String str_key = key.toString();
@@ -1484,16 +1507,16 @@ public class NamedSet{
 				log.error(e.toString());
 				throw new GPUdbException(e.getMessage());
 			}
-		}		
+		}
 		return group_count_map;
 	}
 
-	// Accepts an attribute field in computing the sum of the value_attribute field. 
+	// Accepts an attribute field in computing the sum of the value_attribute field.
 	// If the value_attribute is "" then it behaves like do_group_by and returns counts of group_by fields
 	public Map<String, Double> do_group_by_value(String attribute, String value_attribute,
 			Map<CharSequence,CharSequence> params) throws GPUdbException {
 		group_by_value_response response =  gPUdb.do_group_by_value(this, Arrays.asList(attribute), value_attribute, params);
-		
+
 		Map<String, Double> group_count_map = new HashMap<String, Double>();
 		int cnt = response.getGroupKeys().size();
 		for( int ii = 0; ii < cnt; ii++ ) {
@@ -1503,13 +1526,13 @@ public class NamedSet{
 	}
 
 	/**
-	 * Get the NamedSet that is a child of this set whose type id matches the passed in one. If this set has no children then check to see if 
-	 * it matches this type and return it if it does.  Doesn't go to the server. If you think there have been new children added you can call 
-	 * getChildrenFromServer() first. 
-	 * @param typeID The type id.  Empty string is *not* a wild card. 
+	 * Get the NamedSet that is a child of this set whose type id matches the passed in one. If this set has no children then check to see if
+	 * it matches this type and return it if it does.  Doesn't go to the server. If you think there have been new children added you can call
+	 * getChildrenFromServer() first.
+	 * @param typeID The type id.  Empty string is *not* a wild card.
 	 * @return The NamedSet whose type has the given id.
 	 * @throws GPUdbException if there is not child set with this type id
-	 */	
+	 */
 	public NamedSet do_get_sets_by_type_id(String typeID) throws GPUdbException{
 		List<NamedSet> sets = this.do_get_sets_by_type_info(typeID, "", "");
 		if(sets.size() == 1) {
@@ -1520,35 +1543,35 @@ public class NamedSet{
 			log.warn("Multiple children with the same type id:"+typeID+" children:"+sets.size());
 			return sets.get(0);
 		}
-	}		
+	}
 
 	/**
 	 * Get the NamedSets that are children of this set whose type label matches the passed in one with "" as a wild card. If this set has no
-	 * children then check to see if it matches this type and return it if it does. Doesn't go to the server. If you think there have been 
+	 * children then check to see if it matches this type and return it if it does. Doesn't go to the server. If you think there have been
 	 * new children added you can call getChildrenFromServer() first.
-	 * @param label The type label or empty string. 
+	 * @param label The type label or empty string.
 	 * @return A List of NamedSets whose types matched.
-	 */	
+	 */
 	public List<NamedSet> do_get_sets_by_type_label(String label) {
 		return this.do_get_sets_by_type_info("", label, "");
 	}
 
 	/**
 	 * Get the NamedSets that are children of this set whose semantic type matches the passed in one with "" as a wild card. If this set has no
-	 * children then check to see if it matches this type and return it if it does.  Doesn't go to the server. If you think there have been 
+	 * children then check to see if it matches this type and return it if it does.  Doesn't go to the server. If you think there have been
 	 * new children added you can call getChildrenFromServer() first.
-	 * @param semanticType The semantic type or empty string. 
+	 * @param semanticType The semantic type or empty string.
 	 * @return A List of NamedSets whose types matched.
-	 */	
+	 */
 	public List<NamedSet> do_get_sets_by_semantic_type(String semanticType) {
 		return this.do_get_sets_by_type_info("", "", semanticType);
 	}
 
 	/**
 	 * Get the NamedSets that are children of this set whose semantic type matches the passed in parameters with "" as a wild card. If this set has no
-	 * children then check to see if it matches this type and return it if it does.  Doesn't go to the server. If you think there have been 
+	 * children then check to see if it matches this type and return it if it does.  Doesn't go to the server. If you think there have been
 	 * new children added you can call getChildrenFromServer() first.
-	 * @param semanticType The semantic type or empty string. 
+	 * @param semanticType The semantic type or empty string.
 	 * @param label The type label or empty string.
 	 * @return A List of NamedSets whose types matched.
 	 */
@@ -1558,14 +1581,14 @@ public class NamedSet{
 
 	/**
 	 * Get the NamedSets that are children of this set whose type matches the passed in parameters with "" as a wild card. If this set has no
-	 * children then check to see if it matches this type and return it if it does. Doesn't go to the server. If you think there have been 
+	 * children then check to see if it matches this type and return it if it does. Doesn't go to the server. If you think there have been
 	 * new children added you can call getChildrenFromServer() first.
-	 * @param typeID The type id or empty string. 
+	 * @param typeID The type id or empty string.
 	 * @param label The type label or empty string.
 	 * @param semanticType The semantic type or empty string.
 	 * @return A List of NamedSets whose types match the passed in parameters.
 	 */
-	private List<NamedSet> do_get_sets_by_type_info(String typeID, String label, String semanticType) {		
+	private List<NamedSet> do_get_sets_by_type_info(String typeID, String label, String semanticType) {
 		// NOTE: it makes no sense to specify both typeID and anything else because the type id includes the label and semantic type
 		List<NamedSet> matches = new ArrayList<NamedSet>();
 		if(!this.getType().isParent()) {
@@ -1576,7 +1599,7 @@ public class NamedSet{
 				matches.add(this);
 			}
 		} else {
-			Collection<NamedSet> children = this.getChildren();			
+			Collection<NamedSet> children = this.getChildren();
 			for(NamedSet child : children) {
 				Type childType = child.getType();
 				if((typeID.equals("") || childType.getID().equals(typeID)) &&
@@ -1591,8 +1614,8 @@ public class NamedSet{
 	}
 
 	/**
-	 * Perform a histogram calculation on time for this set with the interval given.  The interval is used to produce bins of that size and 
-	 * we return a count of the number of objects within those bins.  The first bin is the multiplicity of the set min time.  	
+	 * Perform a histogram calculation on time for this set with the interval given.  The interval is used to produce bins of that size and
+	 * we return a count of the number of objects within those bins.  The first bin is the multiplicity of the set min time.
 	 * @param interval The interval (bin length)
 	 * @return histogram_response
 	 * @throws GPUdbException
@@ -1609,7 +1632,7 @@ public class NamedSet{
 	public void do_update_ttl(int ttl) {
 		this.gPUdb.do_update_ttl(this.id, ttl);
 	}
-	
+
 	/**
 	 * Find the unique values of a specified attribute
 	 * @param attribute - attribute of the set for which unique values are sought
@@ -1617,7 +1640,7 @@ public class NamedSet{
 	public unique_response do_unique(String attribute) {
 		return this.gPUdb.do_unique(this, attribute, GPUdbApiUtil.getEmptyParams());
 	}
-	
+
 	/**
 	 * Find the unique values of a specified attribute
 	 * @param attribute - attribute of the set for which unique values are sought
@@ -1628,14 +1651,14 @@ public class NamedSet{
 	}
 
 	/**
-	 * Return back a set of joined duos of tracks.  Find pairs of tracks that are in the same area (defined by the distance) at the same time 
+	 * Return back a set of joined duos of tracks.  Find pairs of tracks that are in the same area (defined by the distance) at the same time
 	 * (defined by the time threshold).
 	 * @param distance The distance.
 	 * @param time_threshold The time.
 	 * @return A NamedSet that is the result of the join.
 	 */
 	public NamedSet do_dynamic_duo(double distance, double time_threshold) {
-		NamedSet childTrack = null; // the set with Track data		
+		NamedSet childTrack = null; // the set with Track data
 		if(this.type.isParent()) {
 			// find the child who is of type track
 			Iterator iter = this.typeToChildren.entrySet().iterator();
@@ -1666,20 +1689,20 @@ public class NamedSet{
 	public spatial_set_query_response do_spatial_set_query(CharSequence wkt_attr_name, CharSequence wkt_string, SpatialOperationEnum operation) {
 		return this.gPUdb.do_spatial_set_query(Arrays.asList(this.id), wkt_attr_name, wkt_string, operation);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param attribute
 	 * @param lowest
 	 * @param highest
 	 * @param grouping_attribute
-	 * @return register_trigger_range_response 
+	 * @return register_trigger_range_response
 	 * @throws GPUdbException
 	 */
 	public register_trigger_range_response do_register_trigger(String attribute, double lowest, double highest, String grouping_attribute) throws GPUdbException{
 		return gPUdb.do_register_trigger(this.id, attribute, lowest, highest, grouping_attribute);
 	}
-	
+
 	/**
 	 * Helper API to get the bounding box of a set. Assumes that set data has x and y attributes.
 	 * @return Rectangle2D
@@ -1687,10 +1710,10 @@ public class NamedSet{
 	public Rectangle2D getBoundingBox() {
 		max_min_response xresp = gPUdb.do_max_min(this,"x");
 		max_min_response yresp = gPUdb.do_max_min(this,"y");
-		return new Rectangle2D.Double(xresp.getMin(), yresp.getMin(), xresp.getMax() - xresp.getMin(), 
+		return new Rectangle2D.Double(xresp.getMin(), yresp.getMin(), xresp.getMax() - xresp.getMin(),
 				yresp.getMax() - yresp.getMin());
 	}
-	
+
 	/**
 	 * Get the set id
 	 * @return SetId The id/guid for this named set.
@@ -1711,8 +1734,8 @@ public class NamedSet{
 
 	/**
 	 * Build the named set NOTE: don't use this; construct from a gpudb object.
-	 */	
+	 */
 	public NamedSet(SetId id, GPUdb gPUdb, Type type) {
 		initialize(id, gPUdb, type);
-	}	
+	}
 }

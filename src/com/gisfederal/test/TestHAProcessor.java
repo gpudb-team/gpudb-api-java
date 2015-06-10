@@ -1,7 +1,5 @@
 package com.gisfederal.test;
 
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,13 +18,15 @@ import com.gisfederal.SetId;
 import com.gisfederal.Type;
 
 public class TestHAProcessor {
-	
+
+	private static int NUM_THREADS = 1;
+
 	public static void main(String[] args) throws Exception {
-		
+
 		System.out.println("Building gpudb for cleaning GPUDB ");
-		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.27:9190");
-		GPUdb gPUdb = new GPUdb(gpudbURL, "", "admin", "changme");
-		
+		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.27:9191");
+		GPUdb gPUdb = new GPUdb(gpudbURL, "", "", "");
+
 		try {
 			gPUdb.do_clear();
 		} catch (Exception e) {
@@ -34,8 +34,8 @@ public class TestHAProcessor {
 		}
 
 		ExecutorService executor = null;
-		executor = Executors.newFixedThreadPool(5);
-		for (int ii = 0; ii < 5; ii++) {
+		executor = Executors.newFixedThreadPool(10);
+		for (int ii = 0; ii < NUM_THREADS; ii++) {
             Runnable worker = new TestUpdateDeleteHA(ii);
             executor.execute(worker);
         }
@@ -45,54 +45,62 @@ public class TestHAProcessor {
 }
 
 class TestUpdateDeleteHA implements Runnable {
-	
-	private GPUdb gPUdb;
-	private Type type;
+
+	private final GPUdb gPUdb;
+	private final Type type;
 	private NamedSet ns;
 	final int id;
-	
-	final int CNT = 10000;
-	
+
+	final int CNT = 500000;
+
 	public static final Log logger = LogFactory.getLog(TestUpdateDeleteHA.class);
 
 	public TestUpdateDeleteHA(int id) {
 		this.id = id;
 		// Code executed before the first test method
 		System.out.println("Building gpudb for thread id " + id);
-		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.27:9190");
+		String gpudbURL = System.getProperty("GPUDB_URL", "http://172.30.20.27:9191");
 		gPUdb = new GPUdb(gpudbURL, "", "admin", "changeme");
 		System.out.println("Built gpudb for thread id " + id);
 		type = gPUdb.create_type(BigPoint.class);
-		ns = gPUdb.newSingleNamedSet(new SetId("HASETC"+id), type);
+		try {
+			ns = gPUdb.newSingleNamedSet(new SetId("HASETC"+id), type);
+		} catch( Exception e) {
+			System.out.println(" Set probably already present....");
+			ns = gPUdb.getNamedSet(new SetId("HASETC"+id), type);
+		}
 	}
 
+	@Override
 	public void run() {
-		
+
 		addData();
-		
+
 		System.out.println("Data added.....");
-		
+
+		/*
 		try {
 			Thread.sleep(10000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		updateDeleteData();
+		*/
 		System.out.println("All shenanigans completed....");
 	}
 
 	private void updateDeleteData() {
-		
+
 		for( int ii = 0; ii < CNT; ) {
 			String select = "(x == " + ii + ") AND (y == " + ii + ")";
 			long count = gPUdb.do_select_delete(ns, select);
 			ii += 2;
 		}
-		
+
 		for( int ii = 1; ii < CNT; ) {
-			
+
 			Map<CharSequence,CharSequence> data = new HashMap<CharSequence,CharSequence>();
 			data.put("x", "222222");
 			data.put("y", "333333");
@@ -113,9 +121,9 @@ class TestUpdateDeleteHA implements Runnable {
 		for( int ii=0; ii<CNT; ii++ ) {
 			BigPoint p = new BigPoint(UUID.randomUUID().toString(),  "MSGID"+ii, x, y, ii, "SRC"+ii, "GROUP"+ii);
 			list.add(p);
-			if( list.size() >= 5000 ) {
+			if( list.size() >= 50 ) {
 				ns.add_list(list);
-				list.clear();	
+				list.clear();
 			}
 			x++;
 			y++;
@@ -123,6 +131,6 @@ class TestUpdateDeleteHA implements Runnable {
 		if( list.size() > 0 ) {
 			ns.add_list(list);
 		}
-		assertTrue(ns.size() == CNT);
+		//assertTrue(ns.size() == CNT);
 	}
-} 
+}

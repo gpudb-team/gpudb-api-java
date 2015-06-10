@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.gisfederal.gpudb</groupId>
   <artifactId>gpudb-client</artifactId>
-  <version>4.0.24</version>  
+  <version>4.0.29</version>  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -34,7 +34,7 @@
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
-      <version>1.7.2</version>
+      <version>1.7.7</version>
     </dependency>
 
     <dependency>
@@ -124,7 +124,8 @@
                                 <shadedPattern>com.gisfederal.avro</shadedPattern>
                             </relocation>
                         </relocations>
-                        <shadedArtifactAttached>false</shadedArtifactAttached>
+                        <shadedArtifactAttached>true</shadedArtifactAttached>
+                        <shadedClassifierName>avroshaded</shadedClassifierName>
                     </configuration>
                 </execution>
             </executions>

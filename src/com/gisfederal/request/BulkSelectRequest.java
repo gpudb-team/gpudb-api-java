@@ -34,7 +34,7 @@ public class BulkSelectRequest extends Request {
 		// Create log msg for audit
 		createAuditMsg(request);
 		
-		this.log.info(" BulkSelectRequest ... done creating request....");
+		this.log.debug(" BulkSelectRequest ... done creating request....");
 	}
 	
 	private void createAuditMsg(bulk_select_request request) {
